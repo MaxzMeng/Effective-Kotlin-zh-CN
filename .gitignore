@@ -1,0 +1,5 @@
+.gitignore
+.idea
+node_modules
+_book
+.DS_Store
