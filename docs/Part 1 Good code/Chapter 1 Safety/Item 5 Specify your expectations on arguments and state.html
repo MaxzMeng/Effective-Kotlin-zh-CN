@@ -1136,7 +1136,200 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-5-specify-your-expectations-on-arguments-and-state">Item 5: Specify your expectations on arguments and state</h2>
+<p>When you have expectations, declare them as soon as possible. We do that in Kotlin mainly using:</p>
+<ul>
+<li><code>require</code> block - a universal way to specify expectations on arguments.</li>
+<li><code>check</code> block - a universal way to specify expectations on the state.</li>
+<li><code>assert</code> block - a universal way to check if something is true. Such checks on the JVM will be evaluated only on the testing mode.</li>
+<li>Elvis operator with <code>return</code> or <code>throw</code>.</li>
+</ul>
+<p>Here is an example using those mechanisms:</p>
+<pre><code class="lang-kotlin"><span class="hljs-comment">// Part of Stack&lt;T&gt;</span>
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">pop</span><span class="hljs-params">(num: <span class="hljs-type">Int</span> = 1)</span>: List<span class="hljs-type">&lt;T&gt;</span> {</span>
+   require(num <span class="hljs-type">&lt;= size) { 
+       &quot;Cannot remove more elements than current size&quot;
+   }
+   check(isOpen) { &quot;Cannot pop from closed stack&quot; }
+   val ret = collection.take(num)
+   collection = collection.drop(num)
+   assert(ret.size == num)
+   return ret
+}
+</span></code></pre>
+<p>Specifying experiences this way does not free us from the necessity to specify those expectations in the documentation, but it is really helpful anyway. Such declarative checks have many advantages:</p>
+<ul>
+<li>Expectations are visible even to those programmers who are not reading the documentation.</li>
+<li>If they are not satisfied, the function throws an exception instead of leading to unexpected behavior. It is important that these exceptions are thrown before the state is modified and so we will not have a situation where only some modifications are applied and others are not. Such situations are dangerous and hard to manage<a href="chap65.xhtml#fn-pokemon">4</a>. Thanks to assertive checks, errors are harder to miss and our state is more stable.</li>
+<li>Code is to some degree self-checking. There is less of a need to be unit-tested when these conditions are checked in the code.</li>
+<li>All checks listed above work with smart-casting, so thanks to them there is less casting required.</li>
+</ul>
+<p>Let&#x2019;s talk about different kinds of checks, and why we need them. Starting from the most popular one: the arguments check.</p>
+<h3 id="arguments">Arguments</h3>
+<p>When you define a function with arguments, it is not uncommon to have some expectations on those arguments that cannot be expressed using the type system. Just take a look at a few examples:</p>
+<ul>
+<li>When you calculate the factorial of a number, you might require this number to be a positive integer.</li>
+<li>When you look for clusters, you might require a list of points to not be empty.</li>
+<li>When you send an email to a user you might require that user to have an email, and this value to be a correct email address (assuming that user should check email correctness before using this function).</li>
+</ul>
+<p>The most universal and direct Kotlin way to state those requirements is using the <code>require</code> function that checks this requirement and throws an exception if it is not satisfied:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">factorial</span><span class="hljs-params">(n: <span class="hljs-type">Int</span>)</span>: <span class="hljs-keyword">Long</span> {</span>
+   require(n &gt;= <span class="hljs-number">0</span>)
+   <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span> (n <span class="hljs-type">&lt;= 1) 1 else factorial(n - 1) * n
+}
+
+fun findClusters(points: List&lt;Point&gt;</span>): List<span class="hljs-type">&lt;Cluster&gt;</span> {
+   require(points.isNotEmpty())
+   <span class="hljs-comment">//...</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">sendEmail</span><span class="hljs-params">(user: <span class="hljs-type">User, message: String</span>)</span> {</span>
+   requireNotNull(user.email)
+   require(isValidEmail(user.email))
+   <span class="hljs-comment">//...</span>
+}
+</code></pre>
+<p>Notice that these requirements are highly visible thanks to the fact they are declared at the very beginning of the functions. This makes them clear for the user reading those functions (though the requirements should be stated in documentation as well because not everyone reads function bodies).</p>
+<p>Those expectations cannot be ignored, because the <code>require</code> function throws an
+<code>IllegalArgumentException</code> when the predicate is not satisfied. When such a block is placed at the beginning of the function we know that if an argument is incorrect, the function will stop immediately and the user won&#x2019;t miss it. The exception will be clear in opposition to the potentially strange result that might propagate far until it fails. In other words, when we properly specify our expectations on arguments at the beginning of the function, we can then assume that those expectations will be satisfied.</p>
+<p>We can also specify a lazy message for this exception in a lambda expression after the call:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">factorial</span><span class="hljs-params">(n: <span class="hljs-type">Int</span>)</span>: <span class="hljs-keyword">Long</span> {</span>
+   require(n &gt;= <span class="hljs-number">0</span>) { <span class="hljs-string">&quot;Cannot calculate factorial of $n &quot;</span> +
+<span class="hljs-string">&quot;because it is smaller than 0&quot;</span> }
+   <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span> (n <span class="hljs-type">&lt;= 1) 1 else factorial(n - 1) * n
+}
+</span></code></pre>
+<p>The <code>require</code> function is used when we specify requirements on arguments.</p>
+<p>Another common case is when we have expectations on the current state, and in such a case, we can use the <code>check</code> function instead.</p>
+<h3 id="state">State</h3>
+<p>It is not uncommon that we only allow using some functions in concrete conditions. A few common examples:</p>
+<ul>
+<li>Some functions might need an object to be initialized first.</li>
+<li>Actions might be allowed only if the user is logged in.</li>
+<li>Functions might require an object to be open.</li>
+</ul>
+<p>The standard way to check if those expectations on the state are satisfied is to use the <code>check</code> function:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">speak</span><span class="hljs-params">(text: <span class="hljs-type">String</span>)</span> {</span>
+   check(isInitialized)
+   <span class="hljs-comment">//...</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">getUserInfo</span><span class="hljs-params">()</span>: UserInfo {</span>
+   checkNotNull(token)
+   <span class="hljs-comment">//...</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">next</span><span class="hljs-params">()</span>: T {</span>
+   check(isOpen)
+   <span class="hljs-comment">//...</span>
+}
+</code></pre>
+<p>The <code>check</code> function works similarly to <code>require</code>, but it throws an <code>IllegalStateException</code> when the stated expectation is not met. It checks if a state is correct. The exception message can be customized using a lazy message, just like with <code>require</code>. When the expectation is on the whole function, we place it at the beginning, generally after the <code>require</code> blocks. Although some state expectations are local, and <code>check</code> can be used later.</p>
+<p>We use such checks especially when we suspect that a user might break our contract and call the function when it should not be called. Instead of trusting that they won&#x2019;t do that, it is better to check and throw an appropriate exception. We might also use it when we do not trust that our own implementation handles the state correctly. Although for such cases, when we are checking mainly for the sake of testing our own implementation, we have another function called <code>assert</code>.</p>
+<h3 id="assertions">Assertions</h3>
+<p>There are things we know to be true when a function is implemented correctly. For instance, when a function is asked to return 10 elements we might expect that it will return 10 elements. This is something we expect to be true, but it doesn&#x2019;t mean we are always right. We all make mistakes. Maybe we made a mistake in the implementation. Maybe someone changed a function we used and our function does not work properly anymore. Maybe our function does not work correctly anymore because it was refactored. For all those problems the most universal solution is that we should write unit tests that check if our expectations match reality:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">StackTest</span> </span>{
+
+   @Test
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> `Stack pops correct number of elements`<span class="hljs-params">()</span> {</span>
+       <span class="hljs-variable"><span class="hljs-keyword">val</span> stack</span> = Stack(<span class="hljs-number">20</span>) { it }
+       <span class="hljs-variable"><span class="hljs-keyword">val</span> ret</span> = stack.pop(<span class="hljs-number">10</span>)
+       assertEquals(<span class="hljs-number">10</span>, ret.size)
+   }
+
+   <span class="hljs-comment">//...</span>
+}
+</code></pre>
+<p>Unit tests should be our most basic way to check implementation correctness but notice here that the fact that popped list size matches the desired one is rather universal to this function. It would be useful to add such a check in nearly every <code>pop</code> call. Having only a single check for this single use is rather naive because there might be some edge-cases. A better solution is to include the assertion in the function:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">pop</span><span class="hljs-params">(num: <span class="hljs-type">Int</span> = 1)</span>: List<span class="hljs-type">&lt;T&gt;</span> {</span>
+   <span class="hljs-comment">//...</span>
+   assert(ret.size == num)
+   <span class="hljs-keyword">return</span> ret
+}
+</code></pre>
+<p>Such conditions are currently enabled only in Kotlin/JVM, and they are not checked unless they are enabled using the <code>-ea</code> JVM option. We should rather treat them as part of unit tests - they check if our code works as expected. By default, they are not throwing any errors in production. They are enabled by default only when we run tests. This is generally desired because if we made an error, we might rather hope that the user won&#x2019;t notice. If this is a serious error that is probable and might have significant consequences, use <code>check</code> instead. The main advantages of having <code>assert</code> checks in functions instead of in unit tests are:</p>
+<ul>
+<li>Assertions make code self-checking and lead to more effective testing.</li>
+<li>Expectations are checked for every real use-case instead of for concrete cases.</li>
+<li>We can use them to check something at the exact point of execution.</li>
+<li>We make code fail early, closer to the actual problem. Thanks to that we can also easily find where and when the unexpected behavior started.</li>
+</ul>
+<p>Just remember that for them to be used, we still need to write unit tests. In a standard application run, <code>assert</code> will not throw any exceptions.</p>
+<p>Such assertions are a common practice in Python. Not so much in Java. In Kotlin feel free to use them to make your code more reliable.</p>
+<h3 id="nullability-and-smart-casting">Nullability and smart casting</h3>
+<p>Both <code>require</code> and <code>check</code> have Kotlin contracts that state that when the function returns, its predicate is true after this check.</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">public</span> <span class="hljs-keyword">inline</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">require</span><span class="hljs-params">(value: <span class="hljs-type">Boolean</span>)</span>: <span class="hljs-keyword">Unit</span> {</span>
+   contract {
+       returns() implies value
+   }
+   require(value) { <span class="hljs-string">&quot;Failed requirement.&quot;</span> }
+}
+</code></pre>
+<p>Everything that is checked in those blocks will be treated as true later in the same function. This works well with smart casting because once we check if something is true, the compiler will treat it so. In the below example we require a person&#x2019;s outfit to be a <code>Dress</code>. After that, assuming that the outfit property is final, it will be smart cast to <code>Dress</code>.</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">changeDress</span><span class="hljs-params">(person: <span class="hljs-type">Person</span>)</span> {</span>
+   require(person.outfit <span class="hljs-keyword">is</span> Dress)
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> dress</span>: Dress = person.outfit
+   <span class="hljs-comment">//...</span>
+}
+</code></pre>
+<p>This characteristic is especially useful when we check if something is null:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Person</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> email</span>: String?)
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">sendEmail</span><span class="hljs-params">(person: <span class="hljs-type">Person, message: String</span>)</span> {</span>
+   require(person.email != <span class="hljs-literal">null</span>)
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> email</span>: String = person.email
+   <span class="hljs-comment">//...</span>
+}
+</code></pre>
+<p>For such cases, we even have special functions: <code>requireNotNull</code> and <code>checkNotNull</code>. They both have the capability to smart cast variables, and they can also be used as expressions to &#x201C;unpack&#x201D; it:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Person</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> email</span>: String?)
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">validateEmail</span><span class="hljs-params">(email: <span class="hljs-type">String</span>)</span> { <span class="hljs-comment">/*...*/</span> }</span>
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">sendEmail</span><span class="hljs-params">(person: <span class="hljs-type">Person, text: String</span>)</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> email</span> = requireNotNull(person.email)
+   validateEmail(email)
+   <span class="hljs-comment">//...</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">sendEmail</span><span class="hljs-params">(person: <span class="hljs-type">Person, text: String</span>)</span> {</span>
+   requireNotNull(person.email)
+   validateEmail(person.email)
+   <span class="hljs-comment">//...</span>
+}
+</code></pre>
+<p>For nullability, it is also popular to use the Elvis operator with <code>throw</code> or <code>return</code> on the right side. Such a structure is also highly readable and at the same time, it gives us more flexibility in deciding what behavior we want to achieve. First of all, we can easily stop a function using <code>return</code> instead of throwing an error:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">sendEmail</span><span class="hljs-params">(person: <span class="hljs-type">Person, text: String</span>)</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> email</span>: String = person.email ?: <span class="hljs-keyword">return</span>
+   <span class="hljs-comment">//...</span>
+}
+</code></pre>
+<p>If we need to make more than one action if a property is incorrectly <code>null</code>, we can always add them by wrapping <code>return</code> or <code>throw</code> into the <code>run</code> function. Such a capability might be useful if we would need to log why the function was stopped:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">sendEmail</span><span class="hljs-params">(person: <span class="hljs-type">Person, text: String</span>)</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> email</span>: String = person.email ?: run {
+       log(<span class="hljs-string">&quot;Email not sent, no email address&quot;</span>)
+       <span class="hljs-keyword">return</span>
+   }
+   <span class="hljs-comment">//...</span>
+}
+</code></pre>
+<p>The Elvis operator with <code>return</code> or <code>throw</code> is a popular and idiomatic way to specify what should happen in case of variable nullability and we should not hesitate to use it. Again, if it is possible, keep such checks at the beginning of the function to make them visible and clear.</p>
+<h3 id="summary">Summary</h3>
+<p>Specify your expectations to:</p>
+<ul>
+<li>Make them more visible.</li>
+<li>Protect your application stability.</li>
+<li>Protect your code correctness.</li>
+<li>Smart cast variables.</li>
+</ul>
+<p>Four main mechanisms we use for that are:</p>
+<ul>
+<li><code>require</code> block - a universal way to specify expectations on arguments.</li>
+<li><code>check</code> block - a universal way to specify expectations on the state.</li>
+<li><code>assert</code> block - a universal way to test in testing mode if something is true.</li>
+<li>Elvis operator with <code>return</code> or <code>throw</code>.</li>
+</ul>
+<p>You might also use <code>throw</code> to throw a different error.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1372,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 5 Specify Your Expectations On Arguments And State","level":"1.2.1.6","depth":3,"next":{"title":"Item 6 Prefer Standard Errors To Custom Ones","level":"1.2.1.7","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 6 Prefer standard errors to custom ones.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 6 Prefer standard errors to custom ones.md","articles":[]},"previous":{"title":"Item 4 Do Not Expose Inferred Types","level":"1.2.1.5","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 4 Do not expose inferred types.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 4 Do not expose inferred types.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 1 Good code/Chapter 1 Safety/Item 5 Specify your expectations on arguments and state.md","mtime":"2021-11-24T18:07:47.327Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-24T18:08:20.164Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 5 Specify Your Expectations On Arguments And State","level":"1.2.1.6","depth":3,"next":{"title":"Item 6 Prefer Standard Errors To Custom Ones","level":"1.2.1.7","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 6 Prefer standard errors to custom ones.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 6 Prefer standard errors to custom ones.md","articles":[]},"previous":{"title":"Item 4 Do Not Expose Inferred Types","level":"1.2.1.5","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 4 Do not expose inferred types.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 4 Do not expose inferred types.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 1 Good code/Chapter 1 Safety/Item 5 Specify your expectations on arguments and state.md","mtime":"2021-11-24T18:16:41.320Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-24T18:17:28.648Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
