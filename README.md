@@ -15,7 +15,7 @@ Effective Kotlin 中文翻译
         - [x] [Item 4 Do Not Expose Inferred Types](Part 1 Good code/Chapter 1 Safety/Item 4 Do not expose inferred types.md)
         - [x] [Item 5 Specify Your Expectations On Arguments And State](Part 1 Good code/Chapter 1 Safety/Item 5 Specify your expectations on arguments and state.md)
         - [x] [Item 6 Prefer Standard Errors To Custom Ones](Part 1 Good code/Chapter 1 Safety/Item 6 Prefer standard errors to custom ones.md)
-        - [ ] [Item 7 Prefer Null Or Failure Result When The Lack Of Result Is Possible](Part 1 Good code/Chapter 1 Safety/Item 7 Prefer null or Failure result when the lack of result is possible.md)
+        - [x] [Item 7 Prefer Null Or Failure Result When The Lack Of Result Is Possible](Part 1 Good code/Chapter 1 Safety/Item 7 Prefer null or Failure result when the lack of result is possible.md)
         - [ ] [Item 8 Handle Nulls Properly](Part 1 Good code/Chapter 1 Safety/Item 8 Handle nulls properly.md)
         - [ ] [Item 9 Close Resources With Use](Part 1 Good code/Chapter 1 Safety/Item 9 Close resources with use.md)
         - [ ] [Item 10 Write Unit Tests](Part 1 Good code/Chapter 1 Safety/Item 10 Write unit tests.md)
