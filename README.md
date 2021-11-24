@@ -11,7 +11,7 @@ Effective Kotlin 中文翻译
         - [x] [Introduction](Part 1 Good code/Chapter 1 Safety/Introduction.md)
         - [x] [Item 1 Limit Mutability](Part 1 Good code/Chapter 1 Safety/Item 1 Limit mutability.md)
         - [x] [Item 2 Minimize The Scope Of Variables](Part 1 Good code/Chapter 1 Safety/Item 2 Minimize the scope of variables.md)
-        - [ ] [Item 3 Eliminate Platform Types As Soon As Possible](Part 1 Good code/Chapter 1 Safety/Item 3 Eliminate platform types as soon as possible.md)
+        - [x] [Item 3 Eliminate Platform Types As Soon As Possible](Part 1 Good code/Chapter 1 Safety/Item 3 Eliminate platform types as soon as possible.md)
         - [ ] [Item 4 Do Not Expose Inferred Types](Part 1 Good code/Chapter 1 Safety/Item 4 Do not expose inferred types.md)
         - [ ] [Item 5 Specify Your Expectations On Arguments And State](Part 1 Good code/Chapter 1 Safety/Item 5 Specify your expectations on arguments and state.md)
         - [ ] [Item 6 Prefer Standard Errors To Custom Ones](Part 1 Good code/Chapter 1 Safety/Item 6 Prefer standard errors to custom ones.md)
