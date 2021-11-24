@@ -1,0 +1,41 @@
+name: auto-generate-gitbook
+on:                                  
+  push:
+    branches:
+    - main
+
+jobs:
+  main-to-gh-pages:
+    runs-on: ubuntu-latest
+        
+    steps:                          
+    - name: checkout main
+      uses: actions/checkout@v2
+      with:
+        ref: main
+            
+    - name: install nodejs
+      uses: actions/setup-node@v1
+      
+    - name: configue gitbook
+      run: |
+        npm install -g gitbook-cli          
+        gitbook install
+                
+    - name: build book
+      run: |
+        gitbook build . docs
+                
+    - name: publish book
+      env:
+        TOKEN: ${{ secrets.TOKEN }}
+        REF: github.com/${{github.repository}}
+        MYEMAIL: MaxzMeng@gmail.com
+        MYNAME: ${{github.repository_owner}}          
+      run: |
+        git config --global user.email "${MYEMAIL}"
+        git config --global user.name "${MYNAME}"
+        git init
+        git add . 
+        git commit -m "Updated By Github Actions With Build ${{github.run_number}} of ${{github.workflow}} For Github Pages"
+        git push

@@ -1136,7 +1136,153 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <p>The null-safety introduced by Kotlin is amazing. Java was known in the community from Null-Pointer Exceptions (NPE), and Kotlin&#x2019;s safety mechanisms make them rare or eliminate them entirely. Although one thing that cannot be secured completely is a connection between a language that does not have solid null-safety - like Java or C - and Kotlin. Imagine that we use a Java method that declares String as a return type. What type should it be in Kotlin?</p>
+<p>If it is annotated with the @Nullable annotation then we assume that it is nullable and we interpret it as a String?. If it is annotated with @NotNull then we trust this annotation and we type it as String. Though, what if this return type is not annotated with either of those annotations?</p>
+<pre><code class="lang-java"><span class="hljs-comment">// Java </span>
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">JavaTest</span> </span>{
+    <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">giveName</span><span class="hljs-params">()</span> </span>{ 
+          <span class="hljs-comment">// ...</span>
+    }
+}
+</code></pre>
+<p>We might say that then we should treat such a type as nullable. This would be a safe approach since in Java everything is nullable. However, we often know that something is not null so we would end up using the not-null assertion !! in many places all around our code.</p>
+<p>The real problem would be when we would need to take generic types from Java. Imagine that a Java API returns a List<user> that is not annotated at all. If Kotlin would assume nullable types by default, and we would know that this list and those users are not null, we would need to not only assert the whole list but also filter nulls:</user></p>
+<pre><code class="lang-java"><span class="hljs-comment">// Java </span>
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UserRepo</span> </span>{
+        <span class="hljs-function"><span class="hljs-keyword">public</span> List&lt;User&gt; <span class="hljs-title">getUsers</span><span class="hljs-params">()</span> </span>{ 
+          <span class="hljs-comment">//*** </span>
+    }
+}
+
+<span class="hljs-comment">// Kotlin </span>
+val users: List&lt;User&gt; = UserRepo().users!!.filterNotNull()
+</code></pre>
+<p>What if a function would return a List<list<user>&gt; instead?</list<user></p>
+<p>Gets complicated:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> users</span>: List<span class="hljs-type">&lt;List&lt;User&gt;</span>&gt; = UserRepo().groupedUsers!!.map { it!!.filterNotNull() }
+</code></pre>
+<p>Lists at least have functions like map and filterNotNull. In other</p>
+<p>generic types, nullability would be an even bigger problem. This is why instead of being treated as nullable by default, a type that comes from Java and has unknown nullability is a special type in Kotlin. It is called a platform type.</p>
+<p>Platform type - a type that comes from another language and has unknown nullability.</p>
+<p>Platform types are notated with a single exclamation mark ! after the type name, such as String!. Though this notation cannot be used in a code. Platform types are non-denotable, meaning that one cannot write them down explicitly in the language. When a platform value is assigned to a Kotlin variable or property, it can be inferred but it cannot be explicitly set. Instead, we can choose the type that we expect: Either a nullable or a non-null type.</p>
+<pre><code class="lang-kotlin"><span class="hljs-comment">// Java </span>
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UserRepo</span> </span>{
+    <span class="hljs-keyword">public</span> User getUser() {
+            <span class="hljs-comment">//...</span>
+    } 
+}
+
+<span class="hljs-comment">// Kotlin </span>
+<span class="hljs-variable"><span class="hljs-keyword">val</span> repo</span> = UserRepo() 
+<span class="hljs-variable"><span class="hljs-keyword">val</span> user1</span> = repo.user <span class="hljs-comment">// Type of user1 is User! </span>
+<span class="hljs-variable"><span class="hljs-keyword">val</span> user2</span>: User = repo.user <span class="hljs-comment">// Type of user2 is User </span>
+<span class="hljs-variable"><span class="hljs-keyword">val</span> user3</span>: User? = repo.user <span class="hljs-comment">// Type of user3 is User?</span>
+</code></pre>
+<p>Thanks to this fact, getting generic types from Java is not problematic:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> users</span>: List<span class="hljs-type">&lt;User&gt;</span> = UserRepo().users 
+<span class="hljs-variable"><span class="hljs-keyword">val</span> users</span>: List<span class="hljs-type">&lt;List&lt;User&gt;</span>&gt; = UserRepo().groupedUsers
+</code></pre>
+<p>The problem is that is still dangerous because something we assumed to be not-null might be null. This is why for safety reasons I always suggest to be very conscientious of when we get platform types from Java. Remember that even if a function does not return null now, that doesn&#x2019;t mean that it won&#x2019;t change in the future. If its designer hasn&#x2019;t specified it by an annotation or by describing it in a comment, they can introduce this behavior without changing any contract.</p>
+<p>If you have some control over Java code that needs to interoperate with Kotlin, introduce @Nullable and @NotNull annotations wherever possible.</p>
+<pre><code class="lang-java"><span class="hljs-comment">// Java </span>
+<span class="hljs-keyword">import</span> org.jetbrains.annotations.NotNull; 
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UserRepo</span> </span>{
+        <span class="hljs-keyword">public</span> <span class="hljs-meta">@NotNull</span> <span class="hljs-function">User <span class="hljs-title">getUser</span><span class="hljs-params">()</span> </span>{
+                <span class="hljs-comment">//...</span>
+    } 
+}
+</code></pre>
+<p>This is one of the most important steps when we want to support Kotlin developers well (and it&#x2019;s also important information for Java developers). Annotating many exposed types was one of the most important changes that were introduced into the Android API after Kotlin became a first-class citizen. This made the Android API much more Kotlin-friendly.</p>
+<p>Note that many different kinds of annotations are supported, including those by:</p>
+<ul>
+<li><p>JetBrains (@Nullable and @NotNull from org.jetbrains.annotations)</p>
+</li>
+<li><p>Android (@Nullable and @NonNull from androidx.annotation as well as from com.android.annotations and from the support library android.support.annotations)</p>
+</li>
+<li><p>JSR-305 (@Nullable,@CheckForNull and @Nonnull from javax.annotation)</p>
+</li>
+<li><p>JavaX (@Nullable, @CheckForNull, @Nonnull from javax.annotation)</p>
+</li>
+<li><p>FindBugs (@Nullable, @CheckForNull, @PossiblyNull and @NonNull from edu.umd.cs.findbugs.annotations)</p>
+</li>
+<li><p>ReactiveX (@Nullable and @NonNull from io.reactivex.annotations)</p>
+</li>
+<li><p>Eclipse (@Nullable and @NonNull from org.eclipse.jdt.annotation)</p>
+</li>
+<li><p>Lombok (@NonNull from lombok)</p>
+</li>
+</ul>
+<p>Alternatively, you can specify in Java that all types should be Notnull by default using JSR 305&#x2019;s @ParametersAreNonnullByDefault annotation.</p>
+<p>There is something we can do in our Kotlin code as well. My recommendation for safety reasons is to eliminate these platform types as soon as possible. To understand why, think about the difference between how statedType and platformType functions behave in this example:</p>
+<pre><code class="lang-kotlin"><span class="hljs-comment">// Java </span>
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">JavaClass</span> </span>{
+        <span class="hljs-keyword">public</span> String getValue() {
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+    } 
+}
+
+<span class="hljs-comment">// Kotlin </span>
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">statedType</span><span class="hljs-params">()</span> {</span>
+
+        <span class="hljs-variable"><span class="hljs-keyword">val</span> value</span>: String = JavaClass().value
+
+        <span class="hljs-comment">//...</span>
+
+        println(value.length) 
+}
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">platformType</span><span class="hljs-params">()</span> { </span>
+      <span class="hljs-variable"><span class="hljs-keyword">val</span> value</span> = JavaClass().value 
+      <span class="hljs-comment">//...</span>
+      println(value.length) 
+}
+</code></pre>
+<p>In both cases, a developer assumed that getValue will not return null and he or she was wrong. This results in an NPE in both cases, but there&#x2019;s a difference in where that error happens.</p>
+<p>In statedType the NPE will be thrown in the same line where we get the value from Java. It would be absolutely clear that we wrongly assumed a not-null type and we got null. We would just need to change it and adjust the rest of our code to this change.</p>
+<p>In platformType the NPE will be thrown when we use this value as not-nullable. Possibly from a middle of some more complex expression. Variable typed as a platform type can be treated both as nullable and not-nullable. Such variable might be used few times safely, and then unsafely and throw NPE then. When we use such properties, typing system do not protect us. It is a similar situation as in Java, but in Koltin we do not expect that we might have NPE just from using an object. It is very likely that sooner or later someone will use it unsafely, and then we will end up with a runtime exception and its cause might be not so easy to find.</p>
+<pre><code class="lang-kotlin"><span class="hljs-comment">// Java </span>
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">JavaClass</span> </span>{
+        <span class="hljs-keyword">public</span> String getValue() {
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+    } 
+}
+
+<span class="hljs-comment">// Kotlin </span>
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">platformType</span><span class="hljs-params">()</span> {</span>
+        <span class="hljs-variable"><span class="hljs-keyword">val</span> value</span> = JavaClass().value
+        <span class="hljs-comment">//...</span>
+        println(value.length) <span class="hljs-comment">// NPE </span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">statedType</span><span class="hljs-params">()</span> { </span>
+      <span class="hljs-variable"><span class="hljs-keyword">val</span> value</span>: String = JavaClass().value <span class="hljs-comment">// NPE </span>
+      <span class="hljs-comment">//...</span>
+      println(value.length) 
+}
+</code></pre>
+<p>What is even more dangerous, platform type might be propagated further. For instance, we might expose a platform type as a part of our interface:</p>
+<pre><code class="lang-kotlin">interface UserRepo { 
+    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">getUserName</span><span class="hljs-params">()</span> = <span class="hljs-title">JavaClass</span><span class="hljs-params">()</span>.value </span>
+}
+</code></pre>
+<p>In this case, methods inferred type is a platform type. This means that anyone can still decide if it is nullable or not. One might choose to treat it as nullable in a definition site, and as a non-nullable in the use-site:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RepoImpl</span>: <span class="hljs-type">UserRepo {</span></span>
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">getUserName</span><span class="hljs-params">()</span>: String? {</span>
+       <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>
+   }
+}
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> repo</span>: UserRepo = RepoImpl()
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> text</span>: String = repo.getUserName() <span class="hljs-comment">// NPE in runtime</span>
+   print(<span class="hljs-string">&quot;User name length is ${text.length}&quot;</span>)
+}
+</code></pre>
+<p>Propagating a platform type is a recipe for disaster. They are problematic, and for safety reasons, we should always eliminate them as soon as possible. In this case, IDEA IntelliJ helps us with a warning:</p>
+<p><img src="../../assets/chapter1/chapter1-3.png" alt=""></p>
+<h4 id="summary">Summary</h4>
+<p>Types that come from another language and has unknown nullability are known as platform types. Since they are dangerous, we should eliminate them as soon as possible, and do not let them propagate. It is also good to specify types using annotations that specify nullability on exposed Java constructors, methods and fields. It is precious information both for Java and Kotlin developers using those elements.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1325,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 3 Eliminate Platform Types As Soon As Possible","level":"1.2.1.4","depth":3,"next":{"title":"Item 4 Do Not Expose Inferred Types","level":"1.2.1.5","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 4 Do not expose inferred types.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 4 Do not expose inferred types.md","articles":[]},"previous":{"title":"Item 2 Minimize The Scope Of Variables","level":"1.2.1.3","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 2 Minimize the scope of variables.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 2 Minimize the scope of variables.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 1 Good code/Chapter 1 Safety/Item 3 Eliminate platform types as soon as possible.md","mtime":"2021-11-24T14:43:43.766Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-24T14:53:26.437Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 3 Eliminate Platform Types As Soon As Possible","level":"1.2.1.4","depth":3,"next":{"title":"Item 4 Do Not Expose Inferred Types","level":"1.2.1.5","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 4 Do not expose inferred types.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 4 Do not expose inferred types.md","articles":[]},"previous":{"title":"Item 2 Minimize The Scope Of Variables","level":"1.2.1.3","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 2 Minimize the scope of variables.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 2 Minimize the scope of variables.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 1 Good code/Chapter 1 Safety/Item 3 Eliminate platform types as soon as possible.md","mtime":"2021-11-24T17:55:17.601Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-24T17:56:05.085Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
