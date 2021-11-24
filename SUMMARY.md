@@ -4,7 +4,6 @@
   - Chapter 1 Safety
     * [Introduction](Part 1 Good code/Chapter 1 Safety/Introduction.md)
     * [Item 1 Limit Mutability](Part 1 Good code/Chapter 1 Safety/Item 1 Limit mutability.md)
-    * [Item 10 Write Unit Tests](Part 1 Good code/Chapter 1 Safety/Item 10 Write unit tests.md)
     * [Item 2 Minimize The Scope Of Variables](Part 1 Good code/Chapter 1 Safety/Item 2 Minimize the scope of variables.md)
     * [Item 3 Eliminate Platform Types As Soon As Possible](Part 1 Good code/Chapter 1 Safety/Item 3 Eliminate platform types as soon as possible.md)
     * [Item 4 Do Not Expose Inferred Types](Part 1 Good code/Chapter 1 Safety/Item 4 Do not expose inferred types.md)
@@ -13,6 +12,7 @@
     * [Item 7 Prefer Null Or Failure Result When The Lack Of Result Is Possible](Part 1 Good code/Chapter 1 Safety/Item 7 Prefer null or Failure result when the lack of result is possible.md)
     * [Item 8 Handle Nulls Properly](Part 1 Good code/Chapter 1 Safety/Item 8 Handle nulls properly.md)
     * [Item 9 Close Resources With Use](Part 1 Good code/Chapter 1 Safety/Item 9 Close resources with use.md)
+    * [Item 10 Write Unit Tests](Part 1 Good code/Chapter 1 Safety/Item 10 Write unit tests.md)
   - Chapter 2 Readability
     * [Introduction](Part 1 Good code/Chapter 2 Readability/Introduction.md)
     * [Item 11 Design For Readability](Part 1 Good code/Chapter 2 Readability/Item 11 Design for readability.md)

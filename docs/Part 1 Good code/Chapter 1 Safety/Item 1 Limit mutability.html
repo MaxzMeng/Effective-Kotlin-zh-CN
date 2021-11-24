@@ -1,0 +1,1573 @@
+
+<!DOCTYPE HTML>
+<html lang="" >
+    <head>
+        <meta charset="UTF-8">
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <title>Item 1 Limit Mutability · GitBook</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 3.2.3">
+        
+        
+        
+    
+    <link rel="stylesheet" href="../../gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-highlight/website.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-search/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../../gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="../../gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    <link rel="next" href="Item 2 Minimize the scope of variables.html" />
+    
+    
+    <link rel="prev" href="Introduction.html" />
+    
+
+    </head>
+    <body>
+        
+<div class="book">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="../../">
+            
+                <a href="../../">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2" >
+            
+                <span>
+            
+                    
+                    Part 1 Good Code
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1" >
+            
+                <span>
+            
+                    
+                    Chapter 1 Safety
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.1" data-path="Introduction.html">
+            
+                <a href="Introduction.html">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter active" data-level="1.2.1.2" data-path="Item 1 Limit mutability.html">
+            
+                <a href="Item 1 Limit mutability.html">
+            
+                    
+                    Item 1 Limit Mutability
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.3" data-path="Item 2 Minimize the scope of variables.html">
+            
+                <a href="Item 2 Minimize the scope of variables.html">
+            
+                    
+                    Item 2 Minimize The Scope Of Variables
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.4" data-path="Item 3 Eliminate platform types as soon as possible.html">
+            
+                <a href="Item 3 Eliminate platform types as soon as possible.html">
+            
+                    
+                    Item 3 Eliminate Platform Types As Soon As Possible
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.5" data-path="Item 4 Do not expose inferred types.html">
+            
+                <a href="Item 4 Do not expose inferred types.html">
+            
+                    
+                    Item 4 Do Not Expose Inferred Types
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.6" data-path="Item 5 Specify your expectations on arguments and state.html">
+            
+                <a href="Item 5 Specify your expectations on arguments and state.html">
+            
+                    
+                    Item 5 Specify Your Expectations On Arguments And State
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.7" data-path="Item 6 Prefer standard errors to custom ones.html">
+            
+                <a href="Item 6 Prefer standard errors to custom ones.html">
+            
+                    
+                    Item 6 Prefer Standard Errors To Custom Ones
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.8" data-path="Item 7 Prefer null or Failure result when the lack of result is possible.html">
+            
+                <a href="Item 7 Prefer null or Failure result when the lack of result is possible.html">
+            
+                    
+                    Item 7 Prefer Null Or Failure Result When The Lack Of Result Is Possible
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.9" data-path="Item 8 Handle nulls properly.html">
+            
+                <a href="Item 8 Handle nulls properly.html">
+            
+                    
+                    Item 8 Handle Nulls Properly
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.10" data-path="Item 9 Close resources with use.html">
+            
+                <a href="Item 9 Close resources with use.html">
+            
+                    
+                    Item 9 Close Resources With Use
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.11" data-path="Item 10 Write unit tests.html">
+            
+                <a href="Item 10 Write unit tests.html">
+            
+                    
+                    Item 10 Write Unit Tests
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2" >
+            
+                <span>
+            
+                    
+                    Chapter 2 Readability
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.2.1" data-path="../Chapter 2 Readability/Introduction.html">
+            
+                <a href="../Chapter 2 Readability/Introduction.html">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.2" data-path="../Chapter 2 Readability/Item 11 Design for readability.html">
+            
+                <a href="../Chapter 2 Readability/Item 11 Design for readability.html">
+            
+                    
+                    Item 11 Design For Readability
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.3" data-path="../Chapter 2 Readability/Item 12 Operator meaning should be consistent with its function name.html">
+            
+                <a href="../Chapter 2 Readability/Item 12 Operator meaning should be consistent with its function name.html">
+            
+                    
+                    Item 12 Operator Meaning Should Be Consistent With Its Function Name
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.4" data-path="../Chapter 2 Readability/Item 13 Avoid returning or operating on Unit?.html">
+            
+                <a href="../Chapter 2 Readability/Item 13 Avoid returning or operating on Unit?.html">
+            
+                    
+                    Item 13 Avoid Returning Or Operating On Unit
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.5" data-path="../Chapter 2 Readability/Item 14 Specify the variable type when it is not clear.html">
+            
+                <a href="../Chapter 2 Readability/Item 14 Specify the variable type when it is not clear.html">
+            
+                    
+                    Item 14 Specify The Variable Type When It Is Not Clear
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.6" data-path="../Chapter 2 Readability/Item 15 Consider referencing receivers explicitly.html">
+            
+                <a href="../Chapter 2 Readability/Item 15 Consider referencing receivers explicitly.html">
+            
+                    
+                    Item 15 Consider Referencing Receivers Explicitly
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.7" data-path="../Chapter 2 Readability/Item 16 Properties should represent state not behavior.html">
+            
+                <a href="../Chapter 2 Readability/Item 16 Properties should represent state not behavior.html">
+            
+                    
+                    Item 16 Properties Should Represent State Not Behavior
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.8" data-path="../Chapter 2 Readability/Item 17 Consider naming arguments.html">
+            
+                <a href="../Chapter 2 Readability/Item 17 Consider naming arguments.html">
+            
+                    
+                    Item 17 Consider Naming Arguments
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.9" data-path="../Chapter 2 Readability/Item 18 Respect coding conventions.html">
+            
+                <a href="../Chapter 2 Readability/Item 18 Respect coding conventions.html">
+            
+                    
+                    Item 18 Respect Coding Conventions
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3" >
+            
+                <span>
+            
+                    
+                    Part 2 Code Design
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.1" >
+            
+                <span>
+            
+                    
+                    Chapter 3 Reusability
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.1.1" data-path="../../Part 2 Code design/Chapter 3 Reusability/Introduction.html">
+            
+                <a href="../../Part 2 Code design/Chapter 3 Reusability/Introduction.html">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.2" data-path="../../Part 2 Code design/Chapter 3 Reusability/Item 19 Do not repeat knowledge.html">
+            
+                <a href="../../Part 2 Code design/Chapter 3 Reusability/Item 19 Do not repeat knowledge.html">
+            
+                    
+                    Item 19 Do Not Repeat Knowledge
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.3" data-path="../../Part 2 Code design/Chapter 3 Reusability/Item 20 Do not repeat common algorithms.html">
+            
+                <a href="../../Part 2 Code design/Chapter 3 Reusability/Item 20 Do not repeat common algorithms.html">
+            
+                    
+                    Item 20 Do Not Repeat Common Algorithms
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.4" data-path="../../Part 2 Code design/Chapter 3 Reusability/Item 21 Use property delegation to extract common property patterns.html">
+            
+                <a href="../../Part 2 Code design/Chapter 3 Reusability/Item 21 Use property delegation to extract common property patterns.html">
+            
+                    
+                    Item 21 Use Property Delegation To Extract Common Property Patterns
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.5" data-path="../../Part 2 Code design/Chapter 3 Reusability/Item 22 Use generics when implementing common algorithms.html">
+            
+                <a href="../../Part 2 Code design/Chapter 3 Reusability/Item 22 Use generics when implementing common algorithms.html">
+            
+                    
+                    Item 22 Use Generics When Implementing Common Algorithms
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.6" data-path="../../Part 2 Code design/Chapter 3 Reusability/Item 23 Avoid shadowing type parameters.html">
+            
+                <a href="../../Part 2 Code design/Chapter 3 Reusability/Item 23 Avoid shadowing type parameters.html">
+            
+                    
+                    Item 23 Avoid Shadowing Type Parameters
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.7" data-path="../../Part 2 Code design/Chapter 3 Reusability/Item 24 Consider variance for generic types.html">
+            
+                <a href="../../Part 2 Code design/Chapter 3 Reusability/Item 24 Consider variance for generic types.html">
+            
+                    
+                    Item 24 Consider Variance For Generic Types
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.8" data-path="../../Part 2 Code design/Chapter 3 Reusability/Item 25 Reuse between different platforms by extracting common modules.html">
+            
+                <a href="../../Part 2 Code design/Chapter 3 Reusability/Item 25 Reuse between different platforms by extracting common modules.html">
+            
+                    
+                    Item 25 Reuse Between Different Platforms By Extracting Common Modules
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2" >
+            
+                <span>
+            
+                    
+                    Chapter 4 Abstraction Design
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.2.1" data-path="../../Part 2 Code design/Chapter 4 Abstraction design/Introduction.html">
+            
+                <a href="../../Part 2 Code design/Chapter 4 Abstraction design/Introduction.html">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.2" data-path="../../Part 2 Code design/Chapter 4 Abstraction design/Item 26 Each function should be written in terms of a single level of abstraction.html">
+            
+                <a href="../../Part 2 Code design/Chapter 4 Abstraction design/Item 26 Each function should be written in terms of a single level of abstraction.html">
+            
+                    
+                    Item 26 Each Function Should Be Written In Terms Of A Single Level Of Abstraction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.3" data-path="../../Part 2 Code design/Chapter 4 Abstraction design/Item 27 Use abstraction to protect code against changes.html">
+            
+                <a href="../../Part 2 Code design/Chapter 4 Abstraction design/Item 27 Use abstraction to protect code against changes.html">
+            
+                    
+                    Item 27 Use Abstraction To Protect Code Against Changes
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.4" data-path="../../Part 2 Code design/Chapter 4 Abstraction design/Item 28 Specify API stability.html">
+            
+                <a href="../../Part 2 Code design/Chapter 4 Abstraction design/Item 28 Specify API stability.html">
+            
+                    
+                    Item 28 Specify API Stability
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.5" data-path="../../Part 2 Code design/Chapter 4 Abstraction design/Item 29 Consider wrapping external API.html">
+            
+                <a href="../../Part 2 Code design/Chapter 4 Abstraction design/Item 29 Consider wrapping external API.html">
+            
+                    
+                    Item 29 Consider Wrapping External API
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.6" data-path="../../Part 2 Code design/Chapter 4 Abstraction design/Item 30 Minimize elements visibility.html">
+            
+                <a href="../../Part 2 Code design/Chapter 4 Abstraction design/Item 30 Minimize elements visibility.html">
+            
+                    
+                    Item 30 Minimize Elements Visibility
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.7" data-path="../../Part 2 Code design/Chapter 4 Abstraction design/Item 31 Define contract with documentation.html">
+            
+                <a href="../../Part 2 Code design/Chapter 4 Abstraction design/Item 31 Define contract with documentation.html">
+            
+                    
+                    Item 31 Define Contract With Documentation
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.8" data-path="../../Part 2 Code design/Chapter 4 Abstraction design/Item 32 Respect abstraction contracts.html">
+            
+                <a href="../../Part 2 Code design/Chapter 4 Abstraction design/Item 32 Respect abstraction contracts.html">
+            
+                    
+                    Item 32 Respect Abstraction Contracts
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.3" >
+            
+                <span>
+            
+                    
+                    Chapter 5 Object Creation
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.3.1" data-path="../../Part 2 Code design/Chapter 5 Object creation/Introduction.html">
+            
+                <a href="../../Part 2 Code design/Chapter 5 Object creation/Introduction.html">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.3.2" data-path="../../Part 2 Code design/Chapter 5 Object creation/Item 33 Consider factory functions instead of constructors.html">
+            
+                <a href="../../Part 2 Code design/Chapter 5 Object creation/Item 33 Consider factory functions instead of constructors.html">
+            
+                    
+                    Item 33 Consider Factory Functions Instead Of Constructors
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.3.3" data-path="../../Part 2 Code design/Chapter 5 Object creation/Item 34 Consider a primary constructor with named optional arguments.html">
+            
+                <a href="../../Part 2 Code design/Chapter 5 Object creation/Item 34 Consider a primary constructor with named optional arguments.html">
+            
+                    
+                    Item 34 Consider A Primary Constructor With Named Optional Arguments
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.3.4" data-path="../../Part 2 Code design/Chapter 5 Object creation/Item 35 Consider defining a DSL for complex object creation.html">
+            
+                <a href="../../Part 2 Code design/Chapter 5 Object creation/Item 35 Consider defining a DSL for complex object creation.html">
+            
+                    
+                    Item 35 Consider Defining A DSL For Complex Object Creation
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4" >
+            
+                <span>
+            
+                    
+                    Chapter 6 Class Design
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.4.1" data-path="../../Part 2 Code design/Chapter 6 Class design/Introduction.html">
+            
+                <a href="../../Part 2 Code design/Chapter 6 Class design/Introduction.html">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4.2" data-path="../../Part 2 Code design/Chapter 6 Class design/Item 36 Prefer composition over inheritance.html">
+            
+                <a href="../../Part 2 Code design/Chapter 6 Class design/Item 36 Prefer composition over inheritance.html">
+            
+                    
+                    Item 36 Prefer Composition Over Inheritance
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4.3" data-path="../../Part 2 Code design/Chapter 6 Class design/Item 37 Use the data modifier to represent a bundle of data.html">
+            
+                <a href="../../Part 2 Code design/Chapter 6 Class design/Item 37 Use the data modifier to represent a bundle of data.html">
+            
+                    
+                    Item 37 Use The Data Modifier To Represent A Bundle Of Data
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4.4" data-path="../../Part 2 Code design/Chapter 6 Class design/Item 38 Use function types instead of interfaces to pass operations and actions.html">
+            
+                <a href="../../Part 2 Code design/Chapter 6 Class design/Item 38 Use function types instead of interfaces to pass operations and actions.html">
+            
+                    
+                    Item 38 Use Function Types Instead Of Interfaces To Pass Operations And Actions
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4.5" data-path="../../Part 2 Code design/Chapter 6 Class design/Item 39 Prefer class hierarchies to tagged classes.html">
+            
+                <a href="../../Part 2 Code design/Chapter 6 Class design/Item 39 Prefer class hierarchies to tagged classes.html">
+            
+                    
+                    Item 39 Prefer Class Hierarchies To Tagged Classes
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4.6" data-path="../../Part 2 Code design/Chapter 6 Class design/Item 40 Respect the contract of  equals.html">
+            
+                <a href="../../Part 2 Code design/Chapter 6 Class design/Item 40 Respect the contract of  equals.html">
+            
+                    
+                    Item 40 Respect The Contract Of Equals
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4.7" data-path="../../Part 2 Code design/Chapter 6 Class design/Item 41 Respect the contract of  hashCode.html">
+            
+                <a href="../../Part 2 Code design/Chapter 6 Class design/Item 41 Respect the contract of  hashCode.html">
+            
+                    
+                    Item 41 Respect The Contract Of Hash Code
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4.8" data-path="../../Part 2 Code design/Chapter 6 Class design/Item 42 Respect the contract of compareTo.html">
+            
+                <a href="../../Part 2 Code design/Chapter 6 Class design/Item 42 Respect the contract of compareTo.html">
+            
+                    
+                    Item 42 Respect The Contract Of Compare To
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4.9" data-path="../../Part 2 Code design/Chapter 6 Class design/Item 43 Consider extracting non-essential parts of your API into extensions.html">
+            
+                <a href="../../Part 2 Code design/Chapter 6 Class design/Item 43 Consider extracting non-essential parts of your API into extensions.html">
+            
+                    
+                    Item 43 Consider Extracting Non Essential Parts Of Your API Into Extensions
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4.10" data-path="../../Part 2 Code design/Chapter 6 Class design/Item 44 Avoid member extensions.html">
+            
+                <a href="../../Part 2 Code design/Chapter 6 Class design/Item 44 Avoid member extensions.html">
+            
+                    
+                    Item 44 Avoid Member Extensions
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4" >
+            
+                <span>
+            
+                    
+                    Part 3 Efficiency
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.1" >
+            
+                <span>
+            
+                    
+                    Chapter 7 Make It Cheap
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.1.1" data-path="../../Part 3 Efficiency/Chapter 7 Make it cheap/Introduction.html">
+            
+                <a href="../../Part 3 Efficiency/Chapter 7 Make it cheap/Introduction.html">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.2" data-path="../../Part 3 Efficiency/Chapter 7 Make it cheap/Item 45 Avoid unnecessary object creation.html">
+            
+                <a href="../../Part 3 Efficiency/Chapter 7 Make it cheap/Item 45 Avoid unnecessary object creation.html">
+            
+                    
+                    Item 45 Avoid Unnecessary Object Creation
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.3" data-path="../../Part 3 Efficiency/Chapter 7 Make it cheap/Item 46 Use inline modifier for functions with parameters of functional types.html">
+            
+                <a href="../../Part 3 Efficiency/Chapter 7 Make it cheap/Item 46 Use inline modifier for functions with parameters of functional types.html">
+            
+                    
+                    Item 46 Use Inline Modifier For Functions With Parameters Of Functional Types
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.4" data-path="../../Part 3 Efficiency/Chapter 7 Make it cheap/Item 47 Consider using inline classes.html">
+            
+                <a href="../../Part 3 Efficiency/Chapter 7 Make it cheap/Item 47 Consider using inline classes.html">
+            
+                    
+                    Item 47 Consider Using Inline Classes
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.5" data-path="../../Part 3 Efficiency/Chapter 7 Make it cheap/Item 48 Eliminate obsolete object references.html">
+            
+                <a href="../../Part 3 Efficiency/Chapter 7 Make it cheap/Item 48 Eliminate obsolete object references.html">
+            
+                    
+                    Item 48 Eliminate Obsolete Object References
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2" >
+            
+                <span>
+            
+                    
+                    Chapter 8 Efficient Collection Processing
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.2.1" data-path="../../Part 3 Efficiency/Chapter 8 Efficient collection processing/Introduction.html">
+            
+                <a href="../../Part 3 Efficiency/Chapter 8 Efficient collection processing/Introduction.html">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2.2" data-path="../../Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 49 Prefer Sequence for big collections with more than one processing step.html">
+            
+                <a href="../../Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 49 Prefer Sequence for big collections with more than one processing step.html">
+            
+                    
+                    Item 49 Prefer Sequence For Big Collections With More Than One Processing Step
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2.3" data-path="../../Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.html">
+            
+                <a href="../../Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.html">
+            
+                    
+                    Item 50 Limit The Number Of Operations
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2.4" data-path="../../Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 51 Consider Arrays with primitives for performance-critical processing.html">
+            
+                <a href="../../Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 51 Consider Arrays with primitives for performance-critical processing.html">
+            
+                    
+                    Item 51 Consider Arrays With Primitives For Performance Critical Processing
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2.5" data-path="../../Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 52 Consider using mutable collections.html">
+            
+                <a href="../../Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 52 Consider using mutable collections.html">
+            
+                    
+                    Item 52 Consider Using Mutable Collections
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://www.gitbook.com" target="blank" class="gitbook-link">
+            Published with GitBook
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="../.." >Item 1 Limit Mutability</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <p>In Kotlin, we design programs in modules and each of them is composed of different kinds of elements such as classes, objects, functions, type aliases and top-level properties. Some of those elements can hold state, for instance by having read-write property var or by composing a mutable object:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">var</span> a</span> = <span class="hljs-number">10</span>
+<span class="hljs-variable"><span class="hljs-keyword">val</span> list</span>: MutableList<span class="hljs-type">&lt;Int&gt;</span> = mutableListOf()
+</code></pre>
+<p>When an element holds state, the way it behaves depends not only on how you use it, but also on its history. A typical example of a class with a state is a bank account that has some money balance:</p>
+<pre><code class="lang-kotlin"> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">BankAccount</span> </span>{
+    <span class="hljs-variable"><span class="hljs-keyword">var</span> balance</span> = <span class="hljs-number">0.0</span>
+       <span class="hljs-keyword">private</span> <span class="hljs-keyword">set</span>
+
+    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">deposit</span><span class="hljs-params">(depositAmount: <span class="hljs-type">Double</span>)</span> {</span>
+        balance += depositAmount
+    }
+
+    @Throws(InsufficientFunds::<span class="hljs-class"><span class="hljs-keyword">class</span>)</span>
+    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">withdraw</span><span class="hljs-params">(withdrawAmount: <span class="hljs-type">Double</span>)</span> {</span>
+        <span class="hljs-keyword">if</span> (balance <span class="hljs-type">&lt; withdrawAmount) {
+            throw InsufficientFunds()
+        }
+        balance -= withdrawAmount
+    }
+ }
+
+ class InsufficientFunds : Exception()
+
+ val account = BankAccount()
+ println(account.balance) // 0.0
+ account.deposit(100.0)
+ println(account.balance) // 100.0
+ account.withdraw(50.0)
+ println(account.balance) // 50.0
+</span></code></pre>
+<p>Here BankAccount has a state that represents how much money is present on that account. Holding state is a double-edged sword. On one hand it is very useful because it makes it possible to represent elements changing over time, but on the other hand state management is hard, because:</p>
+<ol>
+<li><p>It is harder to understand and debug a program with many mutating points. The relationship between these mutations needs to be understood, and it is harder to track how they changed when there are more of them. A class with many mutating points that depend on each other is often really hard to understand and to modify. It is especially problematic in case of unexpected situations or errors.</p>
+</li>
+<li><p>Mutability makes it harder to reason about the code. State of immutable element is clear. Mutable state is much harder to comprehend. It is harder to reason what is its value as it might change at any point and just because we checked in some moment it doesn&#x2019;t mean it is still the same.</p>
+</li>
+<li><p>It requires proper synchronization in multithreaded programs.Every mutation is a potential conflict.</p>
+</li>
+<li><p>Mutable elements are harder to test. We need to test every possible state, and the more mutability, the more states there are to test. What is more, the number of states we need to test generally grows exponentially with the number of mutation points in the same object or file, as we need to test all different combinations of possible states.</p>
+</li>
+<li>When state mutates, often some other classes need to be notified about this change. For instance, when we add a mutable element to a sorted list, once the element is changed, we need to sort this list again.</li>
+</ol>
+<p>Problems with state consistency and the growing complexity of the project with more mutation points are familiar for developers working in bigger teams. Let&#x2019;s see an example of how hard it is to manage shared state. Take a look at the below snippet&#x2076;. It shows multiple threads trying to modify the same property, however because of conflicts some of those operations will be lost.</p>
+<pre><code class="lang-kotlin"> <span class="hljs-variable"><span class="hljs-keyword">var</span> num</span> = <span class="hljs-number">0</span>
+ <span class="hljs-keyword">for</span> (i <span class="hljs-keyword">in</span> <span class="hljs-number">1.</span><span class="hljs-number">.1000</span>) {
+    thread {
+        Thread.sleep(<span class="hljs-number">10</span>)
+        num += <span class="hljs-number">1</span>
+    }
+ }
+ Thread.sleep(<span class="hljs-number">5000</span>)
+ print(num) <span class="hljs-comment">// Very unlikely to be 1000</span>
+ <span class="hljs-comment">// Every time a different number</span>
+</code></pre>
+<p>When we use Kotlin coroutines, there are less conflicts because less threads are involved, but they still occur:</p>
+<pre><code class="lang-kotlin">suspend <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> {</span>
+    <span class="hljs-variable"><span class="hljs-keyword">var</span> num</span> = <span class="hljs-number">0</span>
+    coroutineScope {
+        <span class="hljs-keyword">for</span> (i <span class="hljs-keyword">in</span> <span class="hljs-number">1.</span><span class="hljs-number">.1000</span>) {
+            launch {
+                delay(<span class="hljs-number">10</span>)
+                num += <span class="hljs-number">1</span>
+            }
+        }
+    }
+    print(num) <span class="hljs-comment">// Every time a different number</span>
+}
+</code></pre>
+<p>In real-life projects, we generally cannot just lose some operations, and so we need to implement proper synchronization like the one presented below. Although implementing proper synchronization is hard, and the more mutation points we have, the harder it is. Limiting mutability does help.</p>
+<pre><code class="lang-kotlin"> <span class="hljs-variable"><span class="hljs-keyword">val</span> lock</span> = Any()
+ <span class="hljs-variable"><span class="hljs-keyword">var</span> num</span> = <span class="hljs-number">0</span>
+ <span class="hljs-keyword">for</span> (i <span class="hljs-keyword">in</span> <span class="hljs-number">1.</span><span class="hljs-number">.1000</span>) {
+    thread {
+        Thread.sleep(<span class="hljs-number">10</span>)
+        synchronized(lock) {
+            num += <span class="hljs-number">1</span>
+        }
+    }
+ }
+ Thread.sleep(<span class="hljs-number">1000</span>)
+ print(num) <span class="hljs-comment">// 1000</span>
+</code></pre>
+<p>The drawbacks of mutability are so numerous that there are languages that do not allow state mutation at all. These are purely functional languages. One well-known example is Haskell. Such languages are rarely used for mainstream development though, since it&#x2019;s very hard to do programming with so limited mutability. Mutating state is a very useful way to represent the state of real-world systems. I recommend using mutability, but do it sparingly and wisely decide where our mutating points should be. The good news is that Kotlin supports limiting mutability well.</p>
+<h4 id="limiting-mutability-in-kotlin">Limiting mutability in Kotlin</h4>
+<p>Kotlin is designed to support limiting mutability. It is easy to make immutable objects or to keep properties immutable. It is a result of many features and characteristics of this language, but the most important ones are:</p>
+<ul>
+<li><p>Read-only properties val</p>
+</li>
+<li><p>Separation between mutable and read-only collections</p>
+</li>
+<li><p>copy in data classes</p>
+</li>
+</ul>
+<p>Let&#x2019;s discuss them one by one.</p>
+<h4 id="read-only-properties-val">Read-only properties val</h4>
+<p>In Kotlin we can make each property read-only val (like value) or read-write var (like variable). Read-only properties val do not allow setting:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> a</span> = <span class="hljs-number">10</span>
+a = <span class="hljs-number">20</span> <span class="hljs-comment">// ERROR</span>
+</code></pre>
+<p>Notice though that read-only properties are not necessarily immutable nor final. A read-only property can hold a mutable object:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> list</span> = mutableListOf(<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>) 
+list.add(<span class="hljs-number">4</span>)
+
+print(list) <span class="hljs-comment">// [1, 2, 3, 4]</span>
+</code></pre>
+<p>A read-only property can also be defined using a custom getter that might depend on another property:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">var</span> name</span>: String = <span class="hljs-string">&quot;Marcin&quot;</span>
+<span class="hljs-variable"><span class="hljs-keyword">var</span> surname</span>: String = <span class="hljs-string">&quot;Moska&#x142;a&quot;</span>
+<span class="hljs-variable"><span class="hljs-keyword">val</span> fullName 
+    get()</span> = <span class="hljs-string">&quot;$name $surname&quot;</span>
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> {</span>
+   println(fullName) <span class="hljs-comment">// Marcin Moska&#x142;a</span>
+   name = <span class="hljs-string">&quot;Maja&quot;</span>
+   println(fullName) <span class="hljs-comment">// Maja Moska&#x142;a</span>
+}
+</code></pre>
+<p>Notice that it is possible because when we define a custom getter, it will be called every time we ask for the value.</p>
+<pre><code class="lang-kotlin"> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">calculate</span><span class="hljs-params">()</span>: <span class="hljs-keyword">Int</span> {</span>
+    print(<span class="hljs-string">&quot;Calculating... &quot;</span>)
+    <span class="hljs-keyword">return</span> <span class="hljs-number">42</span>
+ }
+
+ <span class="hljs-variable"><span class="hljs-keyword">val</span> fizz</span> = calculate() <span class="hljs-comment">// Calculating...</span>
+ <span class="hljs-variable"><span class="hljs-keyword">val</span> buzz
+    get()</span> = calculate()
+
+ <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> {</span>
+    print(fizz) <span class="hljs-comment">// 42</span>
+    print(fizz) <span class="hljs-comment">// 42</span>
+    print(buzz) <span class="hljs-comment">// Calculating... 42</span>
+    print(buzz) <span class="hljs-comment">// Calculating... 42</span>
+ }
+</code></pre>
+<p>This trait, that properties in Kotlin are encapsulated by default and they can have custom accessors (getters and setters) is very important in Kotlin because it gives us flexibility when we change or define our API. It will be described in detail in Item 16: Properties should represent state, not behavior. The core idea though is that val do not offer mutation points because it is only a getter under the hood when var is both getter and setter. That&#x2019;s why we can override val with var:</p>
+<pre><code class="lang-kotlin">interface Element {
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> active</span>: <span class="hljs-keyword">Boolean</span>
+}
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ActualElement</span>: <span class="hljs-type">Element {</span></span>
+   <span class="hljs-keyword">override</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> active</span>: <span class="hljs-keyword">Boolean</span> = <span class="hljs-literal">false</span>
+}
+</code></pre>
+<p>Values of read-only properties val can change, but such properties do not offer a mutation point which is the main source of problems when we need to synchronize or reason about a program. This is why we generally prefer val over var.</p>
+<p>Although remember that val doesn&#x2019;t mean immutable. It can be defined by getter or delegate. This fact gives us more freedom to change. Though when we don&#x2019;t need that, final properties should be preferred. It is easier to reason about them as they have the state stated next to their definition. They are also better supported in Kotlin. For instance, they can be smart-casted:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: String? = <span class="hljs-string">&quot;M&#xE1;rton&quot;</span>
+<span class="hljs-variable"><span class="hljs-keyword">val</span> surname</span>: String = <span class="hljs-string">&quot;Braun&quot;</span>
+
+<span class="hljs-variable"><span class="hljs-keyword">val</span> fullName</span>: String?
+   <span class="hljs-keyword">get</span>() = name?.let { <span class="hljs-string">&quot;$it $surname&quot;</span> }
+
+<span class="hljs-variable"><span class="hljs-keyword">val</span> fullName2</span>: String? = name?.let { <span class="hljs-string">&quot;$it $surname&quot;</span> }
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> {</span>
+   <span class="hljs-keyword">if</span> (fullName != <span class="hljs-literal">null</span>) {
+       println(fullName.length) <span class="hljs-comment">// ERROR</span>
+   }
+
+   <span class="hljs-keyword">if</span> (fullName2 != <span class="hljs-literal">null</span>) {
+       println(fullName2.length) <span class="hljs-comment">// M&#xE1;rton Braun</span>
+   }
+}
+</code></pre>
+<p>Smart cast is impossible for fullName because it is defined using getter, so it might give a different value during check and different later during use (for instance, if some other thread would set name). Non-local properties can be smart-casted only when they are final and do not have custom getter.</p>
+<h4 id="separation-between-mutable-and-read-only-collections">Separation between mutable and read-only collections</h4>
+<p>Similarly, as Kotlin separates read-write and read-only properties, Kotlin separates read-write and read-only collections. This is achieved thanks to the way the hierarchy of collections was designed. Take a look at the diagram presenting collections hierarchy in Kotlin. On the left side, you can see the Iterable, Collection, Set, and List interfaces that are read-only. This means that they do not have any methods that would allow modification. On the right side, you can see the MutableIterable, MutableCollection, MutableSet, and MutableList interfaces that represent mutable collections. Notice that each mutable interface extends the corresponding read-only interface, and adds methods that allow mutation. This is similar to how properties work. A read-only property means just a getter, while a read-write property means both a getter and a setter.</p>
+<p><img src="../../assets/chapter1/chapter1-1.png" alt="The hierarchy of collection interfaces in Kotlin and actual objects that can be used on Kotlin/JVM. On the left side interfaces are read-only. On the right side collections and interfaces are mutable."></p>
+<p>Read-only collections are not necessarily immutable. Very often they are mutable, but they cannot be mutated because they are hidden behind read-only interfaces. For instance, the Iterable<t>.map and Iterable<t>.filter functions return ArrayList, which is a mutable list, as a List, which is a read-only interface. In the below snippet you can see a simplified implementation of Iterable<t>.map from stdlib.</t></t></t></p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">inline</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T, R&gt;</span> Iterable<span class="hljs-type">&lt;T&gt;</span>.<span class="hljs-title">map</span><span class="hljs-params">(
+   transformation: <span class="hljs-type">(T</span>)</span> -&gt; R</span>
+): List<span class="hljs-type">&lt;R&gt;</span> {
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> list</span> = ArrayList<span class="hljs-type">&lt;R&gt;</span>()
+   <span class="hljs-keyword">for</span> (elem <span class="hljs-keyword">in</span> this) {
+       list.add(transformation(elem))
+   }
+   <span class="hljs-keyword">return</span> list
+}
+</code></pre>
+<p>The design choice to make these collection interfaces read-only instead of truly immutable is very important. It gives us much more freedom. Under the hood, any actual collection can be returned as long as it satisfies the interface. Therefore, we can use platform-specific collections.</p>
+<p>The safety of this approach is close to the one achieved from having immutable collections. The only risk is when a developer tries to &#x201C;hack the system&#x201D; and performs down-casting. This is something that should never be allowed in Kotlin projects. We should be able to trust that when we return a list as read-only, it will be used only to read it. This is part of the contract. More about it on Part 2 of this book.</p>
+<p>Down-casting collections is not only breaking their contract and depending on implementation instead of abstraction as we should, but it is also insecure and can lead to surprising consequences. Take a look at this code:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> list</span> = listOf(<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>)
+
+<span class="hljs-comment">// DON&#x2019;T DO THIS!</span>
+<span class="hljs-keyword">if</span> (list <span class="hljs-keyword">is</span> MutableList) {
+   list.add(<span class="hljs-number">4</span>)
+}
+</code></pre>
+<p>The result of this operation is platform-specific. On the JVM listOf returns an instance of Arrays.ArrayList that implements Java List interface. This Java List interface has methods like add or set, and so it translates to the Kotlin MutableList interface. However, Arrays.ArrayList does not implement some of those operations. This is why the result of the above code is the following:</p>
+<pre><code class="lang-kotlin">Exception <span class="hljs-keyword">in</span> thread &#x201C;main&#x201D; java.lang.UnsupportedOperationException
+at java.util.AbstractList.add(AbstractList.java:<span class="hljs-number">148</span>)
+at java.util.AbstractList.add(AbstractList.java:<span class="hljs-number">108</span>)
+</code></pre>
+<p>Though there is no guarantee how this will behave in a year from now. Underlying collections might change. They might be replaced with truly immutable collections implemented in Kotlin and not implementing MutableList at all. Nothing is guaranteed. This is why down-casting read-only collections to mutable should never take place in Kotlin. If you need to change from read-only to mutable, you should use List.toMutableList function, which creates a copy that you can then modify:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> list</span> = listOf(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>)
+
+<span class="hljs-variable"><span class="hljs-keyword">val</span> mutableList</span> = list.toMutableList()
+mutableList.add(<span class="hljs-number">4</span>)
+</code></pre>
+<p>This way does not break any contract, and it is also safer for us as we can feel safe that when we expose something as List it won&#x2019;t be modified from outside.</p>
+<h4 id="copy-in-data-classes">Copy in data classes</h4>
+<p>There are many reasons to prefer immutable objects - objects that do not change their internal state, like String or Int. In addition to the already named reasons why we generally prefer less mutability, immutable objects have their own advantages:</p>
+<ol>
+<li>They are easier to reason about since their state stays the same once they are created.</li>
+<li>Immutability makes it easier to parallelize the program as there are no conflicts among shared objects.</li>
+<li>References to immutable objects can be cached as they are not going to change.</li>
+<li>We do not need to make defensive copies on immutable objects. When we do copy immutable objects, we do not need to make it a deep copy.</li>
+<li>Immutable objects are the perfect material to construct other objects. Both mutable and immutable. We can still decide where mutability takes place, and it is easier to operate on immutable objects.</li>
+<li>We can add them to set or use them as keys in maps, in opposition to mutable objects that shouldn&#x2019;t be used this way. This is because both those collections use hash table under the hood in Kotlin/JVM, and when we modify elements already classified to a hash table, its classification might not be correct anymore and we won&#x2019;t be able to find it. This problem will be described in detail in Item 41: Respect the contract of hashCode. We have a similar issue when a collection is sorted.</li>
+</ol>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> names</span>: SortedSet<span class="hljs-type">&lt;FullName&gt;</span> = TreeSet()
+<span class="hljs-variable"><span class="hljs-keyword">val</span> person</span> = FullName(<span class="hljs-string">&quot;AAA&quot;</span>, <span class="hljs-string">&quot;AAA&quot;</span>)
+names.add(person)
+names.add(FullName(<span class="hljs-string">&quot;Jordan&quot;</span>, <span class="hljs-string">&quot;Hansen&quot;</span>))
+names.add(FullName(<span class="hljs-string">&quot;David&quot;</span>, <span class="hljs-string">&quot;Blanc&quot;</span>))
+
+print(s) <span class="hljs-comment">// [AAA AAA, David Blanc, Jordan Hansen]</span>
+print(person <span class="hljs-keyword">in</span> names) <span class="hljs-comment">// true</span>
+
+person.name = <span class="hljs-string">&quot;ZZZ&quot;</span>
+print(names) <span class="hljs-comment">// [ZZZ AAA, David Blanc, Jordan Hansen]</span>
+print(person <span class="hljs-keyword">in</span> names) <span class="hljs-comment">// false&#x201D;</span>
+</code></pre>
+<p>At the last check, collection returned false even though that person is in this set. It couldn&#x2019;t be found because it is in an incorrect position.</p>
+<p>As you can see, mutable objects are more dangerous and less predictable. On the other hand, the biggest problem of immutable objects is that data sometimes needs to change. The solution is that the immutable objects should have methods that produce an object after some change. For instance, Int is immutable, and it has many methods like plus or minus that do not modify it but instead return a new Int after this operation. Iterable is read-only, and collection processing functions like map or filter do not modify it, but instead return a new collection. The same can be applied to our immutable objects. For instance, let&#x2019;s say that we have an immutable class User and we need to allow its surname to change. We can support it with a withSurname method that produces a copy with a particular property changed:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">User</span></span>(
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: String,
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> surname</span>: String
+) {
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">withSurname</span><span class="hljs-params">(surname: <span class="hljs-type">String</span>)</span> = <span class="hljs-title">User</span><span class="hljs-params">(name, surname)</span></span>
+}
+
+<span class="hljs-variable"><span class="hljs-keyword">var</span> user</span> = User(<span class="hljs-string">&quot;Maja&quot;</span>, <span class="hljs-string">&quot;Markiewicz&quot;</span>)
+user = user.withSurname(<span class="hljs-string">&quot;Moska&#x142;a&quot;</span>)
+print(user) <span class="hljs-comment">// User(name=Maja, surname=Moska&#x142;a)</span>
+</code></pre>
+<p>Writing such functions is possible, but also tedious if we need one for every property. Here comes the data modifier to the rescue. One of the methods it generates is copy. It creates a new instance where all primary constructor properties are the same as in the previous one by default. New values can be specified as well. copy together with other methods generated by data modifier are described in detail in Item 37: Use data modifier to represent a bundle of data. Here is a simple example showing how it works:</p>
+<pre><code class="lang-kotlin">data <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">User</span></span>(
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: String,
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> surname</span>: String
+)
+
+<span class="hljs-variable"><span class="hljs-keyword">var</span> user</span> = User(<span class="hljs-string">&quot;Maja&quot;</span>, <span class="hljs-string">&quot;Markiewicz&quot;</span>)
+user = user.copy(surname = <span class="hljs-string">&quot;Moska&#x142;a&quot;</span>)
+print(user) <span class="hljs-comment">// User(name=Maja, surname=Moska&#x142;a)</span>
+</code></pre>
+<p>This is an elegant and universal solution that supports making data model classes immutable. Surely, this way is less efficient than just using a mutable object instead, but it has all described advantages of immutable objects and should be preferred by default.</p>
+<h4 id="different-kinds-of-mutation-points">Different kinds of mutation points</h4>
+<p>Let&#x2019;s say that we need to represent a mutating list. There are two ways we can achieve that. Either by using a mutable collection or by using read-write property var:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> list1</span>: MutableList<span class="hljs-type">&lt;Int&gt;</span> = mutableListOf() 
+<span class="hljs-variable"><span class="hljs-keyword">var</span> list2</span>: List<span class="hljs-type">&lt;Int&gt;</span> = listOf()
+</code></pre>
+<p>Both properties can be modified, but in different ways:</p>
+<pre><code class="lang-kotlin">list1.add(<span class="hljs-number">1</span>) 
+list2 = list2 + <span class="hljs-number">1</span>
+</code></pre>
+<p>Both of these ways can be replaced with the plus-assign operator as well, but each of them is translated into a different behavior:</p>
+<pre><code class="lang-kotlin">list1 += <span class="hljs-number">1</span> <span class="hljs-comment">// Translates to list1.plusAssign(1) </span>
+list2 += <span class="hljs-number">1</span> <span class="hljs-comment">// Translates to list2 = list2.plus(1)</span>
+</code></pre>
+<p>Both those ways are correct and they both have their pros and cons. They both have a single mutating point, but it is located in a different place. In the first one mutation takes place on the concrete list implementation. We might depend on the fact that it has proper synchronization in case of multithreading, but such an assumption is also dangerous since it is not really guaranteed. In the second one, we need to implement the synchronization ourselves, but the overall safety is better because the mutating point is only a single property. Though, in case of a lack of synchronization, remember that we can still lose some elements:</p>
+<pre><code class="lang-kotlin">ar list = listOf<span class="hljs-type">&lt;Int&gt;</span>()
+<span class="hljs-keyword">for</span> (i <span class="hljs-keyword">in</span> <span class="hljs-number">1.</span><span class="hljs-number">.1000</span>) {
+   thread {
+       list = list + i
+   }
+}
+Thread.sleep(<span class="hljs-number">1000</span>)
+print(list.size) <span class="hljs-comment">// Very unlikely to be 1000, </span>
+<span class="hljs-comment">// every time a different number, like for instance 911</span>
+</code></pre>
+<p>Using a mutable property instead of a mutable list allows us to track how this property changes when we define a custom setter or using a delegate (which is using a custom setter). For instance, when we use an observable delegate, we can log every change of a list:</p>
+<pre><code class="lang-kotlin">var names by Delegates.observable(listOf&lt;String&gt;()) { _, old, new -&gt;
+   println(&quot;Names changed from $old to $new&quot;)
+}
+
+names += &quot;Fabio&quot; 
+// Names changed from [] to [Fabio]
+names += &quot;Bill&quot;   
+// Names changed from [Fabio] to [Fabio, Bill]&#x201D;
+</code></pre>
+<p>To make this possible for a mutable collection, we would need a special observable implementation of the collection. For read-only collections on mutable properties, it is also easier to control how they change - there is only a setter instead of multiple methods mutating this object, and we can make it private:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">var</span> announcements</span> = listOf<span class="hljs-type">&lt;Announcement&gt;</span>()
+   <span class="hljs-keyword">private</span> <span class="hljs-keyword">set</span>
+</code></pre>
+<p>In short, using mutable collections is a slightly faster option, but using a mutable property instead gives us more control over how the object is changing.</p>
+<p>Notice that the worst solution is to have both a mutating property and a mutable collection:</p>
+<pre><code class="lang-kotlin"><span class="hljs-comment">// Don&#x2019;t do that</span>
+<span class="hljs-variable"><span class="hljs-keyword">var</span> list3</span> = mutableListOf<span class="hljs-type">&lt;Int&gt;</span>()
+</code></pre>
+<p>We would need to synchronize both ways it can mutate (by property change and by internal state change). Also, changing it using plus-assign is impossible because of ambiguity:</p>
+<p><img src="../../assets/chapter1/chapter1-2.png" alt=""></p>
+<p>The general rule is that one should not create unnecessary ways to mutate state. Every way to mutate state is a cost. It needs to be understood and maintained. We prefer to limit mutability.</p>
+<h4 id="do-not-leak-mutation-points">Do not leak mutation points</h4>
+<p>It is an especially dangerous situation when we expose a mutable object that makes up state. Take a look at this example:</p>
+<pre><code class="lang-kotlin">data <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">User</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: String)
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UserRepository</span> </span>{
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> storedUsers</span>: MutableMap<span class="hljs-type">&lt;Int, String&gt;</span> = 
+       mutableMapOf()
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">loadAll</span><span class="hljs-params">()</span>: MutableMap<span class="hljs-type">&lt;Int, String&gt;</span> {</span>
+       <span class="hljs-keyword">return</span> storedUsers
+   }
+
+   <span class="hljs-comment">//...</span>
+}
+</code></pre>
+<p>One could use loadAll to modify UserRepository private state:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> userRepository</span> = UserRepository()
+
+<span class="hljs-variable"><span class="hljs-keyword">val</span> storedUsers</span> = userRepository.loadAll()
+storedUsers[<span class="hljs-number">4</span>] = <span class="hljs-string">&quot;Kirill&quot;</span>
+<span class="hljs-comment">//...</span>
+
+print(userRepository.loadAll()) <span class="hljs-comment">// {4=Kirill}</span>
+</code></pre>
+<p>It is especially dangerous when such modifications are accidental. There are two ways how we can deal with that. The first one is copying returned mutable objects. We call that defensive copying. This can be a useful technique when we deal with a standard objects and here copy generated by data modifier can be really helpful:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UserHolder</span> </span>{
+    <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> user</span>: MutableUser()
+
+    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">get</span><span class="hljs-params">()</span>: MutableUser {</span>
+        <span class="hljs-keyword">return</span> user.copy()
+    }
+
+    <span class="hljs-comment">//...</span>
+}
+</code></pre>
+<p>Though whenever possible we prefer limiting mutability, and for collections we can do that by upcasting those objects to their read-only supertype:</p>
+<pre><code class="lang-kotlin">data <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">User</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: String)
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UserRepository</span> </span>{
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> storedUsers</span>: MutableMap<span class="hljs-type">&lt;Int, String&gt;</span> = 
+       mutableMapOf()
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">loadAll</span><span class="hljs-params">()</span>: Map<span class="hljs-type">&lt;Int, String&gt;</span> {</span>
+       <span class="hljs-keyword">return</span> storedUsers
+   }
+
+   <span class="hljs-comment">//...</span>
+}
+</code></pre>
+<h4 id="summary">Summary</h4>
+<p>In this chapter we&#x2019;ve learned why it is important to limit mutability and to prefer immutable objects. We&#x2019;ve seen that Kotlin gives us a lot of tools that support limiting mutability. We should use them to limit mutation points. Simple rules are:</p>
+<ul>
+<li>Prefer val over var.</li>
+<li>Prefer an immutable property over a mutable one.</li>
+<li>Prefer objects and classes that are immutable over mutable.</li>
+<li>If you need them to change, consider making them immutable data classes, and using copy.</li>
+<li>When you hold state, prefer read-only over mutable collections.</li>
+<li>Design your mutation points wisely and do not produce unnecessary ones.</li>
+<li>Do not expose mutable objects.</li>
+</ul>
+<p>There are some exceptions to these rules. Sometimes we prefer a mutable object because they are more efficient. Such optimizations should be preferred only in the performance critical parts of our code (Part 3: Efficiency) and when we use them, we need to remember that mutability requires more attention when we prepare it for multithreading. The baseline is that we should limit mutability.</p>
+
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                <a href="Introduction.html" class="navigation navigation-prev " aria-label="Previous page: Introduction">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                
+                
+                <a href="Item 2 Minimize the scope of variables.html" class="navigation navigation-next " aria-label="Next page: Item 2 Minimize The Scope Of Variables">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"Item 1 Limit Mutability","level":"1.2.1.2","depth":3,"next":{"title":"Item 2 Minimize The Scope Of Variables","level":"1.2.1.3","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 2 Minimize the scope of variables.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 2 Minimize the scope of variables.md","articles":[]},"previous":{"title":"Introduction","level":"1.2.1.1","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Introduction.md","ref":"Part 1 Good code/Chapter 1 Safety/Introduction.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 1 Good code/Chapter 1 Safety/Item 1 Limit mutability.md","mtime":"2021-11-24T14:43:43.765Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-24T14:53:26.437Z"},"basePath":"../..","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <script src="../../gitbook/gitbook.js"></script>
+    <script src="../../gitbook/theme.js"></script>
+    
+        
+        <script src="../../gitbook/gitbook-plugin-search/search-engine.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-search/search.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-sharing/buttons.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+
