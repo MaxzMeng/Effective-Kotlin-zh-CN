@@ -1136,7 +1136,46 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <p>Kotlin&#x2019;s type inference is one of the most popular Kotlin features in the JVM world. So popular that Java 10 introduced type inference as well (limited comparing to Kotlin). Though, there are some dangers in using this feature. Above all, we need to remember that the inferred type of an assignment is the exact type of the right side, and not a superclass or interface:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">open</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Animal</span></span>
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Zebra</span>: <span class="hljs-type">Animal</span></span>()
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> animal</span> = Zebra()
+   animal = Animal() <span class="hljs-comment">// Error: Type mismatch</span>
+}
+</code></pre>
+<p>In most cases, this is not a problem. When we have too restrictive type inferred, we just need to specify it and our problem is solved:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">open</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Animal</span></span>
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Zebra</span>: <span class="hljs-type">Animal</span></span>()
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> animal</span>: Animal = Zebra()
+   animal = Animal()
+}
+</code></pre>
+<p>Though, there is no such comfort when we don&#x2019;t control a library or another module. In such cases, inferred type exposition can be really dangerous. Let&#x2019;s see an example. </p>
+<p>Let&#x2019;s say that you have the following interface used to represent car factories:</p>
+<pre><code class="lang-kotlin"><span class="hljs-number">1</span> interface CarFactory {
+<span class="hljs-number">2</span>    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">produce</span><span class="hljs-params">()</span>: Car</span>
+<span class="hljs-number">3</span> }
+</code></pre>
+<p>There is also a default car used if nothing else was specified:</p>
+<pre><code class="lang-kotlin"><span class="hljs-number">1</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> DEFAULT_CAR</span>: Car = Fiat126P()
+</code></pre>
+<p>It is produced in most factories, so you made it default. You omitted the type because you decided that <code>DEFAULT_CAR</code> is a <code>Car</code> anyway:</p>
+<pre><code class="lang-kotlin"><span class="hljs-number">1</span> interface CarFactory {
+<span class="hljs-number">2</span>    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">produce</span><span class="hljs-params">()</span> = DEFAULT_CAR</span>
+<span class="hljs-number">3</span> }
+</code></pre>
+<p>Similarly, someone later looked at <code>DEFAULT_CAR</code> and decided that its type can be inferred:</p>
+<pre><code class="lang-kotlin"><span class="hljs-number">1</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> DEFAULT_CAR</span> = Fiat126P()
+</code></pre>
+<p>Now, all your factories can only produce <code>Fiat126P</code>. Not good. If you defined this interface yourself, this problem will be probably caught soon and easily fixed. Though, if it is a part of the external API, you might be informed first by angry users.</p>
+<p>Except that, the return type is important information when someone does not know API well, and so for the sake of readability, we should make it explicit especially in parts of our API visible from outside (so exposed API). </p>
+<h4 id="summary">Summary</h4>
+<p>The general rule is that if we are not sure about the type, we should specify it. It is important information and we should not hide it (<em>Item 14: Specify the variable type when it is not clear</em>). Additionally for the sake of safety, in an external API, we should always specify types. We cannot let them be changed by accident. Inferred types can be too restrictive or can too easily change when our project evolves.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1218,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 4 Do Not Expose Inferred Types","level":"1.2.1.5","depth":3,"next":{"title":"Item 5 Specify Your Expectations On Arguments And State","level":"1.2.1.6","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 5 Specify your expectations on arguments and state.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 5 Specify your expectations on arguments and state.md","articles":[]},"previous":{"title":"Item 3 Eliminate Platform Types As Soon As Possible","level":"1.2.1.4","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 3 Eliminate platform types as soon as possible.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 3 Eliminate platform types as soon as possible.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 1 Good code/Chapter 1 Safety/Item 4 Do not expose inferred types.md","mtime":"2021-11-24T17:55:17.601Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-24T17:56:05.085Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 4 Do Not Expose Inferred Types","level":"1.2.1.5","depth":3,"next":{"title":"Item 5 Specify Your Expectations On Arguments And State","level":"1.2.1.6","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 5 Specify your expectations on arguments and state.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 5 Specify your expectations on arguments and state.md","articles":[]},"previous":{"title":"Item 3 Eliminate Platform Types As Soon As Possible","level":"1.2.1.4","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 3 Eliminate platform types as soon as possible.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 3 Eliminate platform types as soon as possible.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 1 Good code/Chapter 1 Safety/Item 4 Do not expose inferred types.md","mtime":"2021-11-24T18:07:47.327Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-24T18:08:20.164Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
