@@ -1136,7 +1136,92 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-19-do-not-repeat-knowledge">Item 19: Do not repeat knowledge</h2>
+<p>The first big rule I was taught about programming was:</p>
+<p>If you use copy-paste in your project, you are most likely doing something wrong.</p>
+<p>This is a very simple heuristic, but it is also very wise. Till today whenever I reflect on that, I am amazed how well a single and clear sentence expresses the key idea behind the &#x201C;Do not repeat knowledge&#x201D; principle. It is also often known as DRY principle after the Pragmatic Programmer book that described the Don&#x2019;t Repeat Yourself rule. Some developers might be familiar with the WET antipattern, that sarcastically teaches us the same. DRY is also connected to the Single Source of Truth (SSOT) practice, As you can see, this rule is quite popular and has many names. However, it is often misused or abused. To understand this rule and the reasons behind it clearly, we need to introduce a bit of theory.</p>
+<h3 id="knowledge">Knowledge</h3>
+<p>Let&#x2019;s define knowledge in programming broadly, as any piece of intentional information. It can be stated by code or data. It can also be stated by lack of code or data, which means that we want to use the default behavior. For instance when we inherit, and we don&#x2019;t override a method, it&#x2019;s like saying that we want this method to behave the same as in the superclass. </p>
+<p>With knowledge defined this way, everything in our projects is some kind of knowledge. Of course, there are many different kinds of knowledge: how an algorithm should work, what UI should look like, what result we wish to achieve, etc. There are also many ways to express it: for example by using code, configurations, or templates. In the end, every single piece of our program is information that can be understood by some tool, virtual machine, or directly by other programs.</p>
+<p>There are two particularly important kinds of knowledge in our programs:</p>
+<ol>
+<li>Logic - How we expect our program to behave and what it should look like</li>
+<li>Common algorithms - Implementation of algorithms to achieve the expected behavior</li>
+</ol>
+<p>The main difference between them is that business logic changes a lot over time, while common algorithms generally do not once they are defined. They might be optimized or we might replace one algorithm with another, but algorithms themselves are generally stable. Because of this difference, we will concentrate on algorithms in the next item. For now, let&#x2019;s concentrate on the first point, that is the logic - knowledge about our program. </p>
+<h3 id="everything-can-change">Everything can change</h3>
+<p>There is a saying that in programming the only constant is change. Just think of projects from 10 or 20 years ago. It is not such a long time. Can you point a single popular application or website that hasn&#x2019;t changed? Android was released in 2008. The first stable version of Kotlin was released in 2016. Not only technologies but also languages change so quickly. Think about your old projects. Most likely now you would use different libraries, architecture, and design. </p>
+<p>Changes often occur where we don&#x2019;t expect them. There is a story that once when Einstein was examining his students, one of them stood up and loudly complained that questions were the same as the previous year. Einstein responded that it was true, but answers were totally different that year. Even things that you think are constant, because they are based on law or science, might change one day. Nothing is absolutely safe.</p>
+<p>Standards of UI design and technologies change much faster. Our understanding of clients often needs to change on a daily basis. This is why knowledge in our projects will change as well. For instance, here are very typical reasons for the change:</p>
+<ul>
+<li>The company learns more about user needs or habits</li>
+<li>Design standards change</li>
+<li>We need to adjust to changes in the platform, libraries, or some tools</li>
+</ul>
+<p>Most projects nowadays change requirements and parts of the internal structure every few months. This is often something desired. Many popular management systems are agile and fit to support constant changes in requirements. Slack was initially a game named Glitch<a href="chap65.xhtml#fn-footnote_32_note">3</a>. The game didn&#x2019;t work out, but customers liked its communication features. </p>
+<p>Things change, and we should be prepared for that. <strong>The biggest enemy of changes is knowledge repetition.</strong> Just think for a second: what if we need to change something that is repeated in many places in our program? The simplest answer is that in such a case, you just need to search for all the places where this knowledge is repeated, and change it everywhere. Searching can be frustrating, and it is also troublesome: what if you forget to change some repetitions? What if some of them are already modified because they were integrated with other functionalities? It might be tough to change them all in the same way. Those are real problems. </p>
+<p>To make it less abstract, think of a universal button used in many different places in our project. When our graphic designer decides that this button needs to be changed, we would have a problem if we defined how it looks like in every single usage. We would need to search our whole project and change every single instance separately. We would also need to ask testers to check if we haven&#x2019;t missed any instance. </p>
+<p>Another example: Let&#x2019;s say that we use a database in our project, and then one day we change the name of a table. If we forget to adjust all SQL statements that depend on this table, we might have a very problematic error. If we had some table structure defined only once, we wouldn&#x2019;t have such a problem. </p>
+<p>On both examples, you can see how dangerous and problematic knowledge repetition is. It makes projects less scalable and more fragile. Good news is that we, programmers, work for years on tools and features that help us eliminate knowledge redundancy. On most platforms, we can define a custom style for a button, or custom view/component to represent it. Instead of writing SQL in text format, we can use an ORM (like Hibernate) or DAO (like Exposed).</p>
+<p>All those solutions represent different kinds of abstractions and they protect us from a different kinds of redundancy. Analysis of different kinds of abstractions is presented in <em>Item 27: Use abstraction to protect code against changes</em>. </p>
+<h3 id="when-should-we-allow-code-repetition">When should we allow code repetition?</h3>
+<p>There are situations where we can see two pieces of code that are similar but should not be extracted into one. This is when they only look similar but represent different knowledge. </p>
+<p>Let&#x2019;s start from an example. Let&#x2019;s say that we have two independent Android applications in the same project. Their build tool configurations are similar so it might be tempting to extract it. But what if we do that? Applications are independent so if we will need to change something in the configuration, we will most likely need to change it only in one of them. Changes after this reckless extraction are harder, not easier. Configuration reading is harder as well - configurations have their boilerplate code, but developers are already familiar with it. Making abstractions means designing our own API, which is another thing to learn for a developer using this API. This is a perfect example of how problematic it is when we extract something that is not conceptually the same knowledge.</p>
+<p>The most important question to ask ourselves when we decide if two pieces of code represent similar knowledge is: <strong>Are they more likely going to change together or separately?</strong> Pragmatically this is the most important question because this is the biggest result of having a common part extracted: it is easier to change them both, but it is harder to change only a single one. </p>
+<p>One useful heuristic is that if business rules come from different sources, we should assume that they will more likely change independently. For such a case we even have a rule that protects us from unintended code extraction. It is called the <em>Single Responsibility Principle</em>. </p>
+<h3 id="single-responsibility-principle">Single responsibility principle</h3>
+<p>A very important rule that teaches us when we should not extract common code is the Single Responsibility Principle from SOLID. It states that &#x201C;A class should have only one reason to change&#x201D;. This rule<a href="chap65.xhtml#fn-footnote_33_note">4</a> can be simplified by the statement that there should be no such situations when two actors need to change the same class. By actor, we mean a source of change. They are often personified by developers from different departments who know little about each other&#x2019;s work and domain. Although even if there is only a single developer in a project, but having multiple managers, they should be treated as separate actors. Those are two sources of changes knowing little about each other domains. The situation when two actors edit the same piece of code is especially dangerous.</p>
+<p>Let&#x2019;s see an example. Imagine that we work for a university, and we have a class <code>Student</code>. This class is used both by the Scholarships Department and the Accreditations Department. Developers from those two departments introduced two different properties:</p>
+<ul>
+<li><code>isPassing</code> was created by the Accreditations Department and answers the question of whether a student is passing.</li>
+<li><code>qualifiesForScholarship</code> was created by the Scholarships Department and answers the question if a student has enough points to qualify for a Scholarship.</li>
+</ul>
+<p>Both functions need to calculate how many points the student collected in the previous semester, so a developer extracted a function <code>calculatePointsFromPassedCourses</code>.</p>
+<p><img src="../../assets/chapter3/chapter3-1.png" alt=""></p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Student</span> </span>{
+   <span class="hljs-comment">// ...</span>
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">isPassing</span><span class="hljs-params">()</span>: <span class="hljs-keyword">Boolean</span> = </span>
+       calculatePointsFromPassedCourses() &gt; <span class="hljs-number">15</span>
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">qualifiesForScholarship</span><span class="hljs-params">()</span>: <span class="hljs-keyword">Boolean</span> = </span>
+       calculatePointsFromPassedCourses() &gt; <span class="hljs-number">30</span>
+
+   <span class="hljs-keyword">private</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">calculatePointsFromPassedCourses</span><span class="hljs-params">()</span>: <span class="hljs-keyword">Int</span> {</span>
+       <span class="hljs-comment">//...</span>
+   }
+}
+</code></pre>
+<p>Then, original rules change and the dean decides that less important courses should not qualify for scholarship points calculation. A developer who was sent to introduce this change checked function <code>qualifiesForScholarship</code>, finds out that it calls the private method <code>calculatePointsFromPassedCourses</code> and changes it to skip courses that do not qualify. Unintentionally, that developer changed the behavior of <code>isPassing</code> as well. Students who were supposed to pass, got informed that they failed the semester. You can imagine their reaction.</p>
+<p>It is true that we could easily prevent such situation if we would have unit tests (Item 10: Write unit tests), but let&#x2019;s skip this aspect for now. </p>
+<p>The developer might check where else the function is used. Although the problem is that this developer didn&#x2019;t expect that this private function was used by another property with a totally different responsibility. Private functions are rarely used just by more than one function. </p>
+<p>This problem, in general, is that it is easy to couple responsibilities located very close (in the same class/file). A simple solution would be to extract these responsibilities into separate classes. We might have separate classes <code>StudentIsPassingValidator</code> and 
+<code>StudentQualifiesForScholarshipValidator</code>. Though in Kotlin we don&#x2019;t need to use such heavy artillery (see more at <em>Chapter 4: Design abstractions</em>). We can just define <code>qualifiesForScholarship</code> and 
+<code>calculatePointsFromPassedCourses</code> as extension functions on <code>Student</code> located in separate modules: one over which Scholarships Department is responsible, and another over which Accreditations Department is responsible.</p>
+<pre><code class="lang-kotlin"><span class="hljs-comment">// scholarship module</span>
+<span class="hljs-function"><span class="hljs-keyword">fun</span> Student.<span class="hljs-title">qualifiesForScholarship</span><span class="hljs-params">()</span>: <span class="hljs-keyword">Boolean</span> { </span>
+    <span class="hljs-comment">/*...*/</span> 
+}
+
+<span class="hljs-comment">// accreditations module</span>
+<span class="hljs-function"><span class="hljs-keyword">fun</span> Student.<span class="hljs-title">calculatePointsFromPassedCourses</span><span class="hljs-params">()</span>: <span class="hljs-keyword">Boolean</span> { </span>
+    <span class="hljs-comment">/*...*/</span> 
+}
+</code></pre>
+<p>What about extracting a function for calculating results? We can do it, but it cannot be a private function used as a helper for both these methods. Instead, it can be:</p>
+<ol>
+<li>A general public function defined in a module used by both departments. In such a case, the common part is treated as something common, so a developer should not change it without modifying the contract and adjusting usages.</li>
+<li>Two separate helper functions, each for every department.</li>
+</ol>
+<p>Both options are safe.</p>
+<p>The <em>Single Responsibility Principle</em> teaches us two things:</p>
+<ol>
+<li>Knowledge coming from two different sources (here two different departments) is very likely to change independently, and we should rather treat it as a different knowledge.</li>
+<li>We should separate different knowledge because otherwise, it is tempting to reuse parts that should not be reused. </li>
+</ol>
+<h3 id="summary">Summary</h3>
+<p>Everything changes and it is our job to prepare for that: to recognize common knowledge and extract it. If a bunch of elements has similar parts and it is likely that we will need to change it for all instances, extract it and save time on searching through the project and update many instances. On the other hand, protect yourself from unintentional modifications by separating parts that are coming from different sources. Often it&#x2019;s even more important side of the problem. I see many developers who are so terrified of the literal meaning of Don&#x2019;t Repeat Yourself, that they tend to looking suspiciously at any 2 lines of code that look similar. Both extremes are unhealthy, and we need to always search for a balance. Sometimes, it is a tough decision if something should be extracted or not. This is why it is an art to design information systems well. It requires time and a lot of practice.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1264,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 19 Do Not Repeat Knowledge","level":"1.3.1.2","depth":3,"next":{"title":"Item 20 Do Not Repeat Common Algorithms","level":"1.3.1.3","depth":3,"path":"Part 2 Code design/Chapter 3 Reusability/Item 20 Do not repeat common algorithms.md","ref":"Part 2 Code design/Chapter 3 Reusability/Item 20 Do not repeat common algorithms.md","articles":[]},"previous":{"title":"Introduction","level":"1.3.1.1","depth":3,"path":"Part 2 Code design/Chapter 3 Reusability/Introduction.md","ref":"Part 2 Code design/Chapter 3 Reusability/Introduction.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 3 Reusability/Item 19 Do not repeat knowledge.md","mtime":"2021-11-27T04:22:04.267Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T04:22:37.563Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 19 Do Not Repeat Knowledge","level":"1.3.1.2","depth":3,"next":{"title":"Item 20 Do Not Repeat Common Algorithms","level":"1.3.1.3","depth":3,"path":"Part 2 Code design/Chapter 3 Reusability/Item 20 Do not repeat common algorithms.md","ref":"Part 2 Code design/Chapter 3 Reusability/Item 20 Do not repeat common algorithms.md","articles":[]},"previous":{"title":"Introduction","level":"1.3.1.1","depth":3,"path":"Part 2 Code design/Chapter 3 Reusability/Introduction.md","ref":"Part 2 Code design/Chapter 3 Reusability/Introduction.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 3 Reusability/Item 19 Do not repeat knowledge.md","mtime":"2021-11-27T04:26:09.497Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T04:26:53.010Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
