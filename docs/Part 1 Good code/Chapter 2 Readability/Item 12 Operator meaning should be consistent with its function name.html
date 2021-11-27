@@ -1136,7 +1136,77 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-12-operator-meaning-should-be-consistent-with-its-function-name">Item 12: Operator meaning should be consistent with its function name</h2>
+<p>Operator overloading is a powerful feature, and like most powerful features it is dangerous as well. In programming, with great power comes great responsibility. As a trainer, I&#x2019;ve often seen how people can get carried away when they first discover operator overloading. For example, one exercise involves making a function for calculating the factorial of a number:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-keyword">Int</span>.<span class="hljs-title">factorial</span><span class="hljs-params">()</span>: <span class="hljs-keyword">Int</span> = <span class="hljs-params">(1..this)</span>.<span class="hljs-title">product</span><span class="hljs-params">()</span></span>
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> Iterable<span class="hljs-type">&lt;Int&gt;</span>.<span class="hljs-title">product</span><span class="hljs-params">()</span>: <span class="hljs-keyword">Int</span> = </span>
+    fold(<span class="hljs-number">1</span>) { acc, i -&gt; acc * i }
+</code></pre>
+<p>As this function is defined as an extension function to <code>Int</code>, its usage is convenient:</p>
+<pre><code class="lang-kotlin">print(<span class="hljs-number">10</span> * <span class="hljs-number">6.</span>factorial()) <span class="hljs-comment">// 7200</span>
+</code></pre>
+<p>A mathematician will know that there is a special notation for factorials. It is an exclamation mark after a number:</p>
+<pre><code class="lang-kotlin"><span class="hljs-number">10</span> * <span class="hljs-number">6</span>!
+</code></pre>
+<p>There is no support in Kotlin for such an operator, but as one of my workshop participants noticed, we can use operator overloading for <code>not</code> instead:</p>
+<pre><code class="lang-kotlin">operator <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-keyword">Int</span>.<span class="hljs-title">not</span><span class="hljs-params">()</span> = <span class="hljs-title">factorial</span><span class="hljs-params">()</span></span>
+
+print(<span class="hljs-number">10</span> * !<span class="hljs-number">6</span>) <span class="hljs-comment">// 7200</span>
+</code></pre>
+<p>We can do this, but should we? The simplest answer is NO. You only need to read the function declaration to notice that the name of this function is <code>not</code>. As this name suggests, it should <strong>not</strong> be used this way. It represents a logical operation, not a numeric factorial. This usage would be confusing and misleading. In Kotlin, all operators are just syntactic sugar for functions with concrete names, as presented in the table below. Every operator can always be invoked as a function instead of using the operator syntax. How would the following look like?</p>
+<pre><code class="lang-kotlin">print(<span class="hljs-number">10</span> * <span class="hljs-number">6.</span>not()) <span class="hljs-comment">// 7200</span>
+</code></pre>
+<p><img src="../../assets/chapter2/chapter2-2.png" alt="What each operator translates to in Kotlin."></p>
+<p>The meaning of each operator in Kotlin always stays the same. This is a very important design decision. Some languages, like Scala, give you unlimited operator overloading capabilities. This amount of freedom is known to be highly misused by some developers. Reading code using an unfamiliar library for the first time might be difficult even if it has meaningful names of functions and classes. Now imagine operators being used with another meaning, known only to the developers familiar with <em>category theory</em>. It would be way harder to understand. You would need to understand each operator separately, remember what it means in the specific context, and then keep it all in mind to connect the pieces to understand the whole statement. We don&#x2019;t have such a problem in Kotlin, because each of these operators has a concrete meaning. For instance, when you see the following expression:</p>
+<pre><code class="lang-kotlin">x + y == z
+</code></pre>
+<p>You know that this is the same as:</p>
+<pre><code class="lang-kotlin">x.plus(y).equal(z)
+</code></pre>
+<p>Or it can be the following code if <code>plus</code> declares a nullable return type:</p>
+<pre><code class="lang-kotlin">(x.plus(y))?.equal(z) ?: (z === <span class="hljs-literal">null</span>)
+</code></pre>
+<p>These are functions with a concrete name, and we expect all functions to do what their names indicate. This highly restricts what each operator can be used for. Using <code>not</code> to return <code>factorial</code> is a clear breach of this convention, and should never happen. </p>
+<h3 id="unclear-cases">Unclear cases</h3>
+<p>The biggest problem is when it is unclear if some usage fulfills conventions. For instance, what does it mean when we triple a function? For some people, it is clear that it means making another function that repeats this function 3 times:</p>
+<pre><code class="lang-kotlin">operator <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-keyword">Int</span>.<span class="hljs-title">times</span><span class="hljs-params">(operation: <span class="hljs-type">(</span>)</span> -&gt; <span class="hljs-keyword">Unit</span>): <span class="hljs-params">()</span>-&gt;<span class="hljs-keyword">Unit</span> = </span>
+    { repeat(this) { operation() } }
+
+<span class="hljs-variable"><span class="hljs-keyword">val</span> tripledHello</span> = <span class="hljs-number">3</span> * { print(<span class="hljs-string">&quot;Hello&quot;</span>) }
+
+tripledHello() <span class="hljs-comment">// Prints: HelloHelloHello</span>
+</code></pre>
+<p>For others, it might be clear that it means that we want to call this function 3 times<a href="chap65.xhtml#fn-diff">1</a>:</p>
+<pre><code class="lang-kotlin">operator <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-keyword">Int</span>.<span class="hljs-title">times</span><span class="hljs-params">(operation: <span class="hljs-type">(</span>)</span>-&gt;<span class="hljs-keyword">Unit</span>) {</span>
+   repeat(this) { operation() }
+}
+
+<span class="hljs-number">3</span> * { print(<span class="hljs-string">&quot;Hello&quot;</span>) } <span class="hljs-comment">// Prints: HelloHelloHello</span>
+</code></pre>
+<p>When the meaning is unclear, it is better to favor descriptive extension functions. If we want to keep their usage operator-like, we can make them infix:</p>
+<pre><code class="lang-kotlin">infix <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-keyword">Int</span>.<span class="hljs-title">timesRepeated</span><span class="hljs-params">(operation: <span class="hljs-type">(</span>)</span>-&gt;<span class="hljs-keyword">Unit</span>) = {</span>
+   repeat(this) { operation() }
+}
+
+<span class="hljs-variable"><span class="hljs-keyword">val</span> tripledHello</span> = <span class="hljs-number">3</span> timesRepeated { print(<span class="hljs-string">&quot;Hello&quot;</span>) }
+tripledHello() <span class="hljs-comment">// Prints: HelloHelloHello</span>
+</code></pre>
+<p>Sometimes it is better to use a top-level function instead. Repeating function 3 times is already implemented and distributed in the stdlib:</p>
+<pre><code class="lang-kotlin">repeat(<span class="hljs-number">3</span>) { print(<span class="hljs-string">&quot;Hello&quot;</span>) } <span class="hljs-comment">// Prints: HelloHelloHello</span>
+</code></pre>
+<h3 id="when-is-it-fine-to-break-this-rule">When is it fine to break this rule?</h3>
+<p>There is one very important case when it is fine to use operator overloading in a strange way: When we design a Domain Specific Language (DSL). Think of a classic HTML DSL example:</p>
+<pre><code class="lang-kotlin">body {
+    div {
+        +<span class="hljs-string">&quot;Some text&quot;</span>
+    }
+}
+</code></pre>
+<p>You can see that to add text into an element we use <code>String.unaryPlus</code>. This is acceptable because it is clearly part of the Domain Specific Language (DSL). In this specific context, it&#x2019;s not a surprise to readers that different rules apply.</p>
+<h3 id="summary">Summary</h3>
+<p>Use operator overloading conscientiously. The function name should always be coherent with its behavior. Avoid cases where operator meaning is unclear. Clarify it by using a regular function with a descriptive name instead. If you wish to have a more operator-like syntax, then use the <code>infix</code> modifier or a top-level function.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1249,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 12 Operator Meaning Should Be Consistent With Its Function Name","level":"1.2.2.3","depth":3,"next":{"title":"Item 13 Avoid Returning Or Operating On Unit","level":"1.2.2.4","depth":3,"path":"Part 1 Good code/Chapter 2 Readability/Item 13 Avoid returning or operating on Unit?.md","ref":"Part 1 Good code/Chapter 2 Readability/Item 13 Avoid returning or operating on Unit?.md","articles":[]},"previous":{"title":"Item 11 Design For Readability","level":"1.2.2.2","depth":3,"path":"Part 1 Good code/Chapter 2 Readability/Item 11 Design for readability.md","ref":"Part 1 Good code/Chapter 2 Readability/Item 11 Design for readability.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 1 Good code/Chapter 2 Readability/Item 12 Operator meaning should be consistent with its function name.md","mtime":"2021-11-27T03:58:21.955Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T03:58:55.992Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 12 Operator Meaning Should Be Consistent With Its Function Name","level":"1.2.2.3","depth":3,"next":{"title":"Item 13 Avoid Returning Or Operating On Unit","level":"1.2.2.4","depth":3,"path":"Part 1 Good code/Chapter 2 Readability/Item 13 Avoid returning or operating on Unit?.md","ref":"Part 1 Good code/Chapter 2 Readability/Item 13 Avoid returning or operating on Unit?.md","articles":[]},"previous":{"title":"Item 11 Design For Readability","level":"1.2.2.2","depth":3,"path":"Part 1 Good code/Chapter 2 Readability/Item 11 Design for readability.md","ref":"Part 1 Good code/Chapter 2 Readability/Item 11 Design for readability.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 1 Good code/Chapter 2 Readability/Item 12 Operator meaning should be consistent with its function name.md","mtime":"2021-11-27T04:02:58.674Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T04:03:44.637Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
