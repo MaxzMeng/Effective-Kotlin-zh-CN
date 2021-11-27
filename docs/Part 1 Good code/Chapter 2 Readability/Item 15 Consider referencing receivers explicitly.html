@@ -1136,7 +1136,175 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-15-consider-referencing-receivers-explicitly">Item 15: Consider referencing receivers explicitly</h2>
+<p>One common place where we might choose a longer structure to make something explicit is when we want to highlight that a function or a property is taken from the receiver instead of being a local or top-level variable. In the most basic situation it means a reference to the class to which the method is associated:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">User</span>: <span class="hljs-type">Person</span></span>() {
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> beersDrunk</span>: <span class="hljs-keyword">Int</span> = <span class="hljs-number">0</span>
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">drinkBeers</span><span class="hljs-params">(num: <span class="hljs-type">Int</span>)</span> {</span>
+       <span class="hljs-comment">// ...</span>
+       this.beersDrunk += num
+       <span class="hljs-comment">// ...</span>
+   }
+}
+</code></pre>
+<p>Similarly, we may explicitly reference an extension receiver (<code>this</code> in an extension method) to make its use more explicit. Just compare the following Quicksort implementation written without explicit receivers:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T : Comparable&lt;T&gt;</span>&gt; List<span class="hljs-type">&lt;T&gt;</span>.<span class="hljs-title">quickSort</span><span class="hljs-params">()</span>: List<span class="hljs-type">&lt;T&gt;</span> {</span>
+   <span class="hljs-keyword">if</span> (size <span class="hljs-type">&lt; 2) return this
+   val pivot = first()
+   val (smaller, bigger) = drop(1)
+       .partition { it &lt; pivot }
+   return smaller.quickSort() + pivot + bigger.quickSort()
+}
+</span></code></pre>
+<p>With this one written using them:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T : Comparable&lt;T&gt;</span>&gt; List<span class="hljs-type">&lt;T&gt;</span>.<span class="hljs-title">quickSort</span><span class="hljs-params">()</span>: List<span class="hljs-type">&lt;T&gt;</span> {</span>
+   <span class="hljs-keyword">if</span> (this.size <span class="hljs-type">&lt; 2) return this
+   val pivot = this.first()
+   val (smaller, bigger) = this.drop(1)
+       .partition { it &lt; pivot }
+   return smaller.quickSort() + pivot + bigger.quickSort()
+}
+</span></code></pre>
+<p>The usage is the same for both functions:</p>
+<pre><code class="lang-kotlin">listOf(<span class="hljs-number">3</span>, <span class="hljs-number">2</span>, <span class="hljs-number">5</span>, <span class="hljs-number">1</span>, <span class="hljs-number">6</span>).quickSort() <span class="hljs-comment">// [1, 2, 3, 5, 6]</span>
+listOf(<span class="hljs-string">&quot;C&quot;</span>, <span class="hljs-string">&quot;D&quot;</span>, <span class="hljs-string">&quot;A&quot;</span>, <span class="hljs-string">&quot;B&quot;</span>).quickSort() <span class="hljs-comment">// [A, B, C, D]</span>
+</code></pre>
+<h3 id="many-receivers">Many receivers</h3>
+<p>Using explicit receivers can be especially helpful when we are in the scope of more than one receiver. We are often in such a situation when we use the <code>apply</code>, <code>with</code> or <code>run</code> functions. Such situations are dangerous and we should avoid them. It is safer to use an object using explicit receiver. To understand this problem, see the following code<a href="chap65.xhtml#fn-footnote_20_note">2</a>:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Node</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: String) {
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">makeChild</span><span class="hljs-params">(childName: <span class="hljs-type">String</span>)</span> =</span>
+       create(<span class="hljs-string">&quot;$name.$childName&quot;</span>)
+           .apply { print(<span class="hljs-string">&quot;Created ${name}&quot;</span>) }
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">create</span><span class="hljs-params">(name: <span class="hljs-type">String</span>)</span>: Node? = <span class="hljs-title">Node</span><span class="hljs-params">(name)</span></span>
+} 
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> node</span> = Node(<span class="hljs-string">&quot;parent&quot;</span>)
+   node.makeChild(<span class="hljs-string">&quot;child&quot;</span>)
+}
+</code></pre>
+<p>What is the result? Stop now and spend some time trying to answer yourself before reading the answer. </p>
+<p>It is probably expected that the result should be &#x201C;Created parent.child&#x201D;, but the actual result is &#x201C;Created parent&#x201D;. Why? To investigate, we can use explicit receiver before <code>name</code>:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Node</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: String) {
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">makeChild</span><span class="hljs-params">(childName: <span class="hljs-type">String</span>)</span> =</span>
+       create(<span class="hljs-string">&quot;$name.$childName&quot;</span>)
+         .apply { print(<span class="hljs-string">&quot;Created ${this.name}&quot;</span>) } 
+         <span class="hljs-comment">// Compilation error</span>
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">create</span><span class="hljs-params">(name: <span class="hljs-type">String</span>)</span>: Node? = <span class="hljs-title">Node</span><span class="hljs-params">(name)</span></span>
+}
+</code></pre>
+<p>The problem is that the type <code>this</code> inside <code>apply</code> is <code>Node?</code> and so methods cannot be used directly. We would need to unpack it first, for instance by using a safe call. If we do so, result will be finally correct:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Node</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: String) {
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">makeChild</span><span class="hljs-params">(childName: <span class="hljs-type">String</span>)</span> =</span>
+       create(<span class="hljs-string">&quot;$name.$childName&quot;</span>)
+           .apply { print(<span class="hljs-string">&quot;Created ${this?.name}&quot;</span>) }
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">create</span><span class="hljs-params">(name: <span class="hljs-type">String</span>)</span>: Node? = <span class="hljs-title">Node</span><span class="hljs-params">(name)</span></span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> {</span>
+    <span class="hljs-variable"><span class="hljs-keyword">val</span> node</span> = Node(<span class="hljs-string">&quot;parent&quot;</span>)
+    node.makeChild(<span class="hljs-string">&quot;child&quot;</span>) 
+    <span class="hljs-comment">// Prints: Created parent.child</span>
+}
+</code></pre>
+<p>This is an example of bad usage of <code>apply</code>. We wouldn&#x2019;t have such a problem if we used <code>also</code> instead, and call <code>name</code> on the argument. Using <code>also</code> forces us to reference the function&#x2019;s receiver explicitly the same way as an explicit receiver. In general <code>also</code> and <code>let</code> are much better choice for additional operations or when we operate on a nullable value. </p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Node</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: String) {
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">makeChild</span><span class="hljs-params">(childName: <span class="hljs-type">String</span>)</span> =</span>
+       create(<span class="hljs-string">&quot;$name.$childName&quot;</span>)
+           .also { print(<span class="hljs-string">&quot;Created ${it?.name}&quot;</span>) }
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">create</span><span class="hljs-params">(name: <span class="hljs-type">String</span>)</span>: Node? = <span class="hljs-title">Node</span><span class="hljs-params">(name)</span></span>
+}
+</code></pre>
+<p>When receiver is not clear, we either prefer to avoid it or we clarify it using explicit receiver. When we use receiver without label, we mean the closest one. When we want to use outer receiver we need to use a label. In such case it is especially useful to use it explicitly. Here is an example showing them both in use:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Node</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: String) {
+
+    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">makeChild</span><span class="hljs-params">(childName: <span class="hljs-type">String</span>)</span> =</span>
+        create(<span class="hljs-string">&quot;$name.$childName&quot;</span>).apply { 
+           print(<span class="hljs-string">&quot;Created ${this?.name} in &quot;</span>+
+               <span class="hljs-string">&quot; ${this@Node.name}&quot;</span>) 
+        }
+
+    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">create</span><span class="hljs-params">(name: <span class="hljs-type">String</span>)</span>: Node? = <span class="hljs-title">Node</span><span class="hljs-params">(name)</span></span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> {</span>
+    <span class="hljs-variable"><span class="hljs-keyword">val</span> node</span> = Node(<span class="hljs-string">&quot;parent&quot;</span>)
+    node.makeChild(<span class="hljs-string">&quot;child&quot;</span>) 
+    <span class="hljs-comment">// Created parent.child in parent</span>
+}
+</code></pre>
+<p>This way direct receiver clarifies what receiver do we mean. This might be an important information that might not only protect us from errors but also improve readability. </p>
+<h3 id="dsl-marker">DSL marker</h3>
+<p>There is a context in which we often operate on very nested scopes with different receivers, and we don&#x2019;t need to use explicit receivers at all. I am talking about Kotlin DSLs. We don&#x2019;t need to use receivers explicitly because DSLs are designed in such a way. However, in DSLs, it is especially dangerous to accidentally use functions from an outer scope. Think of a simple HTML DSL we use to make an HTML table:</p>
+<pre><code class="lang-kotlin">table {
+   tr {
+       td { +<span class="hljs-string">&quot;Column 1&quot;</span> }
+       td { +<span class="hljs-string">&quot;Column 2&quot;</span> }
+   }
+   tr {
+       td { +<span class="hljs-string">&quot;Value 1&quot;</span> }
+       td { +<span class="hljs-string">&quot;Value 2&quot;</span> }
+   }
+}
+</code></pre>
+<p>Notice that by default in every scope we can also use methods from receivers from the outer scope. We might use this fact to mess with DSL:</p>
+<pre><code class="lang-kotlin">table {
+   tr {
+       td { +<span class="hljs-string">&quot;Column 1&quot;</span> }
+       td { +<span class="hljs-string">&quot;Column 2&quot;</span> }
+       tr {
+           td { +<span class="hljs-string">&quot;Value 1&quot;</span> }
+           td { +<span class="hljs-string">&quot;Value 2&quot;</span> }
+      }
+   }
+}
+</code></pre>
+<p>To restrict such usage, we have a special meta-annotation (an annotation for annotations) that restricts implicit usage of outer receivers. This is the <code>DslMarker</code>. When we use it on an annotation, and later use this annotation on a class that serves as a builder, inside this builder implicit receiver use won&#x2019;t be possible. Here is an example of how <code>DslMarker</code> might be used:</p>
+<pre><code class="lang-kotlin">@DslMarker
+annotation <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">HtmlDsl</span></span>
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">table</span><span class="hljs-params">(f: <span class="hljs-type">TableDsl.(</span>)</span> -&gt; <span class="hljs-keyword">Unit</span>) { <span class="hljs-comment">/*...*/</span> }</span>
+
+@HtmlDsl
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">TableDsl</span> </span>{ <span class="hljs-comment">/*...*/</span> }
+</code></pre>
+<p>With that, it is prohibited to use outer receiver implicitly:</p>
+<pre><code class="lang-kotlin">table {
+   tr {
+       td { +<span class="hljs-string">&quot;Column 1&quot;</span> }
+       td { +<span class="hljs-string">&quot;Column 2&quot;</span> }
+       tr { <span class="hljs-comment">// COMPILATION ERROR</span>
+           td { +<span class="hljs-string">&quot;Value 1&quot;</span> }
+           td { +<span class="hljs-string">&quot;Value 2&quot;</span> }
+       }
+   }
+}
+</code></pre>
+<p>Using functions from an outer receiver requires explicit receiver usage:</p>
+<pre><code class="lang-kotlin">table {
+   tr {
+       td { +<span class="hljs-string">&quot;Column 1&quot;</span> }
+       td { +<span class="hljs-string">&quot;Column 2&quot;</span> }
+       this@table.tr {
+           td { +<span class="hljs-string">&quot;Value 1&quot;</span> }
+           td { +<span class="hljs-string">&quot;Value 2&quot;</span> }
+       }
+   }
+}
+</code></pre>
+<p>The DSL marker is a very important mechanism that we use to force usage of either the closest receiver or explicit receiver usage. However, it is generally better to not use explicit receivers in DSLs anyway. Respect DSL design and use it accordingly. </p>
+<h3 id="summary">Summary</h3>
+<p>Do not change scope receiver just because you can. It might be confusing to have too many receivers all giving us methods we can use. Explicit argument or reference is generally better. When we do change receiver, using explicit receivers improves readability because it clarifies where does the function come from. We can even use a label when there are many receivers to clarify from which one the function comes from. If you want to force using explicit receivers from the outer scope, you can use <code>DslMarker</code> meta-annotation.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1347,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 15 Consider Referencing Receivers Explicitly","level":"1.2.2.6","depth":3,"next":{"title":"Item 16 Properties Should Represent State Not Behavior","level":"1.2.2.7","depth":3,"path":"Part 1 Good code/Chapter 2 Readability/Item 16 Properties should represent state not behavior.md","ref":"Part 1 Good code/Chapter 2 Readability/Item 16 Properties should represent state not behavior.md","articles":[]},"previous":{"title":"Item 14 Specify The Variable Type When It Is Not Clear","level":"1.2.2.5","depth":3,"path":"Part 1 Good code/Chapter 2 Readability/Item 14 Specify the variable type when it is not clear.md","ref":"Part 1 Good code/Chapter 2 Readability/Item 14 Specify the variable type when it is not clear.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 1 Good code/Chapter 2 Readability/Item 15 Consider referencing receivers explicitly.md","mtime":"2021-11-27T04:09:49.557Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T04:10:22.797Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 15 Consider Referencing Receivers Explicitly","level":"1.2.2.6","depth":3,"next":{"title":"Item 16 Properties Should Represent State Not Behavior","level":"1.2.2.7","depth":3,"path":"Part 1 Good code/Chapter 2 Readability/Item 16 Properties should represent state not behavior.md","ref":"Part 1 Good code/Chapter 2 Readability/Item 16 Properties should represent state not behavior.md","articles":[]},"previous":{"title":"Item 14 Specify The Variable Type When It Is Not Clear","level":"1.2.2.5","depth":3,"path":"Part 1 Good code/Chapter 2 Readability/Item 14 Specify the variable type when it is not clear.md","ref":"Part 1 Good code/Chapter 2 Readability/Item 14 Specify the variable type when it is not clear.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 1 Good code/Chapter 2 Readability/Item 15 Consider referencing receivers explicitly.md","mtime":"2021-11-27T04:13:42.149Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T04:14:30.405Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
