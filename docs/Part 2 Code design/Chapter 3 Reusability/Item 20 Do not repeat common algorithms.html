@@ -1136,7 +1136,70 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-20-do-not-repeat-common-algorithms">Item 20: Do not repeat common algorithms</h2>
+<p>I often see developers reimplementing the same algorithms again and again. By algorithms here I mean patterns that are not project-specific, so they do not contain any business logic, and can be extracted into separate modules or even libraries. Those might be mathematical operations, collection processing, or any other common behavior. Sometimes those algorithms can be long and complicated, like optimized sorting algorithms. There are also many simple examples though, like number coercion in a range:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> percent</span> = <span class="hljs-keyword">when</span> {
+   numberFromUser &gt; <span class="hljs-number">100</span> -&gt; <span class="hljs-number">100</span>
+   numberFromUser <span class="hljs-type">&lt; 0 -&gt;</span> <span class="hljs-number">0</span>
+   <span class="hljs-keyword">else</span> -&gt; numberFromUser
+}
+</code></pre>
+<p>Notice that we don&#x2019;t need to implement it because it is already in the stdlib as the <code>coerceIn</code> extension function:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> percent</span> = numberFromUser.coerceIn(<span class="hljs-number">0</span>, <span class="hljs-number">100</span>)
+</code></pre>
+<p>The advantages of extracting even short but repetitive algorithms are:</p>
+<ul>
+<li><strong>Programming is faster</strong> because a single call is shorter than an algorithm (list of steps).</li>
+<li><strong>They are named, so we need to know the concept by name instead of recognizing it by reading its implementation.</strong> This is easier for developers who are familiar with the concept. This might be harder for new developers who are not familiar with these concepts, but it pays off to learn the names of repetitive algorithms. Once they learn it, they will profit from that in the future.</li>
+<li><strong>We eliminate noise, so it is easier to notice something atypical.</strong> In a long algorithm, it is easy to miss hidden pieces of atypical logic. Think of the difference between <code>sortedBy</code> and <code>sortedByDescending</code>. Sorting direction is clear when we call those functions, even though their bodies are nearly identical. If we needed to implement this logic every time, it would be easy to confuse whether implemented sorting has natural or descending order. Comments before an algorithm implementation are not really helpful either. Practice shows that developers do change code without updating comments, and over time we lose trust in them. </li>
+<li><strong>They can be optimized once, and we profit from this optimization everywhere we use those functions.</strong></li>
+</ul>
+<h3 id="learn-the-standard-library">Learn the standard library</h3>
+<p>Common algorithms are nearly always already defined by someone else. Most libraries are just collections of common algorithms. The most special among them is the stdlib (standard library). It is a huge collection of utilities, mainly defined as extension functions. Learning the stdlib functions can be demanding, but it is worth it. Without it, developers reinvent the wheel time and time again. To see an example, take a look at this snippet taken from an open-source project:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">saveCallResult</span><span class="hljs-params">(item: <span class="hljs-type">SourceResponse</span>)</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> sourceList</span> = ArrayList<span class="hljs-type">&lt;SourceEntity&gt;</span>()
+   item.sources.forEach {
+       <span class="hljs-variable"><span class="hljs-keyword">var</span> sourceEntity</span> = SourceEntity()
+       sourceEntity.id = it.id
+       sourceEntity.category = it.category
+       sourceEntity.country = it.country
+       sourceEntity.description = it.description
+       sourceList.add(sourceEntity)
+   }
+   db.insertSources(sourceList)
+}
+</code></pre>
+<p>Using <code>forEach</code> here is useless. I see no advantage to using it instead of a for-loop. What I do see in this code though is a mapping from one type to another. We can use the <code>map</code> function in such cases. Another thing to note is that the way <code>SourceEntity</code> is set-up is far from perfect. This is a JavaBean pattern that is obsolete in Kotlin, and instead, we should use a factory method or a primary constructor (<em>Chapter 5: Objects creation</em>). If for a reason someone needs to keep it this way, we should, at least, use <code>apply</code> to set up all the properties of a single object implicitly. This is our function after a small clean-up:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">saveCallResult</span><span class="hljs-params">(item: <span class="hljs-type">SourceResponse</span>)</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> sourceEntries</span> = item.sources.map(::sourceToEntry)
+   db.insertSources(sourceEntries)
+}
+
+<span class="hljs-keyword">private</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">sourceToEntry</span><span class="hljs-params">(source: <span class="hljs-type">Source</span>)</span> = <span class="hljs-title">SourceEntity</span><span class="hljs-params">()</span></span>
+    .apply {
+        id = source.id
+        category = source.category
+        country = source.country
+        description = source.description
+    }
+</code></pre>
+<h3 id="implementing-your-own-utils">Implementing your own utils</h3>
+<p>At some point in every project, we need some algorithms that are not in the standard library. For instance what if we need to calculate a product of numbers in a collection? It is a well-known abstraction, and so it is good to define it as a universal utility function:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> Iterable<span class="hljs-type">&lt;Int&gt;</span>.<span class="hljs-title">product</span><span class="hljs-params">()</span> = </span>
+      fold(<span class="hljs-number">1</span>) { acc, i -&gt; acc * i }
+</code></pre>
+<p>You don&#x2019;t need to wait for more than one use. It is a well-known mathematical concept and its name should be clear for developers. Maybe another developer will need to use it later in the future and they&#x2019;ll be happy to see that it is already defined. Hopefully, that developer will find this function. It is bad practice to have duplicate functions achieving the same results. Each function needs to be tested, remembered and maintained, and so should be considered as a cost. We should be aware not to define functions we don&#x2019;t need, therefore, we should first search for an existing function before implementing our own.</p>
+<p>Notice that <code>product</code>, just like most functions in the Kotlin stdlib, is an extension function. There are many ways we can extract common algorithms, starting from top-level functions, property delegates and ending up on classes. Although extension functions are a really good choice:</p>
+<ul>
+<li>Functions do not hold state, and so they are perfect to represent behavior. Especially if it has no side-effects.</li>
+<li>Compared to top-level functions, extension functions are better because they are suggested only on objects with concrete types. </li>
+<li>It is more intuitive to modify an extension receiver than an argument. </li>
+<li>Compared to methods on objects, extensions are easier to find among hints since they are suggested on objects. For instance <code>&quot;Text&quot;.isEmpty()</code> is easier to find than <code>TextUtils.isEmpty(&quot;Text&quot;)</code>. It is because when you place a dot after <code>&quot;Text&quot;</code> you&#x2019;ll see as suggestions all extension functions that can be applied to this object. To find <code>TextUtils.isEmpty</code> you would need to guess where is it stored, and you might need to search through alternative util objects from different libraries. </li>
+<li>When we are calling a method, it is easy to confuse a top-level function with a method from the class or superclass, and their expected behavior is very different. Top-level extension functions do not have this problem, because they need to be invoked on an object. </li>
+</ul>
+<h3 id="summary">Summary</h3>
+<p>Do not repeat common algorithms. First, it is likely that there is a stdlib function that you can use instead. This is why it is good to learn the standard library. If you need a known algorithm that is not in the stdlib, or if you need a certain algorithm often, feel free to define it in your project. A good choice is to implement it as an extension function.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1242,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 20 Do Not Repeat Common Algorithms","level":"1.3.1.3","depth":3,"next":{"title":"Item 21 Use Property Delegation To Extract Common Property Patterns","level":"1.3.1.4","depth":3,"path":"Part 2 Code design/Chapter 3 Reusability/Item 21 Use property delegation to extract common property patterns.md","ref":"Part 2 Code design/Chapter 3 Reusability/Item 21 Use property delegation to extract common property patterns.md","articles":[]},"previous":{"title":"Item 19 Do Not Repeat Knowledge","level":"1.3.1.2","depth":3,"path":"Part 2 Code design/Chapter 3 Reusability/Item 19 Do not repeat knowledge.md","ref":"Part 2 Code design/Chapter 3 Reusability/Item 19 Do not repeat knowledge.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 3 Reusability/Item 20 Do not repeat common algorithms.md","mtime":"2021-11-27T04:26:09.497Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T04:26:53.010Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 20 Do Not Repeat Common Algorithms","level":"1.3.1.3","depth":3,"next":{"title":"Item 21 Use Property Delegation To Extract Common Property Patterns","level":"1.3.1.4","depth":3,"path":"Part 2 Code design/Chapter 3 Reusability/Item 21 Use property delegation to extract common property patterns.md","ref":"Part 2 Code design/Chapter 3 Reusability/Item 21 Use property delegation to extract common property patterns.md","articles":[]},"previous":{"title":"Item 19 Do Not Repeat Knowledge","level":"1.3.1.2","depth":3,"path":"Part 2 Code design/Chapter 3 Reusability/Item 19 Do not repeat knowledge.md","ref":"Part 2 Code design/Chapter 3 Reusability/Item 19 Do not repeat knowledge.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 3 Reusability/Item 20 Do not repeat common algorithms.md","mtime":"2021-11-27T04:27:58.377Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T04:28:29.699Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
