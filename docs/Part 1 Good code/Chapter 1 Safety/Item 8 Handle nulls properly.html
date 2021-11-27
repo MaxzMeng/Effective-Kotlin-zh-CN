@@ -1136,7 +1136,179 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-8-handle-nulls-properly">Item 8: Handle nulls properly</h2>
+<p><code>null</code> means a lack of value. For property, it might mean that the value was not set or that it was removed. When a function returns <code>null</code> it might have a different meaning depending on the function:</p>
+<ul>
+<li><code>String.toIntOrNull()</code> returns <code>null</code> when <code>String</code> cannot be correctly parsed to <code>Int</code></li>
+<li><code>Iterable&lt;T&gt;.firstOrNull(() -&gt; Boolean)</code> returns <code>null</code> when there are no elements matching predicate from the argument. </li>
+</ul>
+<p><strong>In these and all other cases the meaning of <code>null</code> should be as clear as possible.</strong> This is because nullable values must be handled, and it is the API user (programmer using API element) who needs to decide how it is to be handled. </p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> printer</span>: Printer? = getPrinter()
+printer.print() <span class="hljs-comment">// Compilation Error</span>
+
+printer?.print() <span class="hljs-comment">// Safe call</span>
+<span class="hljs-keyword">if</span> (printer != <span class="hljs-literal">null</span>) printer.print() <span class="hljs-comment">// Smart casting</span>
+printer!!.print() <span class="hljs-comment">// Not-null assertion</span>
+</code></pre>
+<p>In general, there are 3 ways of how nullable types can be handled. We can:</p>
+<ul>
+<li>Handling nullability safely using safe call <code>?.</code>, smart casting, Elvis operator, etc.</li>
+<li>Throw an error</li>
+<li>Refactor this function or property so that it won&#x2019;t be nullable</li>
+</ul>
+<p>Let&#x2019;s describe them one by one.</p>
+<h3 id="handling-nulls-safely">Handling nulls safely</h3>
+<p>As mentioned before, the two safest and most popular ways to handle nulls is by using safe call and smart casting:</p>
+<pre><code class="lang-kotlin">printer?.print() <span class="hljs-comment">// Safe call</span>
+<span class="hljs-keyword">if</span> (printer != <span class="hljs-literal">null</span>) printer.print() <span class="hljs-comment">// Smart casting</span>
+</code></pre>
+<p>In both those cases, the function <code>print</code> will be called only when <code>printer</code> is not <code>null</code>. This is the safest option from the application user point of view. It is also really comfortable for programmers. No wonder why this is generally the most popular way how we handle nullable values. </p>
+<p>Support for handling nullable variables in Kotlin is much wider than in other languages. One popular practice is to use the Elvis operator which provides a default value for a nullable type. It allows any expression including <code>return</code> and <code>throw</code> on its right side:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> printerName1</span> = printer?.name ?: <span class="hljs-string">&quot;Unnamed&quot;</span>
+<span class="hljs-variable"><span class="hljs-keyword">val</span> printerName2</span> = printer?.name ?: <span class="hljs-keyword">return</span>
+<span class="hljs-variable"><span class="hljs-keyword">val</span> printerName3</span> = printer?.name ?: 
+    <span class="hljs-keyword">throw</span> Error(<span class="hljs-string">&quot;Printer must be named&quot;</span>)
+</code></pre>
+<p>Many objects have additional support. For instance, as it is common to ask for an empty collection instead of <code>null</code>, there is <code>orEmpty</code> extension function on <code>Collection&lt;T&gt;?</code> returning not-nullable <code>List&lt;T&gt;</code>. There is also a similar function for <code>String?</code>.</p>
+<p>Smart casting is also supported by Kotlin&#x2019;s contracts feature that lets us smart cast in a function:</p>
+<pre><code class="lang-kotlin">println(<span class="hljs-string">&quot;What is your name?&quot;</span>)
+<span class="hljs-variable"><span class="hljs-keyword">val</span> name</span> = readLine()
+<span class="hljs-keyword">if</span> (!name.isNullOrBlank()) {
+   println(<span class="hljs-string">&quot;Hello ${name.toUpperCase()}&quot;</span>)
+}
+
+<span class="hljs-variable"><span class="hljs-keyword">val</span> news</span>: List<span class="hljs-type">&lt;News&gt;</span>? = getNews()
+<span class="hljs-keyword">if</span> (!news.isNullOrEmpty()) {
+   news.forEach { notifyUser(it) }
+}
+</code></pre>
+<p>All those options should be known to Kotlin developers, and they all provide useful ways to handle nullability properly. </p>
+<h3 id="defensive-and-offensive-programming">Defensive and offensive programming</h3>
+<p>Handling all possibilities in a correct way - like here not using <code>printer</code> when it is <code>null</code> - is an implementation of <em>defensive programming</em>. <em>Defensive programming</em> is a blanket term for various practices increasing code stability once the code is in production, often by defending against the currently impossible. It is the best way when there is a correct way to handle all possible situations. It wouldn&#x2019;t be correct if we would expect that <code>printer</code> is not <code>null</code> and should be used. In such a case it would be impossible to handle such a situation safely, and we should instead use a technique called <em>offensive programming</em>. The idea behind <em>offensive programming</em> is that in case of an unexpected situation we complain about it loudly to inform the developer who led to such situation, and to force him or her to correct it. A direct implementation of this idea is <code>require</code>, <code>check</code>and <code>assert</code> presented in Item 5: Specify your expectations on arguments and state. It is important to understand that even though those two modes seem like being in conflict, they are not at all. They are more like yin and yang. Those are different modes both needed in our programs for the sake of safety, and we need to understand them both and use them appropriately. </p>
+<h3 id="throw-an-error">Throw an error</h3>
+<p>One problem with safe handling is that if <code>printer</code> could sometimes be <code>null</code>, we will not be informed about it but instead <code>print</code> won&#x2019;t be called. This way we might have hidden important information. If we are expecting <code>printer</code> to never be <code>null</code>, we will be surprised when the <code>print</code> method isn&#x2019;t called. This can lead to errors that are really hard to find. When we have a strong expectation about something that isn&#x2019;t met, it is better to throw an error to inform the programmer about the unexpected situation. It can be done using <code>throw</code>, as well as by using the not-null assertion <code>!!</code>, <code>requireNotNull</code>, <code>checkNotNull</code>, or other error throwing functions:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">process</span><span class="hljs-params">(user: <span class="hljs-type">User</span>)</span> {</span>
+    requireNotNull(user.name)
+    <span class="hljs-variable"><span class="hljs-keyword">val</span> context</span> = checkNotNull(context)
+    <span class="hljs-variable"><span class="hljs-keyword">val</span> networkService</span> = 
+        getNetworkService(context) ?: 
+        <span class="hljs-keyword">throw</span> NoInternetConnection()
+    networkService.getData { data, userData -&gt;
+        show(data!!, userData!!)
+    }
+}
+</code></pre>
+<h3 id="the-problems-with-the-not-null-assertion-">The problems with the not-null assertion <code>!!</code></h3>
+<p>The simplest way to handle nullable is by using not-null assertion <code>!!</code>. It is conceptually similar to what happens in Java - we think something is not <code>null</code> and if we are wrong, an NPE is thrown. <strong>Not-null assertion <code>!!</code> is a lazy option. It throws a generic exception that explains nothing. It is also short and simple, which also makes it easy to abuse or misuse.</strong> Not-null assertion <code>!!</code> is often used in situations where type is nullable but <code>null</code> is not expected. The problem is that even if it currently is not expected, it almost always can be in the future, and this operator only quietly hides the nullability.</p>
+<p>A very simple example is a function looking for the largest among 4 arguments<a href="chap65.xhtml#fn-maxOf">9</a>. Let&#x2019;s say that we decided to implement it by packing all those arguments into a list and then using <code>max</code> to find the biggest one. The problem is that it returns nullable because it returns <code>null</code>when the collection is empty. Though developer knowing that this list cannot be empty will likely use not-null assertion <code>!!</code>:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">largestOf</span><span class="hljs-params">(a: <span class="hljs-type">Int, b: Int, c: Int, d: Int</span>)</span>: <span class="hljs-keyword">Int</span> =</span>
+   listOf(a, b, c, d).max()!!
+</code></pre>
+<p>As it was shown to me by M&#xE1;rton Braun who is a reviewer of this book, even in such a simple function not-null assertion <code>!!</code> can lead to NPE. Someone might need to refactor this function to accept any number of arguments and miss the fact that collection cannot be empty:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">largestOf</span><span class="hljs-params">(vararg nums: <span class="hljs-type">Int</span>)</span>: <span class="hljs-keyword">Int</span> =</span>
+   nums.max()!!
+
+largestOf() <span class="hljs-comment">// NPE</span>
+</code></pre>
+<p>Information about nullability was silenced and it can be easily missed when it might be important. Similarly with variables. Let&#x2019;s say that you have a variable that needs to be set later but it will surely be set before the first use. Setting it to <code>null</code> and using a not-null assertion <code>!!</code> is not a good option:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UserControllerTest</span> </span>{
+
+    <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> dao</span>: UserDao? = <span class="hljs-literal">null</span>
+    <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> controller</span>: UserController? = <span class="hljs-literal">null</span>
+
+    @BeforeEach
+    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">init</span><span class="hljs-params">()</span> {</span>
+        dao = mockk()
+        controller = UserController(dao!!)
+    }
+
+    @Test
+    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">test</span><span class="hljs-params">()</span> {</span>
+        controller!!.doSomething()
+    }
+
+}
+</code></pre>
+<p>It is not only annoying that we need to unpack those properties every time, but we also block the possibility for those properties to actually have a meaningful <code>null</code> in the future. Later in this item, we will see that the correct way to handle such situations is to use <code>lateinit</code> or <code>Delegates.notNull</code>.</p>
+<p><strong>Nobody can predict how code will evolve in the future, and if you use not-null assertion <code>!!</code> or explicit error throw, you should assume that it will throw an error one day.</strong> Exceptions are thrown to indicate something unexpected and incorrect (Item 7: Prefer null or a sealed result class result when the lack of result is possible). However, <strong>explicit errors say much more than generic NPE and they should be nearly always preferred</strong>.</p>
+<p>Rare cases where not-null assertion <code>!!</code> does make sense are mainly a result of common interoperability with libraries in which nullability is not expressed correctly. When you interact with an API properly designed for Kotlin, this shouldn&#x2019;t be a norm.</p>
+<p>In general <strong>we should avoid using the not-null assertion <code>!!</code></strong>. This suggestion is rather widely approved by our community. Many teams have the policy to block it. Some set the Detekt static analyzer to throw an error whenever it is used. I think such an approach is too extreme, but I do agree that it often is a code smell. <strong>Seems like the way this operator looks like is no coincidence. <code>!!</code> seems to be screaming &#x201C;Be careful&#x201D; or &#x201C;There is something wrong here&#x201D;.</strong></p>
+<h3 id="avoiding-meaningless-nullability">Avoiding meaningless nullability</h3>
+<p>Nullability is a cost as it needs to be handled properly and we <strong>prefer avoiding nullability when it is not needed.</strong> <code>null</code> might pass an important message, but we should avoid situations where it would seem meaningless to other developers. They would then be tempted to use the unsafe not-null assertion <code>!!</code> or forced to repeat generic safe handling that only clutters the code. We should avoid nullability that does not make sense for a client. The most important ways for that are:</p>
+<ul>
+<li>Classes can provide variants of functions where the result is expected and in which lack of value is considered and nullable result or a sealed result class is returned. Simple example is <code>get</code> and <code>getOrNull</code> on <code>List&lt;T&gt;</code>. Those are explained in detail in Item 7: Prefer <code>null</code> or a sealed result class result when the lack of result is possible.</li>
+<li>Use <code>lateinit</code> property or <code>notNull</code> delegate when a value is surely set before use but later than during class creation.</li>
+<li><strong>Do not return <code>null</code> instead of an empty collection.</strong> When we deal with a collection, like <code>List&lt;Int&gt;?</code> or <code>Set&lt;String&gt;?</code>, <code>null</code> has a different meaning than an empty collection. It means that no collection is present. To indicate a lack of elements, use an empty collection. </li>
+<li>Nullable enum and <code>None</code> enum value are two different messages. <code>null</code> is a special message that needs to be handled separately, but it is not present in the enum definition and so it can be added to any use-side you want.</li>
+</ul>
+<p>Let&#x2019;s talk about <code>lateinit</code> property and <code>notNull</code> delegate as they deserve a deeper explanation. </p>
+<h3 id="lateinit-property-and-notnull-delegate"><code>lateinit</code> property and <code>notNull</code> delegate</h3>
+<p>It is not uncommon in projects to have properties that cannot be initialized during class creation, but that will surely be initialized before the first use. A typical example is when the property is set-up in a function called before all others, like in <code>@BeforeEach</code> in JUnit 5:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UserControllerTest</span> </span>{
+
+    <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> dao</span>: UserDao? = <span class="hljs-literal">null</span>
+    <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> controller</span>: UserController? = <span class="hljs-literal">null</span>
+
+    @BeforeEach
+    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">init</span><span class="hljs-params">()</span> {</span>
+        dao = mockk()
+        controller = UserController(dao!!)
+    }
+
+    @Test
+    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">test</span><span class="hljs-params">()</span> {</span>
+        controller!!.doSomething()
+    }
+
+}
+</code></pre>
+<p>Casting those properties from nullable to not null whenever we need to use them is highly undesirable. It is also meaningless as we expect that those values are set before tests. The correct solution to this problem is to use <code>lateinit</code> modifier that lets us initialize properties later:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UserControllerTest</span> </span>{
+   <span class="hljs-keyword">private</span> lateinit <span class="hljs-variable"><span class="hljs-keyword">var</span> dao</span>: UserDao
+   <span class="hljs-keyword">private</span> lateinit <span class="hljs-variable"><span class="hljs-keyword">var</span> controller</span>: UserController
+
+   @BeforeEach
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">init</span><span class="hljs-params">()</span> {</span>
+       dao = mockk()
+       controller = UserController(dao)
+   }
+
+   @Test
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">test</span><span class="hljs-params">()</span> {</span>
+       controller.doSomething()
+   }
+}
+</code></pre>
+<p>The cost of <code>lateinit</code> is that if we are wrong and we try to get value before it is initialized, then an exception will be thrown. Sounds scary but it is actually desired - we should use <code>lateinit</code> only when we are sure that it will be initialized before the first use. If we are wrong, we want to be informed about it. The main differences between <code>lateinit</code> and a nullable are:</p>
+<ul>
+<li>We do not need to &#x201C;unpack&#x201D; property every time to not-nullable</li>
+<li>We can easily make it nullable in the future if we need to use <code>null</code> to indicate something meaningful</li>
+<li>Once property is initialized, it cannot get back to an uninitialized state</li>
+</ul>
+<p><strong><code>lateinit</code> is a good practice when we are sure that a property will be initialized before the first use</strong>. We deal with such a situation mainly when classes have their lifecycle and we set properties in one of the first invoked methods to use it on the later ones. For instance when we set objects in <code>onCreate</code> in an Android <code>Activity</code>, <code>viewDidAppear</code> in an iOS <code>UIViewController</code>, or <code>componentDidMount</code> in a React <code>React.Component</code>.</p>
+<p>One case in which <code>lateinit</code> cannot be used is when we need to initialize a property with a type that, on JVM, associates to a primitive, like <code>Int</code>, <code>Long</code>, <code>Double</code> or <code>Boolean</code>. For such cases we have to use <code>Delegates.notNull</code> which is slightly slower, but supports those types:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DoctorActivity</span>: <span class="hljs-type">Activity</span></span>() {
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> doctorId</span>: <span class="hljs-keyword">Int</span> by Delegates.notNull()
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> fromNotification</span>: <span class="hljs-keyword">Boolean</span> by 
+       Delegates.notNull()
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onCreate</span><span class="hljs-params">(savedInstanceState: <span class="hljs-type">Bundle?</span>)</span> {</span>
+       super.onCreate(savedInstanceState)
+       doctorId = intent.extras.getInt(DOCTOR_ID_ARG)
+       fromNotification = intent.extras
+          .getBoolean(FROM_NOTIFICATION_ARG)
+   }
+}
+</code></pre>
+<p>These kinds of cases are often replaced with property delegates, like in the above example where we read the argument in <code>onCreate</code>, we could instead use a delegate that initializes those properties lazily:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DoctorActivity</span>: <span class="hljs-type">Activity</span></span>() {
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> doctorId</span>: <span class="hljs-keyword">Int</span> by arg(DOCTOR_ID_ARG)
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> fromNotification</span>: <span class="hljs-keyword">Boolean</span> by 
+       arg(FROM_NOTIFICATION_ARG)
+}
+</code></pre>
+<p>The property delegation pattern is described in detail in Item 21: Use property delegation to extract common property patterns. One reason why they are so popular is that they help us safely avoid nullability.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1351,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 8 Handle Nulls Properly","level":"1.2.1.9","depth":3,"next":{"title":"Item 9 Close Resources With Use","level":"1.2.1.10","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 9 Close resources with use.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 9 Close resources with use.md","articles":[]},"previous":{"title":"Item 7 Prefer Null Or Failure Result When The Lack Of Result Is Possible","level":"1.2.1.8","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 7 Prefer null or Failure result when the lack of result is possible.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 7 Prefer null or Failure result when the lack of result is possible.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 1 Good code/Chapter 1 Safety/Item 8 Handle nulls properly.md","mtime":"2021-11-24T18:32:29.612Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-24T18:33:00.582Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 8 Handle Nulls Properly","level":"1.2.1.9","depth":3,"next":{"title":"Item 9 Close Resources With Use","level":"1.2.1.10","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 9 Close resources with use.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 9 Close resources with use.md","articles":[]},"previous":{"title":"Item 7 Prefer Null Or Failure Result When The Lack Of Result Is Possible","level":"1.2.1.8","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 7 Prefer null or Failure result when the lack of result is possible.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 7 Prefer null or Failure result when the lack of result is possible.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 1 Good code/Chapter 1 Safety/Item 8 Handle nulls properly.md","mtime":"2021-11-24T18:38:40.196Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-24T18:39:12.450Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
