@@ -1136,7 +1136,57 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-22-use-generics-when-implementing-common-algorithms">Item 22: Use generics when implementing common algorithms</h2>
+<p>Similarly, as we can pass a value to a function as an argument, we can pass a type as a type argument. Functions that accept type arguments (so having type parameters) are called generic functions. One known example is the <code>filter</code> function from stdlib that has type parameter <code>T</code>:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">inline</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T&gt;</span> Iterable<span class="hljs-type">&lt;T&gt;</span>.<span class="hljs-title">filter</span><span class="hljs-params">(
+    predicate: <span class="hljs-type">(T</span>)</span> -&gt; <span class="hljs-keyword">Boolean</span></span>
+): List<span class="hljs-type">&lt;T&gt;</span> {
+    <span class="hljs-variable"><span class="hljs-keyword">val</span> destination</span> = ArrayList<span class="hljs-type">&lt;T&gt;</span>()
+    <span class="hljs-keyword">for</span> (element <span class="hljs-keyword">in</span> this) { 
+        <span class="hljs-keyword">if</span> (predicate(element)) {
+           destination.add(element)
+        }
+    }
+    <span class="hljs-keyword">return</span> destination   
+}
+</code></pre>
+<p>Type parameters are useful to the compiler since they allow it to check and correctly infer types a bit further, what makes our programs safer and programming more pleasurable for developers. For instance, when we use <code>filter</code>, inside the lambda expression, the compiler knows that an argument is of the same type as the type of elements in the collection, so it protects us from using something illegal and the IDE can give us useful suggestions. </p>
+<p><img src="../../assets/chapter1/chapter1-3.png" alt=""></p>
+<p>Generics were primarily introduced to classes and interfaces to allow the creation of collections with only concrete types, like <code>List&lt;String&gt;</code> or <code>Set&lt;User&gt;</code>. Those types are lost during compilation but when we are developing, the compiler forces us to pass only elements of the correct type. For instance <code>Int</code> when we add to <code>MutableList&lt;Int&gt;</code>. Also, thanks to them, the compiler knows that the returned type is <code>User</code> when we get an element from <code>Set&lt;User&gt;</code>. This way type parameters help us a lot in statically-typed languages. Kotlin has powerful support for generics that is not well understood and from my experience even experienced Kotlin developers have gaps in their knowledge especially about variance modifiers. So let&#x2019;s discuss the most important aspects of Kotlin generics in this and in <em>Item 24: Consider variance for generic types</em>. </p>
+<h3 id="generic-constraints">Generic constraints</h3>
+<p>One important feature of type parameters is that they can be constrained to be a subtype of a concrete type. We set a constraint by placing supertype after a colon. This type can include previous type parameters:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T : Comparable&lt;T&gt;</span>&gt; Iterable<span class="hljs-type">&lt;T&gt;</span>.<span class="hljs-title">sorted</span><span class="hljs-params">()</span>: List<span class="hljs-type">&lt;T&gt;</span> { </span>
+   <span class="hljs-comment">/*...*/</span> 
+}
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T, C : MutableCollection&lt;in T&gt;</span>&gt;</span>
+Iterable<span class="hljs-type">&lt;T&gt;</span>.toCollection(destination: C): C {
+   <span class="hljs-comment">/*...*/</span>
+}
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ListAdapter</span>&lt;<span class="hljs-type">T: ItemAdaper</span>&gt;</span>(<span class="hljs-comment">/*...*/</span>) { <span class="hljs-comment">/*...*/</span> }
+</code></pre>
+<p>One important result of having a constraint is that instances of this type can use all the methods this type offers. This way when <code>T</code> is constrained as a subtype of <code>Iterable&lt;Int&gt;</code>, we know that we can iterate over an instance of type <code>T</code>, and that elements returned by the iterator will be of type <code>Int</code>. When we constraint to <code>Comparable&lt;T&gt;</code>, we know that this type can be compared with itself. Another popular choice for a constraint is <code>Any</code> which means that a type can be any non-nullable type:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">inline</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T, R : Any&gt;</span> Iterable<span class="hljs-type">&lt;T&gt;</span>.<span class="hljs-title">mapNotNull</span><span class="hljs-params">(
+   transform: <span class="hljs-type">(T</span>)</span> -&gt; R?</span>
+): List<span class="hljs-type">&lt;R&gt;</span> {
+   <span class="hljs-keyword">return</span> mapNotNullTo(ArrayList<span class="hljs-type">&lt;R&gt;</span>(), transform)
+}
+</code></pre>
+<p>In rare cases in which we might need to set more than one upper bound, we can use <code>where</code> to set more constraints:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T: Animal&gt;</span> <span class="hljs-title">pet</span><span class="hljs-params">(animal: <span class="hljs-type">T</span>)</span> where T: GoodTempered { </span>
+   <span class="hljs-comment">/*...*/</span> 
+}
+
+<span class="hljs-comment">// OR</span>
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T&gt;</span> <span class="hljs-title">pet</span><span class="hljs-params">(animal: <span class="hljs-type">T</span>)</span> where T: Animal, T: GoodTempered { </span>
+   <span class="hljs-comment">/*...*/</span> 
+}
+</code></pre>
+<h3 id="summary">Summary</h3>
+<p>Type parameters are an important part of Kotlin typing system. We use them to have type-safe generic algorithms or generic objects. Type parameters can be constrained to be a subtype of a concrete type. When they are, we can safely use methods offered by this type.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1229,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 22 Use Generics When Implementing Common Algorithms","level":"1.3.1.5","depth":3,"next":{"title":"Item 23 Avoid Shadowing Type Parameters","level":"1.3.1.6","depth":3,"path":"Part 2 Code design/Chapter 3 Reusability/Item 23 Avoid shadowing type parameters.md","ref":"Part 2 Code design/Chapter 3 Reusability/Item 23 Avoid shadowing type parameters.md","articles":[]},"previous":{"title":"Item 21 Use Property Delegation To Extract Common Property Patterns","level":"1.3.1.4","depth":3,"path":"Part 2 Code design/Chapter 3 Reusability/Item 21 Use property delegation to extract common property patterns.md","ref":"Part 2 Code design/Chapter 3 Reusability/Item 21 Use property delegation to extract common property patterns.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 3 Reusability/Item 22 Use generics when implementing common algorithms.md","mtime":"2021-11-27T04:30:32.507Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T04:31:14.517Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 22 Use Generics When Implementing Common Algorithms","level":"1.3.1.5","depth":3,"next":{"title":"Item 23 Avoid Shadowing Type Parameters","level":"1.3.1.6","depth":3,"path":"Part 2 Code design/Chapter 3 Reusability/Item 23 Avoid shadowing type parameters.md","ref":"Part 2 Code design/Chapter 3 Reusability/Item 23 Avoid shadowing type parameters.md","articles":[]},"previous":{"title":"Item 21 Use Property Delegation To Extract Common Property Patterns","level":"1.3.1.4","depth":3,"path":"Part 2 Code design/Chapter 3 Reusability/Item 21 Use property delegation to extract common property patterns.md","ref":"Part 2 Code design/Chapter 3 Reusability/Item 21 Use property delegation to extract common property patterns.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 3 Reusability/Item 22 Use generics when implementing common algorithms.md","mtime":"2021-11-27T04:35:33.388Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T04:36:07.055Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
