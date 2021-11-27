@@ -1134,7 +1134,57 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-32-respect-abstraction-contracts">Item 32: Respect abstraction contracts</h2>
+<p>Both contract and visibility are kind of an agreement between developers. This agreement nearly always can be violated by a user. Technically, everything in a single project can be hacked. For instance, it is possible to use reflection to open and use anything we want:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Employee</span> </span>{
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> id</span>: <span class="hljs-keyword">Int</span> = <span class="hljs-number">2</span>
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">toString</span><span class="hljs-params">()</span> = &quot;<span class="hljs-title">User</span><span class="hljs-params">(id=$id)</span>&quot;</span>
+
+   <span class="hljs-keyword">private</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">privateFunction</span><span class="hljs-params">()</span> {</span>
+       println(<span class="hljs-string">&quot;Private function called&quot;</span>)
+   }
+}
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">callPrivateFunction</span><span class="hljs-params">(employee: <span class="hljs-type">Employee</span>)</span> {</span>
+   employee::<span class="hljs-class"><span class="hljs-keyword">class</span>.<span class="hljs-title">declaredMemberFunctions</span></span>
+        .first { it.name == <span class="hljs-string">&quot;privateFunction&quot;</span> }
+        .apply { isAccessible = <span class="hljs-literal">true</span> }
+        .call(employee)
+}
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">changeEmployeeId</span><span class="hljs-params">(employee: <span class="hljs-type">Employee, newId: Int</span>)</span> {</span>
+   employee::<span class="hljs-class"><span class="hljs-keyword">class</span>.<span class="hljs-title">java</span>.<span class="hljs-title">getDeclaredField</span></span>(<span class="hljs-string">&quot;id&quot;</span>)
+        .apply { isAccessible = <span class="hljs-literal">true</span> }
+        .<span class="hljs-keyword">set</span>(employee, newId)
+}
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> employee</span> = Employee()
+   callPrivateFunction(employee) 
+   <span class="hljs-comment">// Prints: Private function called</span>
+
+   changeEmployeeId(employee, <span class="hljs-number">1</span>)
+   print(employee) <span class="hljs-comment">// Prints: User(id=1)</span>
+}
+</code></pre>
+<p>Just because you can do something, doesn&#x2019;t mean that it is fine to do it. Here we very strongly depend on the implementation details like the names of the private property and the private function. They are not part of a contract at all, and so they might change at any moment. This is like a ticking bomb for our program. </p>
+<p>Remember that a contract is like a warranty. As long as you use your computer correctly, the warranty protects you. When you open your computer and start hacking it, you lose your warranty. The same principle applies here: when you break the contract, it is your problem when implementation changes and your code stops working. </p>
+<h3 id="contracts-are-inherited">Contracts are inherited</h3>
+<p>It is especially important to respect contracts when we inherit from classes, or when we extend interfaces from another library. Remember that your object should respect their contracts. For instance, every class extends <code>Any</code> that have <code>equals</code>and <code>hashCode</code> methods. They both have well-established contracts that we need to respect. If we don&#x2019;t, our objects might not work correctly. For instance, when <code>hashCode</code> is not consistent with <code>equals</code>, our object might not behave correctly on <code>HashSet</code>. Below behavior is incorrect because a set should not allow duplicates:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Id</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> id</span>: <span class="hljs-keyword">Int</span>) {
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">equals</span><span class="hljs-params">(other: <span class="hljs-type">Any?</span>)</span> =</span>
+       other <span class="hljs-keyword">is</span> Id &amp;&amp; other.id == id
+}
+
+<span class="hljs-variable"><span class="hljs-keyword">val</span> mutableSet</span> = mutableSetOf(Id(<span class="hljs-number">1</span>))
+mutableSet.add(Id(<span class="hljs-number">1</span>))
+mutableSet.add(Id(<span class="hljs-number">1</span>))
+print(mutableSet.size) <span class="hljs-comment">// 3</span>
+</code></pre>
+<p>In this case, it is that <code>hashCode</code> do not have implementation consistent with <code>equals</code>. We will discuss some important Kotlin contracts in <em>Chapter 6: Class design</em>. For now, remember to check the expectations on functions you override, and respect those. </p>
+<h3 id="summary">Summary</h3>
+<p>If you want your programs to be stable, respect contracts. If you are forced to break them, document this fact well. Such information will be very helpful to whoever will maintain your code. Maybe that will be you, in a few years&#x2019; time.</p>
+
                                 
                                 </section>
                             
@@ -1173,7 +1223,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 32 Respect Abstraction Contracts","level":"1.3.2.8","depth":3,"next":{"title":"Chapter 5 Object Creation","level":"1.3.3","depth":2,"ref":"","articles":[{"title":"Introduction","level":"1.3.3.1","depth":3,"path":"Part 2 Code design/Chapter 5 Object creation/Introduction.md","ref":"Part 2 Code design/Chapter 5 Object creation/Introduction.md","articles":[]},{"title":"Item 33 Consider Factory Functions Instead Of Constructors","level":"1.3.3.2","depth":3,"path":"Part 2 Code design/Chapter 5 Object creation/Item 33 Consider factory functions instead of constructors.md","ref":"Part 2 Code design/Chapter 5 Object creation/Item 33 Consider factory functions instead of constructors.md","articles":[]},{"title":"Item 34 Consider A Primary Constructor With Named Optional Arguments","level":"1.3.3.3","depth":3,"path":"Part 2 Code design/Chapter 5 Object creation/Item 34 Consider a primary constructor with named optional arguments.md","ref":"Part 2 Code design/Chapter 5 Object creation/Item 34 Consider a primary constructor with named optional arguments.md","articles":[]},{"title":"Item 35 Consider Defining A DSL For Complex Object Creation","level":"1.3.3.4","depth":3,"path":"Part 2 Code design/Chapter 5 Object creation/Item 35 Consider defining a DSL for complex object creation.md","ref":"Part 2 Code design/Chapter 5 Object creation/Item 35 Consider defining a DSL for complex object creation.md","articles":[]}]},"previous":{"title":"Item 31 Define Contract With Documentation","level":"1.3.2.7","depth":3,"path":"Part 2 Code design/Chapter 4 Abstraction design/Item 31 Define contract with documentation.md","ref":"Part 2 Code design/Chapter 4 Abstraction design/Item 31 Define contract with documentation.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 4 Abstraction design/Item 32 Respect abstraction contracts.md","mtime":"2021-11-27T17:37:33.299Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T17:38:07.908Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 32 Respect Abstraction Contracts","level":"1.3.2.8","depth":3,"next":{"title":"Chapter 5 Object Creation","level":"1.3.3","depth":2,"ref":"","articles":[{"title":"Introduction","level":"1.3.3.1","depth":3,"path":"Part 2 Code design/Chapter 5 Object creation/Introduction.md","ref":"Part 2 Code design/Chapter 5 Object creation/Introduction.md","articles":[]},{"title":"Item 33 Consider Factory Functions Instead Of Constructors","level":"1.3.3.2","depth":3,"path":"Part 2 Code design/Chapter 5 Object creation/Item 33 Consider factory functions instead of constructors.md","ref":"Part 2 Code design/Chapter 5 Object creation/Item 33 Consider factory functions instead of constructors.md","articles":[]},{"title":"Item 34 Consider A Primary Constructor With Named Optional Arguments","level":"1.3.3.3","depth":3,"path":"Part 2 Code design/Chapter 5 Object creation/Item 34 Consider a primary constructor with named optional arguments.md","ref":"Part 2 Code design/Chapter 5 Object creation/Item 34 Consider a primary constructor with named optional arguments.md","articles":[]},{"title":"Item 35 Consider Defining A DSL For Complex Object Creation","level":"1.3.3.4","depth":3,"path":"Part 2 Code design/Chapter 5 Object creation/Item 35 Consider defining a DSL for complex object creation.md","ref":"Part 2 Code design/Chapter 5 Object creation/Item 35 Consider defining a DSL for complex object creation.md","articles":[]}]},"previous":{"title":"Item 31 Define Contract With Documentation","level":"1.3.2.7","depth":3,"path":"Part 2 Code design/Chapter 4 Abstraction design/Item 31 Define contract with documentation.md","ref":"Part 2 Code design/Chapter 4 Abstraction design/Item 31 Define contract with documentation.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 4 Abstraction design/Item 32 Respect abstraction contracts.md","mtime":"2021-11-27T17:39:21.342Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T17:39:53.966Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
