@@ -1136,7 +1136,100 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-11-design-for-readability">Item 11: Design for readability</h2>
+<p>It is a known observation in programming that developers read code much more than they write it. A common estimate is that for every minute spent writing code, ten minutes are spent reading it (this ratio was popularized by Robert C. Martin in the book <em>Clean Code</em>). If this seems unbelievable, just think about how much time you spend on reading code when you are trying to find an error. I believe that everyone has been in this situation at least once in their career where they&#x2019;ve been searching for an error for weeks, just to fix it by changing a single line. When we learn how to use a new API, it&#x2019;s often from reading code. We usually read the code to understand what is the logic or how implementation works. <strong>Programming is mostly about reading, not writing.</strong> Knowing that it should be clear that we should code with readability in mind.</p>
+<h3 id="reducing-cognitive-load">Reducing cognitive load</h3>
+<p>Readability means something different to everyone. However, there are some rules that were formed based on experience or came from cognitive science. Just compare the following two implementations:</p>
+<pre><code class="lang-kotlin"><span class="hljs-comment">// Implementation A</span>
+<span class="hljs-keyword">if</span> (person != <span class="hljs-literal">null</span> &amp;&amp; person.isAdult) {
+   view.showPerson(person)
+} <span class="hljs-keyword">else</span> {
+   view.showError()
+}
+
+<span class="hljs-comment">// Implementation B</span>
+person?.takeIf { it.isAdult }
+   ?.let(view::showPerson)
+   ?: view.showError()
+</code></pre>
+<p>Which one is better, A or B? Using the naive reasoning, that the one with fewer lines is better, is not a good answer. We could just as well remove the line breaks from the first implementation, and it wouldn&#x2019;t make it more readable. </p>
+<p>How readable both constructs are, depends on how fast we can understand each of them. This, in turn, depends a lot on how much our brain is trained to understand each idiom (structure, function, pattern). For a beginner in Kotlin, surely implementation A is way more readable. It uses general idioms (if/else, <code>&amp;&amp;</code>, method calls). Implementation B has idioms that are typical to Kotlin (safe call <code>?.</code>, <code>takeIf</code>, <code>let</code>, Elvis operator <code>?:</code>, a bounded function reference <code>view::showPerson</code>). Surely, all those idioms are commonly used throughout Kotlin, so they are well known by most experienced Kotlin developers. Still, it is hard to compare them. Kotlin isn&#x2019;t the first language for most developers, and we have much more experience in general programming than in Kotlin programming. We don&#x2019;t write code only for experienced developers. The chances are that the junior you hired (after fruitless months of searching for a senior) does not know what <code>let</code>, <code>takeIf</code>, and bounded references are. It is also very likely that they never saw the Elvis operator used this way. That person might spend a whole day puzzling over this single block of code. Additionally, even for experienced Kotlin developers, Kotlin is not the only programming language they use. Many developers reading your code will not be experienced with Kotlin. The brain will always need to spend a bit of time to recognize Kotlin-specific idioms. Even after years with Kotlin, it still takes much less time for me to understand the first implementation. Every less known idiom introduces a bit of complexity and when we analyze them all together in a single statement that we need to comprehend nearly all at once, this complexity grows quickly.</p>
+<p>Notice that implementation A is easier to modify. Let&#x2019;s say that we need to add additional operation on the <code>if</code> block. In the implementation A adding that is easy. In the implementation B we cannot use function reference anymore. Adding something to the <code>else</code> block in the implementation B is even harder - we need to use some function to be able to hold more than a single expression on the right side of the Elvis operator:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">if</span> (person != <span class="hljs-literal">null</span> &amp;&amp; person.isAdult) {
+   view.showPerson(person)
+   view.hideProgressWithSuccess()
+} <span class="hljs-keyword">else</span> {
+   view.showError()
+   view.hideProgress()
+}
+
+person?.takeIf { it.isAdult }
+   ?.let {
+       view.showPerson(it)
+       view.hideProgressWithSuccess()
+   } ?: run {
+       view.showError()
+       view.hideProgress()
+   }
+</code></pre>
+<p>Debugging implementation A is also much simpler. No wonder why - debugging tools were made for such basic structures. </p>
+<p>The general rule is that less common and &#x201C;creative&#x201D; structures are generally less flexible and not so well supported. Let&#x2019;s say for instance that we need to add a third branch to show different error when person is <code>null</code> and different one when he or she is not an adult. On the implementation A using <code>if</code>/<code>else</code>, we can easily change <code>if</code>/<code>else</code> to <code>when</code> using IntelliJ refactorization, and then easily add additional branch. The same change on the code would be painful on the implementation B. It would probably need to be totally rewritten.</p>
+<p>Have you noticed that implementation A and B do not even work the same way? Can you spot the difference? Go back and think about it now. </p>
+<p>The difference lies in the fact that <code>let</code> returns a result from the lambda expression. This means that if <code>showPerson</code> would return <code>null</code>, then the second implementation would call <code>showError</code> as well! This is definitely not obvious, and it teaches us that when we use less familiar structures, it is easier to fall in unexpected behavior (and not to spot them).</p>
+<p>The general rule here is that we want to reduce cognitive load. Our brains recognize patterns and based on these patterns they build our understanding of how programs work. When we think about readability we want to shorten this distance. We prefer less code, but also more common structures. We recognize familiar patterns when we see them often enough. We always prefer structures that we are familiar with in other disciplines.</p>
+<h3 id="do-not-get-extreme">Do not get extreme</h3>
+<p>Just because in the previous example I presented how <code>let</code> can be misused, it does not mean that it should be always avoided. It is a popular idiom reasonably used in a variety of contexts to actually make code better. One popular example is when we have a nullable mutable property and we need to do an operation only if it is not null. Smart casting cannot be used because mutable property can be modified by another thread. One great way to deal with that is to use safe call <code>let</code>:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Person</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: String)
+<span class="hljs-variable"><span class="hljs-keyword">var</span> person</span>: Person? = <span class="hljs-literal">null</span>
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">printName</span><span class="hljs-params">()</span> {</span>
+    person?.let {
+        print(it.name)
+    }
+}
+</code></pre>
+<p>Such idiom is popular and widely recognizable. There are many more reasonable cases for <code>let</code>. For instance:</p>
+<ul>
+<li>To move operation after its argument calculation</li>
+<li>To use it to wrap an object with a decorator</li>
+</ul>
+<p>Here are examples showing those two (both additionally use function references):</p>
+<pre><code class="lang-kotlin">students
+     .filter { it.result &gt;= <span class="hljs-number">50</span> }    
+     .joinToString(separator = <span class="hljs-string">&quot;\n&quot;</span>) { 
+        <span class="hljs-string">&quot;${it.name} ${it.surname}, ${it.result}&quot;</span> 
+     }
+     .let(::print)
+
+<span class="hljs-variable"><span class="hljs-keyword">var</span> obj</span> = FileInputStream(<span class="hljs-string">&quot;/file.gz&quot;</span>)
+    .let(::BufferedInputStream)
+    .let(::ZipInputStream)
+    .let(::ObjectInputStream)
+    .readObject() <span class="hljs-keyword">as</span> SomeObject
+</code></pre>
+<p>In all those cases we pay our price - this code is harder to debug and harder to be understood by less experienced Kotlin developers. But we pay for something and it seems like a fair deal. The problem is when we introduce a lot of complexity for no good reason. </p>
+<p>There will always be discussions when something makes sense and when it does not. Balancing that is an art. It is good though to recognize how different structures introduce complexity or how they clarify things. Especially since when they are used together, the complexity of two structures is generally much more than the sum of their individual complexities. </p>
+<h3 id="conventions">Conventions</h3>
+<p>We&#x2019;ve acknowledged that different people have different views of what readability means. We constantly fight over function names, discuss what should be explicit and what implicit, what idioms should we use, and much more. Programming is an art of expressiveness. Still, there are some conventions that need to be understood and remembered. </p>
+<p>When one of my workshop groups in San Francisco asked me about the worst thing one can do in Kotlin, I gave them this:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> abc</span> = <span class="hljs-string">&quot;A&quot;</span> { <span class="hljs-string">&quot;B&quot;</span> } and <span class="hljs-string">&quot;C&quot;</span>
+print(abc) <span class="hljs-comment">// ABC</span>
+</code></pre>
+<p>All we need to make this terrible syntax possible is the following code:</p>
+<pre><code class="lang-kotlin">operator <span class="hljs-function"><span class="hljs-keyword">fun</span> String.<span class="hljs-title">invoke</span><span class="hljs-params">(f: <span class="hljs-type">(</span>)</span>-&gt;String): String = </span>
+    this + f()
+
+infix <span class="hljs-function"><span class="hljs-keyword">fun</span> String.<span class="hljs-title">and</span><span class="hljs-params">(s: <span class="hljs-type">String</span>)</span> = this + s</span>
+</code></pre>
+<p>This code violates many rules that we will describe later:</p>
+<ul>
+<li>It violates operator meaning - <code>invoke</code> should not be used this way. A <code>String</code> cannot be invoked.</li>
+<li>The usage of the &#x2018;lambda as the last argument&#x2019; convention here is confusing. It is fine to use it after functions, but we should be very careful when we use it for the <code>invoke</code> operator. </li>
+<li><code>and</code> is clearly a bad name for this infix method. <code>append</code> or <code>plus</code> would be much better. </li>
+<li>We already have language features for <code>String</code> concatenation and we should use them instead of reinventing the wheel. </li>
+</ul>
+<p>Behind each of these suggestions, there is a more general rule that guards good Kotlin style. We will cover the most important ones in this chapter starting with the first item which will focus on overriding operators.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1272,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 11 Design For Readability","level":"1.2.2.2","depth":3,"next":{"title":"Item 12 Operator Meaning Should Be Consistent With Its Function Name","level":"1.2.2.3","depth":3,"path":"Part 1 Good code/Chapter 2 Readability/Item 12 Operator meaning should be consistent with its function name.md","ref":"Part 1 Good code/Chapter 2 Readability/Item 12 Operator meaning should be consistent with its function name.md","articles":[]},"previous":{"title":"Introduction","level":"1.2.2.1","depth":3,"path":"Part 1 Good code/Chapter 2 Readability/Introduction.md","ref":"Part 1 Good code/Chapter 2 Readability/Introduction.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 1 Good code/Chapter 2 Readability/Item 11 Design for readability.md","mtime":"2021-11-27T03:53:03.396Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T03:53:37.131Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 11 Design For Readability","level":"1.2.2.2","depth":3,"next":{"title":"Item 12 Operator Meaning Should Be Consistent With Its Function Name","level":"1.2.2.3","depth":3,"path":"Part 1 Good code/Chapter 2 Readability/Item 12 Operator meaning should be consistent with its function name.md","ref":"Part 1 Good code/Chapter 2 Readability/Item 12 Operator meaning should be consistent with its function name.md","articles":[]},"previous":{"title":"Introduction","level":"1.2.2.1","depth":3,"path":"Part 1 Good code/Chapter 2 Readability/Introduction.md","ref":"Part 1 Good code/Chapter 2 Readability/Introduction.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 1 Good code/Chapter 2 Readability/Item 11 Design for readability.md","mtime":"2021-11-27T03:58:21.955Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T03:58:55.992Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
