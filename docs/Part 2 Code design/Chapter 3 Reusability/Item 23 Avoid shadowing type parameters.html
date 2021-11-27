@@ -1136,7 +1136,56 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-23-avoid-shadowing-type-parameters">Item 23: Avoid shadowing type parameters</h2>
+<p>It is possible to define property and parameters with the same name due to shadowing. Local parameter shadows outer scope property. There is no warning because such a situation is not uncommon and is rather visible for developers:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Forest</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: String) {
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">addTree</span><span class="hljs-params">(name: <span class="hljs-type">String</span>)</span> {</span>
+       <span class="hljs-comment">// ...</span>
+   }
+}
+</code></pre>
+<p>On the other hand, the same can happen when we shadow class type parameter with a function type parameter. Such a situation is less visible and can lead to serious problems. This mistake is often done by developers not understanding well how generics work. </p>
+<pre><code class="lang-kotlin">interface Tree
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Birch</span>: <span class="hljs-type">Tree</span></span>
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Spruce</span>: <span class="hljs-type">Tree</span></span>
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Forest</span>&lt;<span class="hljs-type">T: Tree</span>&gt; </span>{
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T: Tree&gt;</span> <span class="hljs-title">addTree</span><span class="hljs-params">(tree: <span class="hljs-type">T</span>)</span> {</span>
+       <span class="hljs-comment">// ...</span>
+   }
+}
+</code></pre>
+<p>The problem is that now <code>Forest</code> and <code>addTree</code> type parameters are independent of each other:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> forest</span> = Forest<span class="hljs-type">&lt;Birch&gt;</span>()
+forest.addTree(Birch())
+forest.addTree(Spruce())
+</code></pre>
+<p>Such situation is rarely desired and might be confusing. One solution is that <code>addTree</code> should use the class type parameter <code>T</code>:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Forest</span>&lt;<span class="hljs-type">T: Tree</span>&gt; </span>{
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">addTree</span><span class="hljs-params">(tree: <span class="hljs-type">T</span>)</span> {</span>
+       <span class="hljs-comment">// ...</span>
+   }
+}
+
+<span class="hljs-comment">// Usage</span>
+<span class="hljs-variable"><span class="hljs-keyword">val</span> forest</span> = Forest<span class="hljs-type">&lt;Birch&gt;</span>()
+forest.addTree(Birch())
+forest.addTree(Spruce()) <span class="hljs-comment">// ERROR, type mismatch</span>
+</code></pre>
+<p>If we need to introduce a new type parameter, it is better to name it differently. Note that it can be constrained to be a subtype of the other type parameter:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Forest</span>&lt;<span class="hljs-type">T: Tree</span>&gt; </span>{
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;ST: T&gt;</span> <span class="hljs-title">addTree</span><span class="hljs-params">(tree: <span class="hljs-type">ST</span>)</span> {</span>
+       <span class="hljs-comment">// ...</span>
+   }
+}
+</code></pre>
+<h3 id="summary">Summary</h3>
+<p>Avoid shadowing type parameters, and be careful when you see that type parameter is shadowed. Unlike for other kinds of parameters, it is not intuitive and might be highly confusing.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1228,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 23 Avoid Shadowing Type Parameters","level":"1.3.1.6","depth":3,"next":{"title":"Item 24 Consider Variance For Generic Types","level":"1.3.1.7","depth":3,"path":"Part 2 Code design/Chapter 3 Reusability/Item 24 Consider variance for generic types.md","ref":"Part 2 Code design/Chapter 3 Reusability/Item 24 Consider variance for generic types.md","articles":[]},"previous":{"title":"Item 22 Use Generics When Implementing Common Algorithms","level":"1.3.1.5","depth":3,"path":"Part 2 Code design/Chapter 3 Reusability/Item 22 Use generics when implementing common algorithms.md","ref":"Part 2 Code design/Chapter 3 Reusability/Item 22 Use generics when implementing common algorithms.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 3 Reusability/Item 23 Avoid shadowing type parameters.md","mtime":"2021-11-27T04:35:33.388Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T04:36:07.055Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 23 Avoid Shadowing Type Parameters","level":"1.3.1.6","depth":3,"next":{"title":"Item 24 Consider Variance For Generic Types","level":"1.3.1.7","depth":3,"path":"Part 2 Code design/Chapter 3 Reusability/Item 24 Consider variance for generic types.md","ref":"Part 2 Code design/Chapter 3 Reusability/Item 24 Consider variance for generic types.md","articles":[]},"previous":{"title":"Item 22 Use Generics When Implementing Common Algorithms","level":"1.3.1.5","depth":3,"path":"Part 2 Code design/Chapter 3 Reusability/Item 22 Use generics when implementing common algorithms.md","ref":"Part 2 Code design/Chapter 3 Reusability/Item 22 Use generics when implementing common algorithms.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 3 Reusability/Item 23 Avoid shadowing type parameters.md","mtime":"2021-11-27T04:37:15.987Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T04:37:46.629Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
