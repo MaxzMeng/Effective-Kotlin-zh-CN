@@ -1136,7 +1136,139 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-21-use-property-delegation-to-extract-common-property-patterns">Item 21: Use property delegation to extract common property patterns</h2>
+<p>One new feature introduced by Kotlin that supports code reuse is property delegation. It gives us a universal way to extract common property behavior. One important example is the lazy property - a property that needs to be initialized on demand during its first use. Such a pattern is really popular, and in languages that do not support its extraction (like Java or JavaScript), it is implemented every time it is needed. In Kotlin, it can easily be extracted using property delegation. In the Kotlin stdlib, we can find the function <code>lazy</code> that returns a property delegate that implements the lazy property pattern:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> value by lazy { createValue() }
+</span></code></pre>
+<p>This is not the only repetitive property pattern. Another important example is the observable property - a property that does something whenever it is changed. For instance, let&#x2019;s say that you have a list adapter drawing a list. Whenever data change inside it, we need to redraw changed items. Or you might need to log all changes of a property. Both cases can be implemented using <code>observable</code> from stdlib:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">var</span> items</span>: List<span class="hljs-type">&lt;Item&gt;</span> by 
+   Delegates.observable(listOf()) { _, _, _ -&gt;
+       notifyDataSetChanged()
+   }
+
+<span class="hljs-variable"><span class="hljs-keyword">var</span> key</span>: String? by 
+   Delegates.observable(<span class="hljs-literal">null</span>) { _, old, new -&gt;
+       Log.e(<span class="hljs-string">&quot;key changed from $old to $new&quot;</span>)
+   }
+</code></pre>
+<p>The lazy and observable delegates are not special from the language&#x2019;s point of view. They can be extracted thanks to a more general property delegation mechanism that can be used to extract many other patterns as well. Some good examples are View and Resource Binding, Dependency Injection (formally Service Location), or Data Binding. Many of these patterns require annotation processing in Java, however Kotlin allows you to replace them with easy, type-safe property delegation.</p>
+<pre><code class="lang-kotlin"><span class="hljs-comment">// View and resource binding example in Android</span>
+<span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> button</span>: Button by bindView(R.id.button)
+<span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> textSize by bindDimension(R.dimen.font_size)
+private <span class="hljs-keyword">val</span> doctor</span>: Doctor by argExtra(DOCTOR_ARG)
+
+<span class="hljs-comment">// Dependency Injection using Koin </span>
+<span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> presenter</span>: MainPresenter by inject()
+<span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> repository</span>: NetworkRepository by inject()
+<span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> vm</span>: MainViewModel by viewModel()
+
+<span class="hljs-comment">// Data binding</span>
+<span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> port by bindConfiguration(&quot;port&quot;)
+private <span class="hljs-keyword">val</span> token</span>: String by preferences.bind(TOKEN_KEY)
+</code></pre>
+<p>To understand how this is possible and how we can extract other common behavior using property delegation, let&#x2019;s start from a very simple property delegate. Let&#x2019;s say that we need to track how some properties are used, and for that, we define custom getters and setters that log their changes:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">var</span> token</span>: String? = <span class="hljs-literal">null</span>
+   <span class="hljs-keyword">get</span>() {
+       print(<span class="hljs-string">&quot;token returned value $field&quot;</span>)
+       <span class="hljs-keyword">return</span> field
+   }
+   <span class="hljs-keyword">set</span>(value) {
+       print(<span class="hljs-string">&quot;token changed from $field to $value&quot;</span>)
+       field = value
+   }
+
+<span class="hljs-variable"><span class="hljs-keyword">var</span> attempts</span>: <span class="hljs-keyword">Int</span> = <span class="hljs-number">0</span>
+   <span class="hljs-keyword">get</span>() {
+       print(<span class="hljs-string">&quot;attempts returned value $field&quot;</span>)
+       <span class="hljs-keyword">return</span> field
+   }
+   <span class="hljs-keyword">set</span>(value) {
+       print(<span class="hljs-string">&quot;attempts changed from $field to $value&quot;</span>)
+       field = value
+   }
+</code></pre>
+<p>Even though their types are different, the behavior of those two properties is nearly identical. It seems like a repeatable pattern that might be needed more often in our project. This behavior can be extracted using property delegation. Delegation is based on the idea that a property is defined by its accessors - the getter in a <code>val</code>, and the getter and setter in a <code>var</code> - and those methods can be delegated into methods of another object. The getter will be delegated to the <code>getValue</code> function, and the setter to the <code>setValue</code> function. We then place such an object on the right side of the <code>by</code> keyword. To keep exactly the same property behaviors as in the example above, we can create the following delegate:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">var</span> token</span>: String? by LoggingProperty(<span class="hljs-literal">null</span>)
+<span class="hljs-variable"><span class="hljs-keyword">var</span> attempts</span>: <span class="hljs-keyword">Int</span> by LoggingProperty(<span class="hljs-number">0</span>)
+
+<span class="hljs-keyword">private</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">LoggingProperty</span>&lt;<span class="hljs-type">T</span>&gt;</span>(<span class="hljs-variable"><span class="hljs-keyword">var</span> value</span>: T) {
+   operator <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">getValue</span><span class="hljs-params">(
+       thisRef: <span class="hljs-type">Any?, 
+       prop: KProperty&lt;*&gt;</span>
+   )</span>: T {</span>
+       print(<span class="hljs-string">&quot;${prop.name} returned value $value&quot;</span>)
+       <span class="hljs-keyword">return</span> value
+   }
+
+    operator <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">setValue</span><span class="hljs-params">(
+        thisRef: <span class="hljs-type">Any?, 
+        prop: KProperty&lt;*&gt;, 
+        newValue: T</span>
+    )</span> {</span>
+        <span class="hljs-variable"><span class="hljs-keyword">val</span> name</span> = prop.name
+        print(<span class="hljs-string">&quot;$name changed from $value to $newValue&quot;</span>)
+        value = newValue
+    }
+}
+</code></pre>
+<p>To fully understand how property delegation works, take a look at what <code>by</code> is compiled to. The above <code>token</code> property will be compiled to something similar to the following code<a href="chap65.xhtml#fn-footnote_3211_note">6</a>:</p>
+<pre><code class="lang-kotlin">@JvmField
+<span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> `token</span>$delegate` = 
+    LoggingProperty<span class="hljs-type">&lt;String?&gt;</span>(<span class="hljs-literal">null</span>)
+<span class="hljs-variable"><span class="hljs-keyword">var</span> token</span>: String?
+   <span class="hljs-keyword">get</span>() = `token$delegate`.getValue(this, ::token)
+   <span class="hljs-keyword">set</span>(value) {
+       `token$delegate`.setValue(this, ::token, value)
+   }
+</code></pre>
+<p>As you can see, <code>getValue</code> and <code>setValue</code> methods operate not only on the value, but they also receive a bounded reference to the property, as well as a context (<code>this</code>). The reference to the property is most often used to get its name, and sometimes to get information about annotations. Context gives us information about where the function is used. </p>
+<p>When we have multiple <code>getValue</code> and <code>setValue</code> methods but with different context types, different ones will be chosen in different situations. This fact can be used in clever ways. For instance, we might need a delegate that can be used in different kinds of views, but with each of them, it should behave differently based on what is offered by the context:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SwipeRefreshBinderDelegate</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> id</span>: <span class="hljs-keyword">Int</span>) {
+    <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> cache</span>: SwipeRefreshLayout? = <span class="hljs-literal">null</span>
+
+    operator <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">getValue</span><span class="hljs-params">(
+       activity: <span class="hljs-type">Activity, 
+       prop: KProperty&lt;*&gt;</span>
+    )</span>: SwipeRefreshLayout {</span>
+       <span class="hljs-keyword">return</span> cache ?: activity
+           .findViewById<span class="hljs-type">&lt;SwipeRefreshLayout&gt;</span>(id)
+           .also { cache = it }
+    }
+
+    operator <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">getValue</span><span class="hljs-params">(
+       fragment: <span class="hljs-type">Fragment, 
+       prop: KProperty&lt;*&gt;</span>
+    )</span>: SwipeRefreshLayout {</span>
+       <span class="hljs-keyword">return</span> cache ?: fragment.view
+           .findViewById<span class="hljs-type">&lt;SwipeRefreshLayout&gt;</span>(id)
+           .also { cache = it }
+    }
+}
+</code></pre>
+<p>To make it possible to use an object as a property delegate, all it needs is <code>getValue</code> operator for <code>val</code>, and <code>getValue</code> and <code>setValue</code> operators for <code>var</code>. This operation can be a member function, but it can be also an extension. For instance, <code>Map&lt;String, *&gt;</code> can be used as a property delegate:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> map</span>: Map<span class="hljs-type">&lt;String, Any&gt;</span> = mapOf(
+   <span class="hljs-string">&quot;name&quot;</span> to <span class="hljs-string">&quot;Marcin&quot;</span>,
+   <span class="hljs-string">&quot;kotlinProgrammer&quot;</span> to <span class="hljs-literal">true</span>
+)
+<span class="hljs-variable"><span class="hljs-keyword">val</span> name by map
+print(name) // Marcin
+</span></code></pre>
+<p>It is possible thanks to the fact that there is the following extension function in the Kotlin stdlib:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">inline</span> operator <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;V, V1 : V&gt;</span> Map<span class="hljs-type">&lt;in String, V&gt;</span></span>
+.getValue(thisRef: Any?, property: KProperty<span class="hljs-type">&lt;*&gt;</span>): V1 = 
+getOrImplicitDefault(property.name) <span class="hljs-keyword">as</span> V1
+</code></pre>
+<p>Kotlin standard library has some property delegates that we should know. Those are:</p>
+<ul>
+<li><code>lazy</code></li>
+<li><code>Delegates.observable</code></li>
+<li><code>Delegates.vetoable</code></li>
+<li><code>Delegates.notNull</code></li>
+</ul>
+<p>It is worth to know them, and if you notice a common pattern around properties in your project, remember that you can make your own property delegate. </p>
+<h3 id="summary">Summary</h3>
+<p>Property delegates have full control over properties and have nearly all the information about their context. This feature can be used to extract practically any property behavior. <code>lazy</code> and <code>observable</code> are just two examples from the standard library. Property delegation is a universal way to extract property patterns, and as practice shows, there are a variety of such patterns. It is a powerful and generic feature that every Kotlin developer should have in their toolbox. When we know it, we have more options for common pattern extraction or to define a better API.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1311,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 21 Use Property Delegation To Extract Common Property Patterns","level":"1.3.1.4","depth":3,"next":{"title":"Item 22 Use Generics When Implementing Common Algorithms","level":"1.3.1.5","depth":3,"path":"Part 2 Code design/Chapter 3 Reusability/Item 22 Use generics when implementing common algorithms.md","ref":"Part 2 Code design/Chapter 3 Reusability/Item 22 Use generics when implementing common algorithms.md","articles":[]},"previous":{"title":"Item 20 Do Not Repeat Common Algorithms","level":"1.3.1.3","depth":3,"path":"Part 2 Code design/Chapter 3 Reusability/Item 20 Do not repeat common algorithms.md","ref":"Part 2 Code design/Chapter 3 Reusability/Item 20 Do not repeat common algorithms.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 3 Reusability/Item 21 Use property delegation to extract common property patterns.md","mtime":"2021-11-27T04:27:58.377Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T04:28:29.699Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 21 Use Property Delegation To Extract Common Property Patterns","level":"1.3.1.4","depth":3,"next":{"title":"Item 22 Use Generics When Implementing Common Algorithms","level":"1.3.1.5","depth":3,"path":"Part 2 Code design/Chapter 3 Reusability/Item 22 Use generics when implementing common algorithms.md","ref":"Part 2 Code design/Chapter 3 Reusability/Item 22 Use generics when implementing common algorithms.md","articles":[]},"previous":{"title":"Item 20 Do Not Repeat Common Algorithms","level":"1.3.1.3","depth":3,"path":"Part 2 Code design/Chapter 3 Reusability/Item 20 Do not repeat common algorithms.md","ref":"Part 2 Code design/Chapter 3 Reusability/Item 20 Do not repeat common algorithms.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 3 Reusability/Item 21 Use property delegation to extract common property patterns.md","mtime":"2021-11-27T04:30:32.507Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T04:31:14.517Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
