@@ -1136,7 +1136,226 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-27-use-abstraction-to-protect-code-against-changes">Item 27: Use abstraction to protect code against changes</h2>
+<blockquote>
+<p><em>Walking on water and developing software from a specification are easy if both are frozen</em>
+&#x2013; Edward V Berard ; Essays on object-oriented software engineering, p. 46</p>
+</blockquote>
+<p>When we hide actual code behind abstractions like functions or classes, we do not only protect users from those details, but we also give ourselves the freedom to change this code later. Often without users even knowing about it. For instance, when you extract a sorting algorithm into a function, you can later optimize its performance without changing the way it is used. </p>
+<p>Thinking about the car metaphor mentioned before, car manufacturers and mechanics can change everything under the hood of the car, and as long as the operation remains the same, a user won&#x2019;t notice. This provides manufacturers the freedom to make more environment-friendly cars or to add more sensors to make cars safer. </p>
+<p>In this item, we will see how different kinds of abstractions give us freedom by protecting us from a variety of changes. We will examine three practical cases, and in the end, discuss finding a balance in a number of abstractions. Let&#x2019;s start with the simplest kind of abstraction: constant value.</p>
+<h3 id="constant">Constant</h3>
+<p>Literal constant values are rarely self-explanatory and they are especially problematic when they repeat in our code. Moving the values into constant properties not only assigns the value a meaningful name, but also helps us better manage when this constant needs to be changed. Let&#x2019;s see a simple example with password validation:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">isPasswordValid</span><span class="hljs-params">(text: <span class="hljs-type">String</span>)</span>: <span class="hljs-keyword">Boolean</span> {</span>
+   <span class="hljs-keyword">if</span>(text.length <span class="hljs-type">&lt; 7) return false
+   //...
+}
+</span></code></pre>
+<p>The number 7 can be understood based on context, but it would be easier if it would be extracted into a constant:</p>
+<pre><code class="lang-kotlin">const <span class="hljs-variable"><span class="hljs-keyword">val</span> MIN_PASSWORD_LENGTH</span> = <span class="hljs-number">7</span>
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">isPasswordValid</span><span class="hljs-params">(text: <span class="hljs-type">String</span>)</span>: <span class="hljs-keyword">Boolean</span> {</span>
+   <span class="hljs-keyword">if</span>(text.length <span class="hljs-type">&lt; MIN_PASSWORD_LENGTH) return false
+   //...
+}
+</span></code></pre>
+<p>With that, it is easier to modify the minimum password size. We don&#x2019;t need to understand validation logic, but instead, we can just change this constant. This is why it is especially important to extract values that are used more than once. For instance, the maximum number of threads that can connect to our database at the same time: </p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> MAX_THREADS</span> = <span class="hljs-number">10</span>
+</code></pre>
+<p>Once it is extracted, you can easily change it when you need. Just imagine how hard it would be to change it if this number was spread all over the project. </p>
+<p>As you can see, extracting constant:</p>
+<ul>
+<li>Names it</li>
+<li>Helps us change its value in the future</li>
+</ul>
+<p>We will see similar results for different kinds of abstractions as well.</p>
+<h3 id="function">Function</h3>
+<p>Imagine that you are developing an application and you noticed that you often need to display a toast message to a user. This is how you do it programmatically:</p>
+<pre><code>1 Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+</code></pre><p><img src="../../assets/chapter4/chapter4-5.png" alt="Toast message in Android"></p>
+<p>We can extract this common algorithm into a simple extension function for displaying toast:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> Context.<span class="hljs-title">toast</span><span class="hljs-params">(
+   message: <span class="hljs-type">String, 
+   duration: Int</span> = Toast.LENGTH_LONG
+)</span> {</span>
+   Toast.makeText(this, message, duration).show()
+}
+
+<span class="hljs-comment">// Usage</span>
+context.toast(message)
+
+<span class="hljs-comment">// Usage in Activity or subclasses of Context</span>
+toast(message)
+</code></pre>
+<p>This change helped us extract a common algorithm so that we don&#x2019;t need to remember how to display a toast every time. It would also help if the way to display a toast, in general, was to change (what is rather unlikely). Though there are changes we are not prepared for. </p>
+<p>What if we had to change the way we display messages to the user from toasts to snackbars (a different kind of message display)? A simple answer is that having this functionality extracted, we can just change the implementation inside this function and rename it. </p>
+<pre><code class="lang-kotlin&#xF7;">fun Context.snackbar(
+   message: String, 
+   length: Int = Toast.LENGTH_LONG
+) {
+   //...
+}
+</code></pre>
+<p><img src="../../assets/chapter4/chapter4-6.png" alt="Snackbar message in Android"></p>
+<p>This solution is far from perfect. First of all, renaming the function might be dangerous even if it is used only internally<a href="chap65.xhtml#fn-footnote_411_note">8</a>. Especially if other modules depend on this function. The next problem is that parameters cannot be automatically changed so easily, thus we are still stuck with the toast API to declare the message duration. This is very problematic. When we display a snackbar we should not depend on a field from <code>Toast</code>. On the other hand, changing all usages to use the Snackbar&#x2019;s enum would be problematic as well:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> Context.<span class="hljs-title">snackbar</span><span class="hljs-params">(
+   message: <span class="hljs-type">String, 
+   duration: Int</span> = Snackbar.LENGTH_LONG
+)</span> {</span>
+   <span class="hljs-comment">//...</span>
+}
+</code></pre>
+<p>When we know that the way the message is displayed might change, we know that what is really important is not how this message is displayed, but instead the fact that we want to display the message to a user. What we need is a more abstract method to display a message. Having that in mind, a programmer could hide toast display behind a higher-level function <code>showMessage</code>, which would be independent of the concept of toast:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> Context.<span class="hljs-title">showMessage</span><span class="hljs-params">(
+    message: <span class="hljs-type">String, 
+    duration: MessageLength</span> = MessageLength.LONG
+)</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> toastDuration</span> = <span class="hljs-keyword">when</span>(duration) {
+       SHORT -&gt; Toast.LENGTH_SHORT
+       LONG -&gt; Toast.LENGTH_LONG
+   }
+   Toast.makeText(this, message, toastDuration).show()
+}
+
+<span class="hljs-keyword">enum</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MessageLength</span> </span>{ SHORT, LONG }
+</code></pre>
+<p>The biggest change here is the name. Some developers might neglect the importance of this change saying that a name is just a label and it doesn&#x2019;t matter. This perspective is valid from the compiler&#x2019;s point of view, but not from a developer&#x2019;s point of view. A function represents an abstraction, and the signature of this function informs us what abstraction this is. A meaningful name is very important. </p>
+<p>A function is a very simple abstraction, but it is also very limited. A function does not hold a state. Changes in a function signature often influence all usages. A more powerful way to abstract away implementation is by using classes. </p>
+<h3 id="class">Class</h3>
+<p>Here is how we can abstract message display into a class:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MessageDisplay</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> context</span>: Context) {
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">show</span><span class="hljs-params">(
+       message: <span class="hljs-type">String, 
+       duration: MessageLength</span> = MessageLength.LONG
+   )</span> {</span>
+       <span class="hljs-variable"><span class="hljs-keyword">val</span> toastDuration</span> = <span class="hljs-keyword">when</span>(duration) {
+           SHORT -&gt; Toast.LENGTH_SHORT
+           LONG -&gt; Toast.LENGTH_LONG
+       }
+       Toast.makeText(context, message, toastDuration)
+            .show()
+   }
+}
+
+<span class="hljs-keyword">enum</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MessageLength</span> </span>{ SHORT, LONG }
+
+<span class="hljs-comment">// Usage</span>
+<span class="hljs-variable"><span class="hljs-keyword">val</span> messageDisplay</span> = MessageDisplay(context)
+messageDisplay.show(<span class="hljs-string">&quot;Message&quot;</span>)
+</code></pre>
+<p>The key reason why classes are more powerful than functions is that they can hold a state and expose many functions (class member functions are called methods). In this case, we have a <code>context</code> in the class state, and it is injected via the constructor. Using a dependency injection framework we can delegate the class creation:</p>
+<pre><code class="lang-kotlin">@Inject lateinit <span class="hljs-variable"><span class="hljs-keyword">var</span> messageDisplay</span>: MessageDisplay
+</code></pre>
+<p>Additionally, we can mock the class to test the functionality of other classes that depend on the specified class. This is possible because we can mock classes for testing purposes:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> messageDisplay</span>: MessageDisplay = mockk()
+</code></pre>
+<p>Furthermore, one could add more methods to set up message display:</p>
+<pre><code>1 messageDisplay.setChristmasMode(true)
+</code></pre><p>As you can see, the class gives us more freedom. But they still have their limitations. For instance, when a class is final, we know what exact implementation is under its type. We have a bit more freedom with open classes because one could serve a subclass instead. This abstraction is still strongly bound to this class though. To get more freedom we can make it even more abstract and hide this class behind an interface. </p>
+<h3 id="interface">Interface</h3>
+<p>Reading the Kotlin standard library, you might notice that nearly everything is represented as an interface. Just take a look at a few examples:</p>
+<ul>
+<li><code>listOf</code> function returns <code>List</code>, which is an interface. This is similar to other factory methods (we will explain them in Item 33, Consider factory methods instead of constructors).</li>
+<li>Collection processing functions are extension functions on <code>Iterable</code> or <code>Collection</code>, and return <code>List</code>, <code>Map</code>, etc. Those are all interfaces.</li>
+<li>Property delegates are hidden behind <code>ReadOnlyProperty</code> or <code>ReadWriteProperty</code> which are also interfaces. Actual classes are often private. Function <code>lazy</code> declares interface <code>Lazy</code> as its return type as well. </li>
+</ul>
+<p>It is common practice for library creators to restrict inner class visibility and expose them from behind interfaces, and there are good reasons for that. This way library creators are sure that users do not use these classes directly, so they can change their implementations without any worries, as long as the interfaces stay the same. This is exactly the idea behind this item - by hiding objects behind an interface we abstract away any actual implementation and we force users to depend only on this abstraction. This way we reduce coupling. </p>
+<p>In Kotlin, there is another reason behind returning interfaces instead of classes - Kotlin is a multiplatform language and the same <code>listOf</code> returns different list implementations for Kotlin/JVM, Kotlin/JS, and Kotlin/Native. This is an optimization - Kotlin generally uses platform-specific native collections. This is fine because they all respect the <code>List</code> interface. </p>
+<p>Let&#x2019;s see how we can apply this idea to our message display. This is how it can look like when we hide our class behind an interface:</p>
+<pre><code> 1 interface MessageDisplay {
+ 2    fun show(
+ 3        message: String, 
+ 4        duration: MessageLength = LONG
+ 5    )
+ 6 }
+ 7 
+ 8 class ToastDisplay(val context: Context): MessageDisplay {
+ 9 
+10    override fun show(
+11        message: String, 
+12        duration: MessageLength
+13    ) {
+14        val toastDuration = when(duration) {
+15            SHORT -&gt; Toast.LENGTH_SHORT
+16            LONG -&gt; Toast.LENGTH_LONG
+17        }
+18        Toast.makeText(context, message, toastDuration)
+19           .show()
+20    }
+21 }
+22 
+23 enum class MessageLength { SHORT, LONG }
+</code></pre><p>In return, we got more freedom. For instance, we can inject the class that displays toasts on tablets, and snackbars on phones. One might also use <code>MessageDisplay</code> in a common module shared between Android, iOS, and Web. Then we could have different implementations for each platform. For instance, in iOS and Web, it could display an alert. </p>
+<p>Another benefit is that interface faking for testing is simpler than class mocking, and it does not need any mocking library:</p>
+<pre><code>1 val messageDisplay: MessageDisplay = TestMessageDisplay()
+</code></pre><p>Finally, the declaration is more decoupled from usage, and so we have more freedom in changing actual classes like <code>ToastDisplay</code>. On the other hand, if we want to change the way it is used, we would need to change the <code>MessageDisplay</code> interface and all the classes that implement it. </p>
+<h3 id="next-id">Next ID</h3>
+<p>Let&#x2019;s discuss one more example. Let&#x2019;s say that we need a unique ID in our project. A very simple way is to have a top-level property to hold next ID, and increment it whenever we need a new ID:</p>
+<pre><code>1 var nextId: Int = 0
+2 
+3 // Usage
+4 
+5 val newId = nextId++
+</code></pre><p>Seeing such usage spread around our code should cause some alerts. What if we wanted to change the way IDs are created. Let&#x2019;s be honest, this way is far from perfect:</p>
+<ul>
+<li>We start at 0 whenever we cold-start our program. </li>
+<li>It is not thread-safe.</li>
+</ul>
+<p>Supposing that for now we accept this solution, we should protect ourselves from change by extracting ID creation into a function:</p>
+<pre><code>1 private var nextId: Int = 0
+2 fun getNextId(): Int = nextId++
+3 
+4 // Usage
+5 val newId = getNextId()
+</code></pre><p>Notice though that this solution only protects us from ID creation change. There are many changes that we are still prone to. The biggest one is the change of ID type. What if one day we need to keep ID as a String? Also notice that someone seeing that ID is represented as an <code>Int</code>, might use some type-dependent operations. For instance use comparison to check which ID is older. Such assumptions might lead to serious problems. To prevent that and to let ourselves change ID type easily in the future, we might extract ID as a class:</p>
+<pre><code>1 data class Id(private val id: Int)
+2 
+3 private var nextId: Int = 0
+4 fun getNextId(): Id = Id(nextId++)
+</code></pre><p>Once again, it is clear that more abstractions give us more freedom, but also make definitions and usage harder to define and to understand. </p>
+<h3 id="abstractions-give-freedom">Abstractions give freedom</h3>
+<p>We&#x2019;ve presented a few common ways to introduce abstraction:</p>
+<ul>
+<li>Extracting constant</li>
+<li>Wrapping behavior into a function</li>
+<li>Wrapping function into a class</li>
+<li>Hiding a class behind an interface</li>
+<li>Wrapping universal objects into specialistic</li>
+</ul>
+<p>We&#x2019;ve seen how each of those gave us different kinds of freedom. Notice that there are many more tools available. Just to name a few:</p>
+<ul>
+<li>Using generic type parameters</li>
+<li>Extracting inner classes</li>
+<li>Restricting creation, for instance by forcing object creation via factory method<a href="chap65.xhtml#fn-footnote_412_note">9</a></li>
+</ul>
+<p>On the other hand, abstractions have their dark side. They give us freedom and split code, but often they can make code harder to understand and to modify. Let&#x2019;s talk about problems with abstractions. </p>
+<h3 id="problems-with-abstraction">Problems with abstraction</h3>
+<p>Adding new abstractions requires readers of the code to learn or already be familiar with the specific concept. When we define another abstraction, it is another thing that needs to be understood in our project. Of course, it is less of a problem when we restrict abstractions visibility (Item 30: Minimize elements visibility) or when we define abstractions that are used only for concrete tasks. This is why modularity is so important in bigger projects. We need to understand that defining abstraction is having this cost and we should not abstract everything by default. </p>
+<p>We can infinitely extract abstractions, but soon this will make more harm than good. This fact was parodied in the FizzBuzz Enterprise Edition project<a href="chap65.xhtml#fn-footnote_413_note">10</a> where authors showed that even for such a simple problem as Fizz Buzz<a href="chap65.xhtml#fn-footnote_414_note">11</a>, one can extract a ridiculous amount of abstractions making this problem extremely hard to use and understand. At the time of writing this book, there are 61 classes and 26 interfaces. All that to solve a problem that generally requires less than 10 lines of code. Sure, applying changes at any level is easy, though on the other hand understanding what does this code do and how does it do it is extremely hard. </p>
+<p><img src="../../assets/chapter4/chapter4-7.png" alt="Part of FizzBuzz Enterprise Edition structure of classes. In the description of this project, you can find the sarcastic rationale &#x201C;This project is an example of how the popular FizzBuzz game might be built were it subject to the high-quality standards of enterprise software.&#x201D; "></p>
+<p>Abstractions can hide a lot. <strong>On the one hand, it is easier to do development when there is less to think about, on the other hand, it becomes harder to understand the consequences of our actions when we use too many abstractions.</strong>One might use the <code>showMessage</code> function thinking that it still displays toast, and we might be surprised when it displays a snackbar. One seeing that unintended toast message is displayed might look for <code>Toast.makeText</code> and have problems finding it because it is displayed using <code>showMessage</code>. Having too many abstractions makes it harder to understand our code. It can also make us anxious when we are not sure what are the consequences of our actions. </p>
+<p>To understand abstractions, examples are very helpful. Unit test or examples in the documentation that shows how an element can be used, make abstractions more real for us. For the same reason, I filled this book with concrete examples for most ideas I present. It is hard to understand abstract descriptions. It is also easy to misunderstand them. </p>
+<h3 id="where-is-the-balance">Where is the balance?</h3>
+<p>The rule of thumb is: Every level of complexity gives us more freedom and organizes our code, but also makes it harder to understand what is really going on in our project. Both extremes are bad. The best solution is always somewhere in between, and where is it exactly, it depends on many factors like: </p>
+<ul>
+<li>Team size</li>
+<li>Team experience</li>
+<li>Project size</li>
+<li>Feature set</li>
+<li>Domain knowledge</li>
+</ul>
+<p>We are constantly looking for balance in every project. Finding a proper balance is almost an art, as it requires intuition gained over hundreds if not thousands of hours architecting and coding projects. Here are a few suggestions I can give:</p>
+<ul>
+<li>In bigger projects with more developers, it is much harder to change object creation and usage later, so we prefer more abstract solutions. Also, a separation between modules or parts is especially useful then. </li>
+<li>We care less about how hard creation is when we use a dependency injection framework because we probably only need to define this creation once anyway. </li>
+<li>Testing or making different application variants might require us to use some abstractions. </li>
+<li>When your project is small and experimental, you can enjoy your freedom to directly make changes without the necessity of dealing with abstractions. Although when it gets serious, change it as soon as possible. </li>
+</ul>
+<p>Another thing that we need to constantly think about is what might change and what are the odds for each change. For instance, there is a very small chance that the API for toast display will change, but there is a reasonable probability that we will need to change the way we display a message. Is there a chance we might need to mock this mechanism? A chance that one day you will need a more generic mechanism? Or a mechanism that might be platform-independent? These probabilities are not 0, so how big are they? Observing how things change over the years gives us better and better intuition. </p>
+<h3 id="summary">Summary</h3>
+<p>Abstractions are not only to eliminate redundancy and to organize our code. They also help us when we need to change our code. Although using abstractions is harder. They are something we need to learn and understand. It is also harder to understand the consequences when we use abstract structures. We need to understand both the importance and risk of using abstractions, and we need to search for a balance in every project. Having too many or too little abstractions would not be an ideal situation.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1398,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 27 Use Abstraction To Protect Code Against Changes","level":"1.3.2.3","depth":3,"next":{"title":"Item 28 Specify API Stability","level":"1.3.2.4","depth":3,"path":"Part 2 Code design/Chapter 4 Abstraction design/Item 28 Specify API stability.md","ref":"Part 2 Code design/Chapter 4 Abstraction design/Item 28 Specify API stability.md","articles":[]},"previous":{"title":"Item 26 Each Function Should Be Written In Terms Of A Single Level Of Abstraction","level":"1.3.2.2","depth":3,"path":"Part 2 Code design/Chapter 4 Abstraction design/Item 26 Each function should be written in terms of a single level of abstraction.md","ref":"Part 2 Code design/Chapter 4 Abstraction design/Item 26 Each function should be written in terms of a single level of abstraction.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 4 Abstraction design/Item 27 Use abstraction to protect code against changes.md","mtime":"2021-11-27T07:43:49.887Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T07:44:21.792Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 27 Use Abstraction To Protect Code Against Changes","level":"1.3.2.3","depth":3,"next":{"title":"Item 28 Specify API Stability","level":"1.3.2.4","depth":3,"path":"Part 2 Code design/Chapter 4 Abstraction design/Item 28 Specify API stability.md","ref":"Part 2 Code design/Chapter 4 Abstraction design/Item 28 Specify API stability.md","articles":[]},"previous":{"title":"Item 26 Each Function Should Be Written In Terms Of A Single Level Of Abstraction","level":"1.3.2.2","depth":3,"path":"Part 2 Code design/Chapter 4 Abstraction design/Item 26 Each function should be written in terms of a single level of abstraction.md","ref":"Part 2 Code design/Chapter 4 Abstraction design/Item 26 Each function should be written in terms of a single level of abstraction.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 4 Abstraction design/Item 27 Use abstraction to protect code against changes.md","mtime":"2021-11-27T17:26:31.204Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T17:27:10.787Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
