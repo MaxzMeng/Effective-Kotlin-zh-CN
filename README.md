@@ -31,14 +31,14 @@ Effective Kotlin 中文翻译
         - [x] [Item 18 Respect Coding Conventions](Part 1 Good code/Chapter 2 Readability/Item 18 Respect coding conventions.md)
 - Part 2 Code Design
     - Chapter 3 Reusability
-        - [ ] [Introduction](Part 2 Code design/Chapter 3 Reusability/Introduction.md)
-        - [ ] [Item 19 Do Not Repeat Knowledge](Part 2 Code design/Chapter 3 Reusability/Item 19 Do not repeat knowledge.md)
-        - [ ] [Item 20 Do Not Repeat Common Algorithms](Part 2 Code design/Chapter 3 Reusability/Item 20 Do not repeat common algorithms.md)
-        - [ ] [Item 21 Use Property Delegation To Extract Common Property Patterns](Part 2 Code design/Chapter 3 Reusability/Item 21 Use property delegation to extract common property patterns.md)
-        - [ ] [Item 22 Use Generics When Implementing Common Algorithms](Part 2 Code design/Chapter 3 Reusability/Item 22 Use generics when implementing common algorithms.md)
-        - [ ] [Item 23 Avoid Shadowing Type Parameters](Part 2 Code design/Chapter 3 Reusability/Item 23 Avoid shadowing type parameters.md)
-        - [ ] [Item 24 Consider Variance For Generic Types](Part 2 Code design/Chapter 3 Reusability/Item 24 Consider variance for generic types.md)
-        - [ ] [Item 25 Reuse Between Different Platforms By Extracting Common Modules](Part 2 Code design/Chapter 3 Reusability/Item 25 Reuse between different platforms by extracting common modules.md)
+        - [x] [Introduction](Part 2 Code design/Chapter 3 Reusability/Introduction.md)
+        - [x] [Item 19 Do Not Repeat Knowledge](Part 2 Code design/Chapter 3 Reusability/Item 19 Do not repeat knowledge.md)
+        - [x] [Item 20 Do Not Repeat Common Algorithms](Part 2 Code design/Chapter 3 Reusability/Item 20 Do not repeat common algorithms.md)
+        - [x] [Item 21 Use Property Delegation To Extract Common Property Patterns](Part 2 Code design/Chapter 3 Reusability/Item 21 Use property delegation to extract common property patterns.md)
+        - [x] [Item 22 Use Generics When Implementing Common Algorithms](Part 2 Code design/Chapter 3 Reusability/Item 22 Use generics when implementing common algorithms.md)
+        - [x] [Item 23 Avoid Shadowing Type Parameters](Part 2 Code design/Chapter 3 Reusability/Item 23 Avoid shadowing type parameters.md)
+        - [x] [Item 24 Consider Variance For Generic Types](Part 2 Code design/Chapter 3 Reusability/Item 24 Consider variance for generic types.md)
+        - [x] [Item 25 Reuse Between Different Platforms By Extracting Common Modules](Part 2 Code design/Chapter 3 Reusability/Item 25 Reuse between different platforms by extracting common modules.md)
     - Chapter 4 Abstraction Design
         - [ ] [Introduction](Part 2 Code design/Chapter 4 Abstraction design/Introduction.md)
         - [ ] [Item 26 Each Function Should Be Written In Terms Of A Single Level Of Abstraction](Part 2 Code design/Chapter 4 Abstraction design/Item 26 Each function should be written in terms of a single level of abstraction.md)
