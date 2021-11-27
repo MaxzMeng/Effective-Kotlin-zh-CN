@@ -1136,7 +1136,306 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-36-prefer-composition-over-inheritance">Item 36: Prefer composition over inheritance</h2>
+<p>Inheritance is a powerful feature, but it is designed to create a hierarchy of objects with the &#x201C;is-a&#x201D; relationship. When such a relationship is not clear, inheritance might be problematic and dangerous. When all we need is a simple code extraction or reuse, inheritance should be used with caution, and we should instead prefer a lighter alternative: class composition. </p>
+<h3 id="simple-behavior-reuse">Simple behavior reuse</h3>
+<p>Let&#x2019;s start with a simple problem: we have two classes with partially similar behavior - progress bar display before and hide after logic. </p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ProfileLoader</span> </span>{
+
+  <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">load</span><span class="hljs-params">()</span> {</span>
+       <span class="hljs-comment">// show progress</span>
+       <span class="hljs-comment">// load profile</span>
+       <span class="hljs-comment">// hide progress</span>
+   }
+}
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ImageLoader</span> </span>{
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">load</span><span class="hljs-params">()</span> {</span>
+       <span class="hljs-comment">// show progress</span>
+       <span class="hljs-comment">// load image</span>
+       <span class="hljs-comment">// hide progress</span>
+   }
+}
+</code></pre>
+<p>From my experience, many developers would extract this common behavior by extracting a common superclass:</p>
+<pre><code class="lang-kotlin">abstract <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">LoaderWithProgress</span> </span>{
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">load</span><span class="hljs-params">()</span> {</span>
+       <span class="hljs-comment">// show progress</span>
+       innerLoad()
+       <span class="hljs-comment">// hide progress</span>
+   }
+
+   abstract <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">innerLoad</span><span class="hljs-params">()</span></span>
+}
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ProfileLoader</span>: <span class="hljs-type">LoaderWithProgress</span></span>() {
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">innerLoad</span><span class="hljs-params">()</span> {</span>
+       <span class="hljs-comment">// load profile</span>
+   }
+}
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ImageLoader</span>: <span class="hljs-type">LoaderWithProgress</span></span>() {
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">innerLoad</span><span class="hljs-params">()</span> {</span>
+       <span class="hljs-comment">// load image</span>
+   }
+}
+</code></pre>
+<p>This approach works for such a simple case, but it has important downsides we should be aware of:</p>
+<ul>
+<li><strong>We can only extend one class.</strong> Extracting functionalities using inheritance often leads to huge BaseXXX classes that accumulate many functionalities or too deep and complex hierarchies of types.</li>
+<li><strong>When we extend, we take everything from a class</strong>, which leads to classes that have functionalities and methods they don&#x2019;t need (a violation of the Interface Segregation Principle).</li>
+<li><strong>Using superclass functionality is much less explicit</strong>. In general, it is a bad sign when a developer reads a method and needs to jump into superclasses many times to understand how the method works.</li>
+</ul>
+<p>Those are strong reasons that should make us think about an alternative, and a very good one is composition. By composition, we mean holding an object as a property (we compose it) and reusing its functionalities. This is an example of how we can use composition instead of inheritance to solve our problem:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Progress</span> </span>{
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">showProgress</span><span class="hljs-params">()</span> { <span class="hljs-comment">/* show progress */</span> }</span>
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">hideProgress</span><span class="hljs-params">()</span> { <span class="hljs-comment">/* hide progress */</span> }</span>
+}
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ProfileLoader</span> </span>{
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> progress</span> = Progress()
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">load</span><span class="hljs-params">()</span> {</span>
+       progress.showProgress()
+       <span class="hljs-comment">// load profile</span>
+       progress.hideProgress()
+   }
+}
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ImageLoader</span> </span>{
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> progress</span> = Progress()
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">load</span><span class="hljs-params">()</span> {</span>
+       progress.showProgress()
+       <span class="hljs-comment">// load image</span>
+       progress.hideProgress()
+   }
+}
+</code></pre>
+<p>Notice that composition is harder, as we need to include the composed object and use it in every single class. This is the key reason why many prefer inheritance. However, this additional code is not useless; it informs the reader that progress is used and how it is used. It also gives the developer more power over how progress works.</p>
+<p>Another thing to note is that composition is better in a case when we want to extract multiple pieces of functionality. For instance, information that loading has finished:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ImageLoader</span> </span>{
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> progress</span> = Progress()
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> finishedAlert</span> = FinishedAlert()
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">load</span><span class="hljs-params">()</span> {</span>
+       progress.showProgress()
+       <span class="hljs-comment">// load image</span>
+       progress.hideProgress()
+       finishedAlert.show()
+   }
+}
+</code></pre>
+<p>We cannot extend more than a single class, so if we would want to use inheritance instead, we would be forced to place both functionalities in a single superclass. This often leads to a complex hierarchy of types used to add these functionalities. Such hierarchies are very hard to read and often also to modify. Just think about what happens if we need alert in two subclasses, but not in the third one? One way to deal with this problem is to use a parameterized constructor:</p>
+<pre><code class="lang-kotlin">abstract <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">InternetLoader</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> showAlert</span>: <span class="hljs-keyword">Boolean</span>) {
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">load</span><span class="hljs-params">()</span> {</span>
+       <span class="hljs-comment">// show progress</span>
+       innerLoad()
+       <span class="hljs-comment">// hide progress</span>
+       <span class="hljs-keyword">if</span> (showAlert) {
+           <span class="hljs-comment">// show alert</span>
+       }
+   }
+
+   abstract <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">innerLoad</span><span class="hljs-params">()</span></span>
+}
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ProfileLoader</span> : <span class="hljs-type">InternetLoader</span></span>(showAlert = <span class="hljs-literal">true</span>) {
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">innerLoad</span><span class="hljs-params">()</span> {</span>
+       <span class="hljs-comment">// load profile</span>
+   }
+}
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ImageLoader</span> : <span class="hljs-type">InternetLoader</span></span>(showAlert = <span class="hljs-literal">false</span>) {
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">innerLoad</span><span class="hljs-params">()</span> {</span>
+       <span class="hljs-comment">// load image</span>
+   }
+}
+</code></pre>
+<p>This is a bad solution. It gives functionality a subclass doesn&#x2019;t need and blocks it. The problem is compounded when the subclass cannot block other unneeded functionality. When we use inheritance we take everything from the superclass, not only what we need.</p>
+<h3 id="taking-the-whole-package">Taking the whole package</h3>
+<p>When we use inheritance, we take from superclass everything - both methods, expectations (contract) and behavior. Therefore inheritance is a great tool to represent the hierarchy of objects, but not necessarily to just reuse some common parts. For such cases, the composition is better because we can choose what behavior do we need. To think of an example, let&#x2019;s say that in our system we decided to represent a <code>Dog</code> that can <code>bark</code> and <code>sniff</code>:</p>
+<pre><code class="lang-kotlin">abstract <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Dog</span> </span>{
+   <span class="hljs-keyword">open</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">bark</span><span class="hljs-params">()</span> { <span class="hljs-comment">/*...*/</span> }</span>
+   <span class="hljs-keyword">open</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">sniff</span><span class="hljs-params">()</span> { <span class="hljs-comment">/*...*/</span> }</span>
+}
+</code></pre>
+<p>What if then we need to create a robot dog that can bark but can&#x2019;t sniff? </p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Labrador</span>: <span class="hljs-type">Dog</span></span>()
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RobotDog</span> : <span class="hljs-type">Dog</span></span>() {
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">sniff</span><span class="hljs-params">()</span> {</span>
+       <span class="hljs-keyword">throw</span> Error(<span class="hljs-string">&quot;Operation not supported&quot;</span>)
+       <span class="hljs-comment">// Do you really want that?</span>
+   }
+}
+</code></pre>
+<p>Notice that such a solution violates <em>interface-segregation principle</em> - <code>RobotDog</code> has a method it doesn&#x2019;t need. It also violates the Liskov Substitution Principle by breaking superclass behavior. On the other hand, what if your <code>RobotDog</code> needs to be a <code>Robot</code> class as well because <code>Robot</code> can calculate (have <code>calculate</code> method)? <em>Multiple inheritance</em> is not supported in Kotlin.</p>
+<pre><code class="lang-kotlin">abstract <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Robot</span> </span>{
+   <span class="hljs-keyword">open</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">calculate</span><span class="hljs-params">()</span> { <span class="hljs-comment">/*...*/</span> }</span>
+}
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RobotDog</span> : <span class="hljs-type">Dog</span></span>(), Robot() <span class="hljs-comment">// Error</span>
+</code></pre>
+<p>These are serious design problems and limitations that do not occur when you use composition instead. When we use composition we choose what we want to reuse. To represent type hierarchy it is safer to use interfaces, and we can implement multiple interfaces. What was not yet shown is that inheritance can lead to unexpected behavior. </p>
+<h3 id="inheritance-breaks-encapsulation">Inheritance breaks encapsulation</h3>
+<p>To some degree, when we extend a class, we depend not only on how it works from outside but also on how it is implemented inside. This is why we say that inheritance breaks encapsulation. Let&#x2019;s look at an example inspired by the book Effective Java by Joshua Bloch. Let&#x2019;s say that we need a set that will know how many elements were added to it during its lifetime. This set can be created using inheritance from <code>HashSet</code>:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CounterSet</span>&lt;<span class="hljs-type">T</span>&gt;: <span class="hljs-type">HashSet</span>&lt;<span class="hljs-type">T</span>&gt;</span>() {
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> elementsAdded</span>: <span class="hljs-keyword">Int</span> = <span class="hljs-number">0</span>
+       <span class="hljs-keyword">private</span> <span class="hljs-keyword">set</span>
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">add</span><span class="hljs-params">(element: <span class="hljs-type">T</span>)</span>: <span class="hljs-keyword">Boolean</span> {</span>
+       elementsAdded++
+       <span class="hljs-keyword">return</span> super.add(element)
+   }
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">addAll</span><span class="hljs-params">(elements: <span class="hljs-type">Collection&lt;T&gt;</span>)</span>: <span class="hljs-keyword">Boolean</span> {</span>
+       elementsAdded += elements.size
+       <span class="hljs-keyword">return</span> super.addAll(elements)
+   }
+}
+</code></pre>
+<p>This implementation might look good, but it doesn&#x2019;t work correctly:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> counterList</span> = CounterSet<span class="hljs-type">&lt;String&gt;</span>()
+counterList.addAll(listOf(<span class="hljs-string">&quot;A&quot;</span>, <span class="hljs-string">&quot;B&quot;</span>, <span class="hljs-string">&quot;C&quot;</span>))
+print(counterList.elementsAdded) <span class="hljs-comment">// 6</span>
+</code></pre>
+<p>Why is that? The reason is that <code>HashSet</code> uses the <code>add</code> method under the hood of <code>addAll</code>. The counter is then incremented twice for each element added using <code>addAll</code>. The problem can be naively solved by removing custom <code>addAll</code>function:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CounterSet</span>&lt;<span class="hljs-type">T</span>&gt;: <span class="hljs-type">HashSet</span>&lt;<span class="hljs-type">T</span>&gt;</span>() {
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> elementsAdded</span>: <span class="hljs-keyword">Int</span> = <span class="hljs-number">0</span>
+       <span class="hljs-keyword">private</span> <span class="hljs-keyword">set</span>
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">add</span><span class="hljs-params">(element: <span class="hljs-type">T</span>)</span>: <span class="hljs-keyword">Boolean</span> {</span>
+       elementsAdded++
+       <span class="hljs-keyword">return</span> super.add(element)
+   }
+}
+</code></pre>
+<p>Although this solution is dangerous. What if the creators of Java decided to optimize <code>HashSet.addAll</code> and implement it in a way that doesn&#x2019;t depend on the <code>add</code> method? If they would do that, this implementation would break with a Java update. Together with this implementation, any other libraries which depend on our current implementation will break as well. The Java creators know this, so they are cautious of making changes to these types of implementations. The same problem affects any library creator or even developers of large projects. How can we solve this problem? We should use composition instead of inheritance:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CounterSet</span>&lt;<span class="hljs-type">T</span>&gt; </span>{
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> innerSet</span> = HashSet<span class="hljs-type">&lt;T&gt;</span>()
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> elementsAdded</span>: <span class="hljs-keyword">Int</span> = <span class="hljs-number">0</span>
+       <span class="hljs-keyword">private</span> <span class="hljs-keyword">set</span>
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">add</span><span class="hljs-params">(element: <span class="hljs-type">T</span>)</span> {</span>
+       elementsAdded++
+       innerSet.add(element)
+   }
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">addAll</span><span class="hljs-params">(elements: <span class="hljs-type">Collection&lt;T&gt;</span>)</span> {</span>
+       elementsAdded += elements.size
+       innerSet.addAll(elements)
+   }
+}
+
+<span class="hljs-variable"><span class="hljs-keyword">val</span> counterList</span> = CounterSet<span class="hljs-type">&lt;String&gt;</span>()
+counterList.addAll(listOf(<span class="hljs-string">&quot;A&quot;</span>, <span class="hljs-string">&quot;B&quot;</span>, <span class="hljs-string">&quot;C&quot;</span>))
+print(counterList.elementsAdded) <span class="hljs-comment">// 3</span>
+</code></pre>
+<p>One problem is that in this case, we lose polymorphic behavior: <code>CounterSet</code> is not a <code>Set</code> anymore. To keep it, we can use the delegation pattern. The delegation pattern is when our class implements an interface, composes an object that implements the same interface, and forwards methods defined in the interface to this composed object. Such methods are called <em>forwarding methods</em>. Take a look at the following example:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CounterSet</span>&lt;<span class="hljs-type">T</span>&gt; : <span class="hljs-type">MutableSet</span>&lt;<span class="hljs-type">T</span>&gt; </span>{
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> innerSet</span> = HashSet<span class="hljs-type">&lt;T&gt;</span>()
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> elementsAdded</span>: <span class="hljs-keyword">Int</span> = <span class="hljs-number">0</span>
+       <span class="hljs-keyword">private</span> <span class="hljs-keyword">set</span>
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">add</span><span class="hljs-params">(element: <span class="hljs-type">T</span>)</span>: <span class="hljs-keyword">Boolean</span> {</span>
+       elementsAdded++
+       <span class="hljs-keyword">return</span> innerSet.add(element)
+   }
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">addAll</span><span class="hljs-params">(elements: <span class="hljs-type">Collection&lt;T&gt;</span>)</span>: <span class="hljs-keyword">Boolean</span> {</span>
+       elementsAdded += elements.size
+       <span class="hljs-keyword">return</span> innerSet.addAll(elements)
+   }
+
+   <span class="hljs-keyword">override</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> size</span>: <span class="hljs-keyword">Int</span>
+       <span class="hljs-keyword">get</span>() = innerSet.size
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">contains</span><span class="hljs-params">(element: <span class="hljs-type">T</span>)</span>: <span class="hljs-keyword">Boolean</span> =</span>
+           innerSet.contains(element)
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">containsAll</span><span class="hljs-params">(elements: <span class="hljs-type">Collection&lt;T&gt;</span>)</span>: </span>
+<span class="hljs-keyword">Boolean</span> = innerSet.containsAll(elements)
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">isEmpty</span><span class="hljs-params">()</span>: <span class="hljs-keyword">Boolean</span> = innerSet.<span class="hljs-title">isEmpty</span><span class="hljs-params">()</span></span>
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">iterator</span><span class="hljs-params">()</span> =</span>
+           innerSet.iterator()
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">clear</span><span class="hljs-params">()</span> =</span>
+           innerSet.clear()
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">remove</span><span class="hljs-params">(element: <span class="hljs-type">T</span>)</span>: <span class="hljs-keyword">Boolean</span> =</span>
+           innerSet.remove(element)
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">removeAll</span><span class="hljs-params">(elements: <span class="hljs-type">Collection&lt;T&gt;</span>)</span>: </span>
+<span class="hljs-keyword">Boolean</span> = innerSet.removeAll(elements)
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">retainAll</span><span class="hljs-params">(elements: <span class="hljs-type">Collection&lt;T&gt;</span>)</span>: </span>
+<span class="hljs-keyword">Boolean</span> = innerSet.retainAll(elements)
+}
+</code></pre>
+<p>The problem now is that we need to implement a lot of forwarding methods (nine, in this case). Thankfully, Kotlin introduced interface delegation support that is designed to help in this kind of scenario. When we delegate an interface to an object, Kotlin will generate all the required forwarding methods during compilation. Here is Kotlin interface delegation presented in action:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CounterSet</span>&lt;<span class="hljs-type">T</span>&gt;</span>(
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> innerSet</span>: MutableSet<span class="hljs-type">&lt;T&gt;</span> = mutableSetOf()
+) : MutableSet<span class="hljs-type">&lt;T&gt;</span> by innerSet {
+
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> elementsAdded</span>: <span class="hljs-keyword">Int</span> = <span class="hljs-number">0</span>
+       <span class="hljs-keyword">private</span> <span class="hljs-keyword">set</span>
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">add</span><span class="hljs-params">(element: <span class="hljs-type">T</span>)</span>: <span class="hljs-keyword">Boolean</span> {</span>
+       elementsAdded++
+       <span class="hljs-keyword">return</span> innerSet.add(element)
+   }
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">addAll</span><span class="hljs-params">(elements: <span class="hljs-type">Collection&lt;T&gt;</span>)</span>: <span class="hljs-keyword">Boolean</span> {</span>
+       elementsAdded += elements.size
+       <span class="hljs-keyword">return</span> innerSet.addAll(elements)
+   }
+}
+</code></pre>
+<p>This is a case where delegation is a good choice: we need polymorphic behavior and inheritance would be dangerous. In most cases, polymorphic behavior is not needed or we use it in a different way. In such a case composition without delegation is more suitable. It is easier to understand and more flexible.</p>
+<p>The fact that inheritance breaks encapsulation is a security concern, but in many cases, the behavior is specified in a contract or we don&#x2019;t depend on it in subclasses (this is generally true when methods are designed for inheritance). There are other reasons to choose the composition. The composition is easier to reuse and gives us more flexibility. </p>
+<h3 id="restricting-overriding">Restricting overriding</h3>
+<p>To prevent developers from extending classes that are not designed for an inheritance, we can just keep them final. Though if for a reason we need to allow inheritance, still all methods are final by default. To let developers override them, they must be set to open:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">open</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Parent</span> </span>{
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">a</span><span class="hljs-params">()</span> {}</span>
+   <span class="hljs-keyword">open</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">b</span><span class="hljs-params">()</span> {}</span>
+}
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Child</span>: <span class="hljs-type">Parent</span></span>() {
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">a</span><span class="hljs-params">()</span> {} <span class="hljs-comment">// Error</span></span>
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">b</span><span class="hljs-params">()</span> {}</span>
+}
+</code></pre>
+<p>Use this mechanism wisely and open only those methods that are designed for inheritance. Also remember that when you override a method, you can make it final for all subclasses:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">open</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ProfileLoader</span>: <span class="hljs-type">InternetLoader</span></span>() {
+
+   <span class="hljs-keyword">final</span> <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">loadFromInterner</span><span class="hljs-params">()</span> {</span>
+       <span class="hljs-comment">// load profile</span>
+   }
+}
+</code></pre>
+<p>This way you can limit the number of methods that can be overridden in subclasses. </p>
+<h3 id="summary">Summary</h3>
+<p>There are a few important differences between composition and inheritance:</p>
+<ul>
+<li><strong>Composition is more secure</strong> - We do not depend on how a class is implemented, but only on its externally observable behavior. </li>
+<li><strong>Composition is more flexible</strong> - We can only extend a single class, while we can compose many. When we inherit, we take everything, while when we compose, we can choose what we need. When we change the behavior of a superclass, we change the behavior of all subclasses. It is hard to change the behavior of only some subclasses. When a class we composed changes, it will only change our behavior if it changed its contract to the outside world.</li>
+<li><strong>Composition is more explicit</strong> - This is both an advantage and a disadvantage. When we use a method from a superclass we don&#x2019;t need to reference any receiver (we don&#x2019;t need to use <code>this</code> keyword). It is less explicit, which means that it requires less work but it can be confusing and is more dangerous as it is easy to confuse where a method comes from (is it from the same class, superclass, top-level or is it an extension). When we call a method on a composed object, we know where it comes from. </li>
+<li><strong>Composition is more demanding</strong> - We need to use composed object explicitly. When we add some functionalities to a superclass we often do not need to modify subclasses. When we use composition we more often need to adjust usages. </li>
+<li><strong>Inheritance gives us a strong polymorphic behavior</strong> - This is also a double-edged sword. From one side, it is comfortable that a dog can be treated like an animal. On the other side, it is very constraining. It must be an animal. Every subclass of the animal should be consistent with animal behavior. Superclass set contract and subclasses should respect it. </li>
+</ul>
+<p>It is a general OOP rule to prefer composition over inheritance, but Kotlin encourages composition even more by making all classes and methods final by default and by making interface delegation a first-class citizen. This makes this rule even more important in Kotlin projects.</p>
+<p>When is composition more reasonable then? The rule of thumb: <strong>we should use inheritance when there is a definite &#x201C;is a&#x201D; relationship</strong>. Not only linguistically, but meaning that every class that inherits from a superclass needs to &#x201C;be&#x201D; its superclass. All unit tests for superclasses should always pass for their subclasses (Liskov substitution principle). Object-oriented frameworks for displaying views are good examples: <code>Application</code> in JavaFX, <code>Activity</code> in Android, <code>UIViewController</code> in iOS, and <code>React.Component</code> in React. The same is true when we define our own special kind of view element that always has the same set of functionalities and characteristics. Just remember to design these classes with inheritance in mind, and specify how inheritance should be used. Also, keep methods that are not designed for inheritance final.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1478,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 36 Prefer Composition Over Inheritance","level":"1.3.4.2","depth":3,"next":{"title":"Item 37 Use The Data Modifier To Represent A Bundle Of Data","level":"1.3.4.3","depth":3,"path":"Part 2 Code design/Chapter 6 Class design/Item 37 Use the data modifier to represent a bundle of data.md","ref":"Part 2 Code design/Chapter 6 Class design/Item 37 Use the data modifier to represent a bundle of data.md","articles":[]},"previous":{"title":"Introduction","level":"1.3.4.1","depth":3,"path":"Part 2 Code design/Chapter 6 Class design/Introduction.md","ref":"Part 2 Code design/Chapter 6 Class design/Introduction.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 6 Class design/Item 36 Prefer composition over inheritance.md","mtime":"2021-11-27T18:01:48.680Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T18:02:25.398Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 36 Prefer Composition Over Inheritance","level":"1.3.4.2","depth":3,"next":{"title":"Item 37 Use The Data Modifier To Represent A Bundle Of Data","level":"1.3.4.3","depth":3,"path":"Part 2 Code design/Chapter 6 Class design/Item 37 Use the data modifier to represent a bundle of data.md","ref":"Part 2 Code design/Chapter 6 Class design/Item 37 Use the data modifier to represent a bundle of data.md","articles":[]},"previous":{"title":"Introduction","level":"1.3.4.1","depth":3,"path":"Part 2 Code design/Chapter 6 Class design/Introduction.md","ref":"Part 2 Code design/Chapter 6 Class design/Introduction.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 6 Class design/Item 36 Prefer composition over inheritance.md","mtime":"2021-11-27T18:06:51.766Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T18:07:26.451Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
