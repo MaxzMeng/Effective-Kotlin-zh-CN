@@ -1136,7 +1136,92 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-30-minimize-elements-visibility">Item 30: Minimize elements visibility</h2>
+<p>When we design an API, there are many reasons why we prefer it as lean as possible. Let&#x2019;s name the most important reasons.</p>
+<p><strong>It is easier to learn and maintain a smaller interface.</strong> Understanding a class is easier when there are a few things we can do with it, than when there are dozens. Maintenance is easier as well. When we make changes, we often need to understand the whole class. When fewer elements are visible, there is less to maintain and to test.</p>
+<p><strong>When we want to make changes, it is way easier to expose something new, rather than to hide an existing element.</strong> All publicly visible elements are part of our public API, and they can be used externally. The longer an element is visible, the more external uses it will have. As such, changing these elements will be harder because they will require updating all usages. Restricting visibility would be even more of a challenge. If you do, you&#x2019;ll need to carefully consider each usage and provide an alternative. Giving an alternative might not be simple, especially if it was implemented by another developer. Finding out now what were the business requirements might be tough as well. If it is a public library, restricting some elements&#x2019; visibility might make some users angry. They will need to adjust their implementation and they will face the same problems - they will need to implement alternative solutions probably years after code was developed. It is much better to force developers to use a smaller API in the first place. </p>
+<p><strong>A class cannot be responsible for its own state when properties that represent this state can be changed from the outside.</strong> We might have assumptions on a class state that class needs to satisfy. When this state can be directly changed from the outside, the current class cannot guarantee its invariants, because it might be changed externally by someone not knowing about our internal contract. Take a look at <code>CounterSet</code> from <em>Chapter 2</em>. We correctly restricted the visibility of <code>elementsAdded</code> setter. Without it, someone might change it to any value from outside and we wouldn&#x2019;t be able to trust that this value really represents how many elements were added. Notice that only setter is private. This is a very useful trick. </p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CounterSet</span>&lt;<span class="hljs-type">T</span>&gt;</span>(
+       <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> innerSet</span>: MutableSet<span class="hljs-type">&lt;T&gt;</span> = mutableSetOf\
+()
+) : MutableSet<span class="hljs-type">&lt;T&gt;</span> by innerSet {
+
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> elementsAdded</span>: <span class="hljs-keyword">Int</span> = <span class="hljs-number">0</span>
+       <span class="hljs-keyword">private</span> <span class="hljs-keyword">set</span>
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">add</span><span class="hljs-params">(element: <span class="hljs-type">T</span>)</span>: <span class="hljs-keyword">Boolean</span> {</span>
+       elementsAdded++
+       <span class="hljs-keyword">return</span> innerSet.add(element)
+   }
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">addAll</span><span class="hljs-params">(elements: <span class="hljs-type">Collection&lt;T&gt;</span>)</span>: <span class="hljs-keyword">Boolean</span> {</span>
+       elementsAdded += elements.size
+       <span class="hljs-keyword">return</span> innerSet.addAll(elements)
+   }
+}
+</code></pre>
+<p>For many cases, it is very helpful that all properties are encapsulated by default in Kotlin because we can always restrict the visibility of concrete accessors. </p>
+<p>Protecting internal object state is especially important when we have properties depending on each other. For instance, in the below <code>mutableLazy</code> delegate implementation, we expect that if <code>initialized</code> is <code>true</code>, the <code>value</code> is initialized and it contains a value of type <code>T</code>. Whatever we do, setter of the <code>initialized</code> should not be exposed, because otherwise it cannot be trusted and that can lead to an ugly exception on a different property. </p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MutableLazyHolder</span>&lt;<span class="hljs-type">T</span>&gt;</span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> initializer</span>: () -&gt; T) {
+    <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> value</span>: Any? = Any()
+    <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> initialized</span> = <span class="hljs-literal">false</span>
+
+    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">get</span><span class="hljs-params">()</span>: T {</span>
+        <span class="hljs-keyword">if</span> (!initialized) {
+            value = initializer()
+            initialized = <span class="hljs-literal">true</span>
+        }
+        <span class="hljs-keyword">return</span> value <span class="hljs-keyword">as</span> T
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">set</span><span class="hljs-params">(value: <span class="hljs-type">T</span>)</span> {</span>
+        this.value = value
+        initialized = <span class="hljs-literal">true</span>
+    }
+}
+</code></pre>
+<p><strong>It is easier to track how class changes when they have more restricted visibility.</strong> This makes the property state easier to understand. It is especially important when we are dealing with concurrency. State changes are a problem for parallel programming, and it is better to control and restrict them as much as possible.</p>
+<h3 id="using-visibility-modifiers">Using visibility modifiers</h3>
+<p>To achieve a smaller interface from outside, without internal sacrifices, we restrict elements visibility. In general, if there is no reason for an element to be visible, we prefer to have it hidden. This is why if there is no good reason to have less restrictive visibility type, it is a good practice to make the visibility of classes and elements as restrictive as possible. We do that using visibility modifiers. </p>
+<p>For class members, these are 4 visibility modifiers we can use together with their behavior:</p>
+<ul>
+<li><code>public</code> (default) - visible everywhere, for clients who see the declaring class.</li>
+<li><code>private</code> - visible inside this class only.</li>
+<li><code>protected</code> - visible inside this class and in subclasses.</li>
+<li><code>internal</code> - visible inside this module, for clients who see the declaring class.</li>
+</ul>
+<p>Top-level elements have 3 visibility modifiers:</p>
+<ul>
+<li><code>public</code> (default) - visible everywhere.</li>
+<li><code>private</code> - visible inside the same file only.</li>
+<li><code>internal</code> - visible inside this module.</li>
+</ul>
+<p>Note that the module is not the same as package. In Kotlin it is defined as a set of Kotlin sources compiled together. It might mean:</p>
+<ul>
+<li>a Gradle source set,</li>
+<li>a Maven project,</li>
+<li>an IntelliJ IDEA module,</li>
+<li>a set of files compiled with one invocation of the Ant task.</li>
+</ul>
+<p>If your module might be used by another module, change the visibility of your public elements that you don&#x2019;t want to expose to <code>internal</code>. If an element is designed for inheritance and it is only used in a class and subclasses, make it <code>protected</code>. If you use element only in the same file or class, make it <code>private</code>. This convention is supported by Kotlin as it suggests to restrict visibility to private if an element is used only locally:</p>
+<p><img src="../../assets/chapter4/chapter4-9.png" alt=""></p>
+<p>This rule should not be applied to properties in the classes that were designed primarily to hold data (data model classes, DTO). If your server returns a user with an age, and you decided to parse it, you don&#x2019;t need to hide it just because you don&#x2019;t use it at the moment. It is there to be used and it is better to have it visible. If you don&#x2019;t need it, get rid of this property entirely. </p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">User</span></span>(
+       <span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: String,
+       <span class="hljs-variable"><span class="hljs-keyword">val</span> surname</span>: String,
+       <span class="hljs-variable"><span class="hljs-keyword">val</span> age</span>: <span class="hljs-keyword">Int</span>
+)
+</code></pre>
+<p>One big limitation is that when we inherit an API, we cannot restrict the visibility of a member by overriding it. This is because the subclass can always be used as its superclass. This is just another reason to prefer composition instead of inheritance (Item 36: Prefer composition over inheritance).</p>
+<h3 id="summary">Summary</h3>
+<p>The rule of thumb is that: <strong>Elements visibility should be as restrictive as possible</strong>. Visible elements constitute the public API, and we prefer it as lean as possible because:</p>
+<ul>
+<li>It is easier to learn and maintain a smaller interface. </li>
+<li>When we want to make changes, it is way easier to expose something than to hide something.</li>
+<li>A class cannot be responsible for its own state when properties that represent this state can be changed from outside.</li>
+<li>It is easier to track how the API changes when they have more restricted visibility.</li>
+</ul>
+
                                 
                                 </section>
                             
@@ -1179,7 +1264,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 30 Minimize Elements Visibility","level":"1.3.2.6","depth":3,"next":{"title":"Item 31 Define Contract With Documentation","level":"1.3.2.7","depth":3,"path":"Part 2 Code design/Chapter 4 Abstraction design/Item 31 Define contract with documentation.md","ref":"Part 2 Code design/Chapter 4 Abstraction design/Item 31 Define contract with documentation.md","articles":[]},"previous":{"title":"Item 29 Consider Wrapping External API","level":"1.3.2.5","depth":3,"path":"Part 2 Code design/Chapter 4 Abstraction design/Item 29 Consider wrapping external API.md","ref":"Part 2 Code design/Chapter 4 Abstraction design/Item 29 Consider wrapping external API.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 4 Abstraction design/Item 30 Minimize elements visibility.md","mtime":"2021-11-27T17:31:03.953Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T17:31:39.322Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 30 Minimize Elements Visibility","level":"1.3.2.6","depth":3,"next":{"title":"Item 31 Define Contract With Documentation","level":"1.3.2.7","depth":3,"path":"Part 2 Code design/Chapter 4 Abstraction design/Item 31 Define contract with documentation.md","ref":"Part 2 Code design/Chapter 4 Abstraction design/Item 31 Define contract with documentation.md","articles":[]},"previous":{"title":"Item 29 Consider Wrapping External API","level":"1.3.2.5","depth":3,"path":"Part 2 Code design/Chapter 4 Abstraction design/Item 29 Consider wrapping external API.md","ref":"Part 2 Code design/Chapter 4 Abstraction design/Item 29 Consider wrapping external API.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 4 Abstraction design/Item 30 Minimize elements visibility.md","mtime":"2021-11-27T17:33:18.581Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T17:33:55.646Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
