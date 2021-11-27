@@ -1136,7 +1136,310 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-33-consider-factory-functions-instead-of-constructors">Item 33: Consider factory functions instead of constructors</h2>
+<p>The most common way for a class to allow a client to obtain an instance in Kotlin is to provide a primary constructor:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MyLinkedList</span>&lt;<span class="hljs-type">T</span>&gt;</span>(
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> head</span>: T, 
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> tail</span>: MyLinkedList<span class="hljs-type">&lt;T&gt;</span>?
+)
+
+<span class="hljs-variable"><span class="hljs-keyword">val</span> list</span> = MyLinkedList(<span class="hljs-number">1</span>, MyLinkedList(<span class="hljs-number">2</span>, <span class="hljs-literal">null</span>))
+</code></pre>
+<p>Though constructors are not the only way to create objects. There are many creational design patterns for object instantiation. Most of them revolve around the idea that instead of directly creating an object, a function can create the object for us. For instance, the following top-level function creates an instance of <code>MyLinkedList</code>:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T&gt;</span> <span class="hljs-title">myLinkedListOf</span><span class="hljs-params">(
+   vararg elements: <span class="hljs-type">T</span>
+)</span>: MyLinkedList<span class="hljs-type">&lt;T&gt;</span>? {</span>
+   <span class="hljs-keyword">if</span>(elements.isEmpty()) <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> head</span> = elements.first()
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> elementsTail</span> = elements
+       .copyOfRange(<span class="hljs-number">1</span>, elements.size)
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> tail</span> = myLinkedListOf(*elementsTail)
+   <span class="hljs-keyword">return</span> MyLinkedList(head, tail)
+}
+
+<span class="hljs-variable"><span class="hljs-keyword">val</span> list</span> = myLinkedListOf(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>)
+</code></pre>
+<p>Functions used as an alternative to constructors are called factory functions because they produce an object. Using factory functions instead of a constructor has many advantages, including:</p>
+<ul>
+<li><strong>Unlike constructors, functions have names.</strong> Names explain how an object is created and what the arguments are. For example, let&#x2019;s say that you see the following code: <code>ArrayList(3)</code>. Can you guess what the argument means? Is it supposed to be the first element on the newly created list, or is it the size of the list? It is definitely not self-explanatory. In such situation a name, like <code>ArrayList.withSize(3)</code>, would clear up any confusion. Names are really useful: they explain arguments or characteristic ways of object creation. Another reason to have a name is that it solves a conflict between constructors with the same parameter types.</li>
+<li><strong>Unlike constructors, functions can return an object of any subtype of their return type.</strong> This can be used to provide a better object for different cases. It is especially important when we want to hide actual object implementations behind an interface. Think of <code>listOf</code> from stdlib (standard library). Its declared return type is <code>List</code> which is an interface. What does it really return? The answer depends on the platform we use. It is different for Kotlin/JVM, Kotlin/JS, and Kotlin/Native because they each use different built-in collections. This is an important optimization made by the Kotlin team. It also gives Kotlin creators much more freedom because the actual type of list might change over time and as long as new objects still implement interface <code>List</code> and act the same way, everything will be fine.</li>
+<li><strong>Unlike constructors, functions are not required to create a new object each time they&#x2019;re invoked.</strong> It can be helpful because when we create objects using functions, we can include a caching mechanism to optimize object creation or to ensure object reuse for some cases (like in the Singleton pattern). We can also define a static factory function that returns <code>null</code> if the object cannot be created. Like <code>Connections.createOrNull()</code> which returns <code>null</code> when <code>Connection</code> cannot be created for some reason.</li>
+<li><strong>Factory functions can provide objects that might not yet exist.</strong> This is intensively used by creators of libraries that are based on annotation processing. This way, programmers can operate on objects that will be generated or used via proxy without building the project.</li>
+<li><strong>When we define a factory function outside of an object, we can control its visibility.</strong> For instance, we can make a top-level factory function accessible only in the same file or in the same module.</li>
+<li><strong>Factory functions can be inline and so their type parameters can be reified.</strong></li>
+<li><strong>Factory functions can construct objects which might otherwise be complicated to construct.</strong></li>
+<li><strong>A constructor needs to immediately call a constructor of a superclass or a primary constructor.</strong> When we use factory functions, we can postpone constructor usage:</li>
+</ul>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">makeListView</span><span class="hljs-params">(config: <span class="hljs-type">Config</span>)</span> : ListView {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> items</span> = &#x2026; <span class="hljs-comment">// Here we read items from config</span>
+   <span class="hljs-keyword">return</span> ListView(items) <span class="hljs-comment">// We call actual constructor</span>
+}
+</code></pre>
+<p>There is a limitation on factory functions usage: it cannot be used in subclass construction. This is because in subclass construction, we need to call the superclass constructor. </p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">IntLinkedList</span>: <span class="hljs-type">MyLinkedList</span>&lt;<span class="hljs-type">Int</span>&gt;</span>() { 
+<span class="hljs-comment">// Supposing that MyLinkedList is open</span>
+
+   constructor(vararg ints: <span class="hljs-keyword">Int</span>): myLinkedListOf(*ints) 
+<span class="hljs-comment">// Error</span>
+}
+</code></pre>
+<p>That&#x2019;s generally not a problem, since if we have decided that we want to create a superclass using a factory function, why would we use a constructor for its subclass? We should rather consider implementing a factory function for such class as well.</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MyLinkedIntList</span></span>(head: <span class="hljs-keyword">Int</span>, tail: MyLinkedIntList?):
+   MyLinkedList<span class="hljs-type">&lt;Int&gt;</span>(head, tail)
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">myLinkedIntListOf</span><span class="hljs-params">(vararg elements: <span class="hljs-type">Int</span>)</span>: </span>
+MyLinkedIntList? {
+   <span class="hljs-keyword">if</span>(elements.isEmpty()) <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> head</span> = elements.first()
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> elementsTail</span> = elements
+       .copyOfRange(<span class="hljs-number">1</span>, elements.size)
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> tail</span> = myLinkedIntListOf(*elementsTail)
+   <span class="hljs-keyword">return</span> MyLinkedIntList(head, tail)
+}
+</code></pre>
+<p>The above function is longer than the previous constructor, but it has better characteristics - flexibility, independence of class, and the ability to declare a nullable return type. </p>
+<p>There are strong reasons standing behind factory functions, though what needs to be understood is that <strong>they are not a competition to the primary constructor</strong><a href="chap65.xhtml#fn-constructor">1</a>. Factory functions still need to use a constructor in their body, so constructor must exist. It can be private if we really want to force creation using factory functions, but we rarely do (<em>Item 34: Consider primary constructor with named optional arguments</em>). <strong>Factory functions are mainly a competition to secondary constructors</strong>, and looking at Kotlin projects they generally win as secondary constructors are used rather rarely. <strong>They are also a competition to themselves as there are variety of different kinds of factory functions.</strong> Let&#x2019;s discuss different Kotlin factory functions:</p>
+<ol>
+<li>Companion object factory function</li>
+<li>Extension factory function</li>
+<li>Top-level factory functions</li>
+<li>Fake constructors</li>
+<li>Methods on a factory classes</li>
+</ol>
+<h3 id="companion-object-factory-function">Companion Object Factory Function</h3>
+<p>The most popular way to define a factory function is to define it in a companion object:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MyLinkedList</span>&lt;<span class="hljs-type">T</span>&gt;</span>(
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> head</span>: T, 
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> tail</span>: MyLinkedList<span class="hljs-type">&lt;T&gt;</span>?
+) {
+
+   <span class="hljs-keyword">companion</span> <span class="hljs-keyword">object</span> {
+      <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T&gt;</span> <span class="hljs-title">of</span><span class="hljs-params">(vararg elements: <span class="hljs-type">T</span>)</span>: MyLinkedList<span class="hljs-type">&lt;T&gt;</span>? {</span>
+          <span class="hljs-comment">/*...*/</span> 
+      }
+   }
+}
+
+<span class="hljs-comment">// Usage</span>
+<span class="hljs-variable"><span class="hljs-keyword">val</span> list</span> = MyLinkedList.of(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>)
+</code></pre>
+<p>Such approach should be very familiar to Java developers because it is a direct equivalent to a static factory method. Though developers of other languages might be familiar with it as well. In some languages, like C++, it is called a <em>Named Constructor Idiom</em> as its usage is similar to a constructor, but with a name. </p>
+<p>In Kotlin, this approach works with interfaces too:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MyLinkedList</span>&lt;<span class="hljs-type">T</span>&gt;</span>(
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> head</span>: T, 
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> tail</span>: MyLinkedList<span class="hljs-type">&lt;T&gt;</span>?
+): MyList<span class="hljs-type">&lt;T&gt;</span> {
+   <span class="hljs-comment">// ...</span>
+}
+
+interface MyList<span class="hljs-type">&lt;T&gt;</span> {
+   <span class="hljs-comment">// ...</span>
+
+   <span class="hljs-keyword">companion</span> <span class="hljs-keyword">object</span> {
+       <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T&gt;</span> <span class="hljs-title">of</span><span class="hljs-params">(vararg elements: <span class="hljs-type">T</span>)</span>: MyList<span class="hljs-type">&lt;T&gt;</span>? {</span>
+           <span class="hljs-comment">// ...</span>
+       }
+   }
+}
+
+<span class="hljs-comment">// Usage</span>
+<span class="hljs-variable"><span class="hljs-keyword">val</span> list</span> = MyList.of(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>)
+</code></pre>
+<p>Notice that the name of the above function is not really descriptive, and yet it should be understandable for most developers. The reason is that there are some conventions that come from Java and thanks to them, a short word like <code>of</code> is enough to understand what the arguments mean. Here are some common names with their descriptions:</p>
+<ul>
+<li><code>from</code> - A type-conversion function that takes a single parameter and returns a corresponding instance of the same type, for example:</li>
+</ul>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> date</span>: Date = Date.from(instant)
+</code></pre>
+<ul>
+<li><code>of</code> - An aggregation function that takes multiple parameters and returns an instance of the same type that incorporates them, for example:</li>
+</ul>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> faceCards</span>: Set<span class="hljs-type">&lt;Rank&gt;</span> = EnumSet.of(JACK, QUEEN, KING)
+</code></pre>
+<ul>
+<li><code>valueOf</code> - A more verbose alternative to <code>from</code> and <code>of</code>, for example:</li>
+</ul>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> prime</span>: BigInteger = BigInteger.valueOf(Integer.MAX_VALUE)
+</code></pre>
+<ul>
+<li><code>instance</code> or <code>getInstance</code> - Used in singletons to get the only instance. When parameterized, will return an instance parameterized by arguments. Often we can expect that returned instance to always be the same when arguments are the same, for example:</li>
+</ul>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> luke</span>: StackWalker = StackWalker.getInstance(options)
+</code></pre>
+<ul>
+<li><code>createInstance</code> or <code>newInstance</code> - Like <code>getInstance</code>, but this function guarantees that each call returns a new instance, for example:</li>
+</ul>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> newArray</span> = Array.newInstance(classObject, arrayLen)
+</code></pre>
+<ul>
+<li><code>getType</code> - Like <code>getInstance</code>, but used if the factory function is in a different class. Type is the type of object returned by the factory function, for example:</li>
+</ul>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> fs</span>: FileStore = Files.getFileStore(path)
+</code></pre>
+<ul>
+<li><code>newType</code> - Like <code>newInstance</code>, but used if the factory function is in a different class. Type is the type of object returned by the factory function, for example:</li>
+</ul>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> br</span>: BufferedReader = Files.newBufferedReader(path)
+</code></pre>
+<p>Many less-experienced Kotlin developers treat companion object members like static members which need to be grouped in a single block. However, companion objects are actually much more powerful: for example, companion objects can implement interfaces and extend classes. So, we can implement general companion object factory functions like the one below: </p>
+<pre><code class="lang-kotlin">abstract <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ActivityFactory</span> </span>{
+   abstract <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">getIntent</span><span class="hljs-params">(context: <span class="hljs-type">Context</span>)</span>: Intent</span>
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">start</span><span class="hljs-params">(context: <span class="hljs-type">Context</span>)</span> {</span>
+       <span class="hljs-variable"><span class="hljs-keyword">val</span> intent</span> = getIntent(context)
+       context.startActivity(intent)
+   }
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">startForResult</span><span class="hljs-params">(activity: <span class="hljs-type">Activity, requestCode: 
+Int</span>)</span> {</span>
+       <span class="hljs-variable"><span class="hljs-keyword">val</span> intent</span> = getIntent(activity)
+       activity.startActivityForResult(intent, 
+requestCode)
+   }
+}
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MainActivity</span> : <span class="hljs-type">AppCompatActivity</span></span>() {
+   <span class="hljs-comment">//...</span>
+
+   <span class="hljs-keyword">companion</span> <span class="hljs-keyword">object</span>: ActivityFactory() {
+       <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">getIntent</span><span class="hljs-params">(context: <span class="hljs-type">Context</span>)</span>: Intent =</span>
+           Intent(context, MainActivity::<span class="hljs-class"><span class="hljs-keyword">class</span>.<span class="hljs-title">java</span>)</span>
+   }
+}
+
+<span class="hljs-comment">// Usage</span>
+<span class="hljs-variable"><span class="hljs-keyword">val</span> intent</span> = MainActivity.getIntent(context)
+MainActivity.start(context)
+MainActivity.startForResult(activity, requestCode)
+</code></pre>
+<p>Notice that such abstract companion object factories can hold values, and so they can implement caching or support fake creation for testing. The advantages of companion objects are not as well-used as they could be in the Kotlin programming community. Still, if you look at the implementations of the Kotlin team products, you will see that companion objects are strongly used. For instance in the Kotlin Coroutines library, nearly every companion object of coroutine context implements an interface <code>CoroutineContext.Key</code> as they all serve as a key we use to identify this context. </p>
+<h3 id="extension-factory-functions">Extension factory functions</h3>
+<p>Sometimes we want to create a factory function that acts like an existing companion object function, and we either cannot modify this companion object or we just want to specify a new function in a separate file. In such a case we can use another advantage of companion objects: we can define extension functions for them. </p>
+<p>Suppose that we cannot change the <code>Tool</code> interface:</p>
+<pre><code class="lang-kotlin">interface Tool {
+   <span class="hljs-keyword">companion</span> <span class="hljs-keyword">object</span> { <span class="hljs-comment">/*...*/</span> }
+}
+</code></pre>
+<p>Nevertheless, we can define an extension function on its companion object:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> Tool.Companion.<span class="hljs-title">createBigTool</span><span class="hljs-params">( /*...*/ )</span> : BigTool {</span>
+   <span class="hljs-comment">//... </span>
+}
+``` kotlin
+
+At the call site we can then write:
+
+``` kotlin
+Tool.createBigTool()
+</code></pre>
+<p>This is a powerful possibility that lets us extend external libraries with our own factory methods. One catch is that to make an extension on companion object, there must be some (even empty) companion object:</p>
+<pre><code class="lang-kotlin">interface Tool {
+   <span class="hljs-keyword">companion</span> <span class="hljs-keyword">object</span> {}
+}
+</code></pre>
+<h3 id="top-level-functions">Top-level functions</h3>
+<p>One popular way to create an object is by using top-level factory functions. Some common examples are <code>listOf</code>, <code>setOf</code>, and <code>mapOf</code>. Similarly, library designers specify top-level functions that are used to create objects. Top-level factory functions are used widely. For example, in Android, we have the tradition of defining a function to create an <code>Intent</code> to start an Activity. In Kotlin, the <code>getIntent()</code> can be written as a companion object function:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MainActivity</span>: <span class="hljs-type">Activity {</span></span>
+
+   <span class="hljs-keyword">companion</span> <span class="hljs-keyword">object</span> {
+       <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">getIntent</span><span class="hljs-params">(context: <span class="hljs-type">Context</span>)</span> = </span>
+           Intent(context, MainActivity::<span class="hljs-class"><span class="hljs-keyword">class</span>.<span class="hljs-title">java</span>)</span>
+   }
+}
+</code></pre>
+<p>In the Kotlin Anko library, we can use the top-level function <code>intentFor</code> with reified type instead:</p>
+<pre><code class="lang-kotlin">intentFor<span class="hljs-type">&lt;MainActivity&gt;</span>()
+</code></pre>
+<p>This function can be also used to pass arguments:</p>
+<pre><code class="lang-kotlin">intentFor<span class="hljs-type">&lt;MainActivity&gt;</span>(<span class="hljs-string">&quot;page&quot;</span> to <span class="hljs-number">2</span>, <span class="hljs-string">&quot;row&quot;</span> to <span class="hljs-number">10</span>)
+</code></pre>
+<p>Object creation using top-level functions is a perfect choice for small and commonly created objects like <code>List</code> or <code>Map</code> because <code>listOf(1,2,3)</code> is simpler and more readable than <code>List.of(1,2,3)</code>. However, public top-level functions need to be used judiciously. Public top-level functions have a disadvantage: they are available everywhere. It is easy to clutter up the developer&#x2019;s IDE tips. The problem becomes more serious when top-level functions are named like class methods and they are confused with them. This is why top-level functions should be named wisely.</p>
+<h3 id="fake-constructors">Fake constructors</h3>
+<p>Constructors in Kotlin are used the same way as top-level functions:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">A</span></span>
+<span class="hljs-variable"><span class="hljs-keyword">val</span> a</span> = A()
+</code></pre>
+<p>They are also referenced the same as top-level functions (and constructor reference implements function interface):</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> reference</span>: ()-&gt;A = ::A
+</code></pre>
+<p>From a usage point of view, capitalization is the only distinction between constructors and functions. By convention, classes begin with an uppercase letter; functions a lower case letter. Although technically functions can begin with an uppercase. This fact is used in different places, for example, in case of the Kotlin standard library. <code>List</code> and <code>MutableList</code> are interfaces. They cannot have constructors, but Kotlin developers wanted to allow the following <code>List</code>construction:</p>
+<pre><code class="lang-kotlin">List(<span class="hljs-number">4</span>) { <span class="hljs-string">&quot;User$it&quot;</span> } <span class="hljs-comment">// [User0, User1, User2, User3]</span>
+</code></pre>
+<p>This is why the following functions are included (since Kotlin 1.1) in the Kotlin stdlib:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">public</span> <span class="hljs-keyword">inline</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T&gt;</span> <span class="hljs-title">List</span><span class="hljs-params">(
+   size: <span class="hljs-type">Int, 
+   init: (index: Int</span>)</span> -&gt; T</span>
+): List<span class="hljs-type">&lt;T&gt;</span> = MutableList(size, init)
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">inline</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T&gt;</span> <span class="hljs-title">MutableList</span><span class="hljs-params">(
+   size: <span class="hljs-type">Int, 
+   init: (index: Int</span>)</span> -&gt; T</span>
+): MutableList<span class="hljs-type">&lt;T&gt;</span> {
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> list</span> = ArrayList<span class="hljs-type">&lt;T&gt;</span>(size)
+   repeat(size) { index -&gt; list.add(init(index)) }
+   <span class="hljs-keyword">return</span> list
+}
+</code></pre>
+<p>These top-level functions look and act like constructors, but they have all the advantages of factory functions. Lots of developers are unaware of the fact that they are top-level functions under the hood. This is why they are often called <em>fake constructors</em>.</p>
+<p>Two main reasons why developers choose fake constructors over the real ones are:</p>
+<ul>
+<li>To have &#x201C;constructor&#x201D; for an interface</li>
+<li>To have reified type arguments</li>
+</ul>
+<p>Except for that, fake constructors should behave like normal constructors. They look like constructors and they should behave this way. If you want to include caching, returning a nullable type or returning a subclass of a class that can be created, consider using a factory function with a name, like a companion object factory method. </p>
+<p>There is one more way to declare a fake constructor. A similar result can be achieved using a companion object with the <code>invoke</code> operator. Take a look at the following example:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Tree</span>&lt;<span class="hljs-type">T</span>&gt; </span>{
+
+   <span class="hljs-keyword">companion</span> <span class="hljs-keyword">object</span> {
+       operator <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T&gt;</span> <span class="hljs-title">invoke</span><span class="hljs-params">(size: <span class="hljs-type">Int, generator: 
+(Int</span>)</span>-&gt;T): Tree<span class="hljs-type">&lt;T&gt;</span>{</span>
+           <span class="hljs-comment">//...</span>
+       }
+   }
+}
+
+<span class="hljs-comment">// Usage</span>
+Tree(<span class="hljs-number">10</span>) { <span class="hljs-string">&quot;$it&quot;</span> }
+</code></pre>
+<p>However, implementing <em>invoke</em> in a companion object to make a fake constructor is very rarely used and I do not recommend it. First of all, because it breaks <em>Item 12: Use operator methods according to their names</em>. What does it mean to invoke a companion object? Remember that the name can be used instead of the operator: </p>
+<pre><code class="lang-kotlin">Tree.invoke(<span class="hljs-number">10</span>) { <span class="hljs-string">&quot;$it&quot;</span> }
+</code></pre>
+<p>Invocation is a different operation to object construction. Using the operator in this way is inconsistent with its name. More importantly, this approach is more complicated than just a top-level function. Looking at their reflection shows this complexity. Just compare how reflection looks like when we reference a constructor, fake constructor, and <code>invoke</code> function in a companion object:</p>
+<p>Constructor:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> f</span>: ()-&gt;Tree = ::Tree
+</code></pre>
+<p>Fake constructor:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> f</span>: ()-&gt;Tree = ::Tree
+</code></pre>
+<p>Invoke in companion object:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> f</span>: ()-&gt;Tree = Tree.Companion::invoke
+</code></pre>
+<p>I recommend using standard top-level functions when you need a fake constructor. These should be used sparingly to suggest typical constructor-like usage when we cannot define a constructor in the class itself, or when we need a capability that constructors do not offer (like a reified type parameter).</p>
+<h3 id="methods-on-a-factory-class">Methods on a factory class</h3>
+<p>There are many creational patterns associated with factory classes. For instance, abstract factory or prototype. Every one of them has some advantages. </p>
+<p>We will see that some of these approaches are not reasonable in Kotlin. In the next item, we will see that the telescoping constructor and builder pattern rarely make sense in Kotlin. </p>
+<p>Factory classes hold advantages over factory functions because classes can have a state. For instance, this very simple factory class that produces students with next id numbers:</p>
+<pre><code class="lang-kotlin">data <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Student</span></span>(
+  <span class="hljs-variable"><span class="hljs-keyword">val</span> id</span>: <span class="hljs-keyword">Int</span>, 
+  <span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: String, 
+  <span class="hljs-variable"><span class="hljs-keyword">val</span> surname</span>: String
+)
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">StudentsFactory</span> </span>{
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> nextId</span> = <span class="hljs-number">0</span>
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">next</span><span class="hljs-params">(name: <span class="hljs-type">String, surname: String</span>)</span> = </span>
+         Student(nextId++, name, surname)
+}
+
+<span class="hljs-variable"><span class="hljs-keyword">val</span> factory</span> = StudentsFactory()
+<span class="hljs-variable"><span class="hljs-keyword">val</span> s1</span> = factory.next(<span class="hljs-string">&quot;Marcin&quot;</span>, <span class="hljs-string">&quot;Moskala&quot;</span>)
+println(s1) <span class="hljs-comment">// Student(id=0, name=Marcin, Surname=Moskala)</span>
+<span class="hljs-variable"><span class="hljs-keyword">val</span> s2</span> = factory.next(<span class="hljs-string">&quot;Igor&quot;</span>, <span class="hljs-string">&quot;Wojda&quot;</span>)
+println(s2) <span class="hljs-comment">// Student(id=1, name=Igor, Surname=Wojda)</span>
+</code></pre>
+<p>Factory classes can have properties and those properties can be used to optimize object creation. When we can hold a state we can introduce different kinds of optimizations or capabilities. We can for instance use caching, or speed up object creation by duplicating previously created objects. </p>
+<h3 id="summary">Summary</h3>
+<p>As you can see, Kotlin offers a variety of ways to specify factory functions and they all have their own use. We should have them in mind when we design object creation. Each of them is reasonable for different cases. Some of them should preferably be used with caution: Fake Constructors, Top-Level Factory Method, and Extension Factory Function. The most universal way to define a factory function is by using a Companion Object. It is safe and very intuitive for most developers since usage is very similar to Java Static Factory Methods, and Kotlin mainly inherits its style and practices from Java.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1482,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 33 Consider Factory Functions Instead Of Constructors","level":"1.3.3.2","depth":3,"next":{"title":"Item 34 Consider A Primary Constructor With Named Optional Arguments","level":"1.3.3.3","depth":3,"path":"Part 2 Code design/Chapter 5 Object creation/Item 34 Consider a primary constructor with named optional arguments.md","ref":"Part 2 Code design/Chapter 5 Object creation/Item 34 Consider a primary constructor with named optional arguments.md","articles":[]},"previous":{"title":"Introduction","level":"1.3.3.1","depth":3,"path":"Part 2 Code design/Chapter 5 Object creation/Introduction.md","ref":"Part 2 Code design/Chapter 5 Object creation/Introduction.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 5 Object creation/Item 33 Consider factory functions instead of constructors.md","mtime":"2021-11-27T17:39:21.342Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T17:39:53.966Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 33 Consider Factory Functions Instead Of Constructors","level":"1.3.3.2","depth":3,"next":{"title":"Item 34 Consider A Primary Constructor With Named Optional Arguments","level":"1.3.3.3","depth":3,"path":"Part 2 Code design/Chapter 5 Object creation/Item 34 Consider a primary constructor with named optional arguments.md","ref":"Part 2 Code design/Chapter 5 Object creation/Item 34 Consider a primary constructor with named optional arguments.md","articles":[]},"previous":{"title":"Introduction","level":"1.3.3.1","depth":3,"path":"Part 2 Code design/Chapter 5 Object creation/Introduction.md","ref":"Part 2 Code design/Chapter 5 Object creation/Introduction.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 5 Object creation/Item 33 Consider factory functions instead of constructors.md","mtime":"2021-11-27T17:45:50.111Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T17:46:24.854Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
