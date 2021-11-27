@@ -54,8 +54,8 @@ Effective Kotlin 中文翻译
         - [x] [Item 34 Consider A Primary Constructor With Named Optional Arguments](Part 2 Code design/Chapter 5 Object creation/Item 34 Consider a primary constructor with named optional arguments.md)
         - [x] [Item 35 Consider Defining A DSL For Complex Object Creation](Part 2 Code design/Chapter 5 Object creation/Item 35 Consider defining a DSL for complex object creation.md)
     - Chapter 6 Class Design
-        - [ ] [Introduction](Part 2 Code design/Chapter 6 Class design/Introduction.md)
-        - [ ] [Item 36 Prefer Composition Over Inheritance](Part 2 Code design/Chapter 6 Class design/Item 36 Prefer composition over inheritance.md)
+        - [x] [Introduction](Part 2 Code design/Chapter 6 Class design/Introduction.md)
+        - [x] [Item 36 Prefer Composition Over Inheritance](Part 2 Code design/Chapter 6 Class design/Item 36 Prefer composition over inheritance.md)
         - [ ] [Item 37 Use The Data Modifier To Represent A Bundle Of Data](Part 2 Code design/Chapter 6 Class design/Item 37 Use the data modifier to represent a bundle of data.md)
         - [ ] [Item 38 Use Function Types Instead Of Interfaces To Pass Operations And Actions](Part 2 Code design/Chapter 6 Class design/Item 38 Use function types instead of interfaces to pass operations and actions.md)
         - [ ] [Item 39 Prefer Class Hierarchies To Tagged Classes](Part 2 Code design/Chapter 6 Class design/Item 39 Prefer class hierarchies to tagged classes.md)
