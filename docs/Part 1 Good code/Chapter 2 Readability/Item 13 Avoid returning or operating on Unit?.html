@@ -1136,7 +1136,34 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-13-avoid-returning-or-operating-on-unit">Item 13: Avoid returning or operating on <code>Unit?</code></h2>
+<p>During the recruitment process, a dear friend of mine was asked, &#x201C;Why might one want to return <code>Unit?</code> from a function?&#x201D;. Well, <code>Unit?</code> has only 2 possible values: <code>Unit</code> or <code>null</code>. Just like <code>Boolean</code> can be either <code>true</code> or <code>false</code>. Ergo, these types are isomorphic, so they can be used interchangeably. Why would we want to use <code>Unit?</code> instead of <code>Boolean</code> to represent something? I have no other answer than that one can use the Elvis operator or a safe call. So instead of:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">keyIsCorrect</span><span class="hljs-params">(key: <span class="hljs-type">String</span>)</span>: <span class="hljs-keyword">Boolean</span> = <span class="hljs-comment">//...</span></span>
+
+<span class="hljs-keyword">if</span>(!keyIsCorrect(key)) <span class="hljs-keyword">return</span>
+</code></pre>
+<p>We are able to do this:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">verifyKey</span><span class="hljs-params">(key: <span class="hljs-type">String</span>)</span>: <span class="hljs-keyword">Unit</span>? = <span class="hljs-comment">//...</span></span>
+
+verifyKey(key) ?: <span class="hljs-keyword">return</span>
+</code></pre>
+<p>This appears to be the expected answer. What was missing in my friend&#x2019;s interview was a way more important question: &#x201C;But should we do it?&#x201D;. This trick looks nice when we are writing the code, but not necessarily when we are reading it. Using <code>Unit?</code> to represent logical values is misleading and can lead to errors that are hard to detect. We&#x2019;ve already discussed how this expression can be surprising:</p>
+<pre><code class="lang-kotlin">getData()?.let{ view.showData(it) } ?: view.showError()
+</code></pre>
+<p>When <code>showData</code> returns <code>null</code> and <code>getData</code> returns not <code>null</code>, both <code>showData</code> and <code>showError</code> will be called. Using standard if-else is less tricky and more readable:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">if</span> (person != <span class="hljs-literal">null</span> &amp;&amp; person.isAdult) {
+   view.showPerson(person)
+} <span class="hljs-keyword">else</span> {
+   view.showError()
+}
+</code></pre>
+<p>Compare the following two notations:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">if</span>(!keyIsCorrect(key)) <span class="hljs-keyword">return</span>
+
+verifyKey(key) ?: <span class="hljs-keyword">return</span>
+</code></pre>
+<p>I have never found even a single case when <code>Unit?</code> is the most readable option. It is misleading and confusing. It should nearly always be replaced by <code>Boolean</code>. This is why the general rule is that we should avoid returning or operating on <code>Unit?</code>.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1206,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 13 Avoid Returning Or Operating On Unit","level":"1.2.2.4","depth":3,"next":{"title":"Item 14 Specify The Variable Type When It Is Not Clear","level":"1.2.2.5","depth":3,"path":"Part 1 Good code/Chapter 2 Readability/Item 14 Specify the variable type when it is not clear.md","ref":"Part 1 Good code/Chapter 2 Readability/Item 14 Specify the variable type when it is not clear.md","articles":[]},"previous":{"title":"Item 12 Operator Meaning Should Be Consistent With Its Function Name","level":"1.2.2.3","depth":3,"path":"Part 1 Good code/Chapter 2 Readability/Item 12 Operator meaning should be consistent with its function name.md","ref":"Part 1 Good code/Chapter 2 Readability/Item 12 Operator meaning should be consistent with its function name.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 1 Good code/Chapter 2 Readability/Item 13 Avoid returning or operating on Unit?.md","mtime":"2021-11-27T04:02:58.674Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T04:03:44.637Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 13 Avoid Returning Or Operating On Unit","level":"1.2.2.4","depth":3,"next":{"title":"Item 14 Specify The Variable Type When It Is Not Clear","level":"1.2.2.5","depth":3,"path":"Part 1 Good code/Chapter 2 Readability/Item 14 Specify the variable type when it is not clear.md","ref":"Part 1 Good code/Chapter 2 Readability/Item 14 Specify the variable type when it is not clear.md","articles":[]},"previous":{"title":"Item 12 Operator Meaning Should Be Consistent With Its Function Name","level":"1.2.2.3","depth":3,"path":"Part 1 Good code/Chapter 2 Readability/Item 12 Operator meaning should be consistent with its function name.md","ref":"Part 1 Good code/Chapter 2 Readability/Item 12 Operator meaning should be consistent with its function name.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 1 Good code/Chapter 2 Readability/Item 13 Avoid returning or operating on Unit?.md","mtime":"2021-11-27T04:05:03.333Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T04:05:43.560Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
