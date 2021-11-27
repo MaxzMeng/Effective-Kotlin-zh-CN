@@ -49,10 +49,10 @@ Effective Kotlin 中文翻译
         - [x] [Item 31 Define Contract With Documentation](Part 2 Code design/Chapter 4 Abstraction design/Item 31 Define contract with documentation.md)
         - [x] [Item 32 Respect Abstraction Contracts](Part 2 Code design/Chapter 4 Abstraction design/Item 32 Respect abstraction contracts.md)
     - Chapter 5 Object Creation
-        - [ ] [Introduction](Part 2 Code design/Chapter 5 Object creation/Introduction.md)
-        - [ ] [Item 33 Consider Factory Functions Instead Of Constructors](Part 2 Code design/Chapter 5 Object creation/Item 33 Consider factory functions instead of constructors.md)
-        - [ ] [Item 34 Consider A Primary Constructor With Named Optional Arguments](Part 2 Code design/Chapter 5 Object creation/Item 34 Consider a primary constructor with named optional arguments.md)
-        - [ ] [Item 35 Consider Defining A DSL For Complex Object Creation](Part 2 Code design/Chapter 5 Object creation/Item 35 Consider defining a DSL for complex object creation.md)
+        - [x] [Introduction](Part 2 Code design/Chapter 5 Object creation/Introduction.md)
+        - [x] [Item 33 Consider Factory Functions Instead Of Constructors](Part 2 Code design/Chapter 5 Object creation/Item 33 Consider factory functions instead of constructors.md)
+        - [x] [Item 34 Consider A Primary Constructor With Named Optional Arguments](Part 2 Code design/Chapter 5 Object creation/Item 34 Consider a primary constructor with named optional arguments.md)
+        - [x] [Item 35 Consider Defining A DSL For Complex Object Creation](Part 2 Code design/Chapter 5 Object creation/Item 35 Consider defining a DSL for complex object creation.md)
     - Chapter 6 Class Design
         - [ ] [Introduction](Part 2 Code design/Chapter 6 Class design/Introduction.md)
         - [ ] [Item 36 Prefer Composition Over Inheritance](Part 2 Code design/Chapter 6 Class design/Item 36 Prefer composition over inheritance.md)
