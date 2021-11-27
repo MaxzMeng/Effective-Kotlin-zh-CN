@@ -1136,7 +1136,239 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-34-consider-a-primary-constructor-with-named-optional-arguments">Item 34: Consider a primary constructor with named optional arguments</h2>
+<p>When we define an object and specify how it can be created, the most popular option is to use a primary constructor:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">User</span></span>(<span class="hljs-variable"><span class="hljs-keyword">var</span> name</span>: String, <span class="hljs-variable"><span class="hljs-keyword">var</span> surname</span>: String)
+<span class="hljs-variable"><span class="hljs-keyword">val</span> user</span> = User(<span class="hljs-string">&quot;Marcin&quot;</span>, <span class="hljs-string">&quot;Moska&#x142;a&quot;</span>)
+</code></pre>
+<p>Not only are primary constructors very convenient, but in most cases, it is actually very good practice to build objects using them. It is very common that we need to pass arguments that determine the object&#x2019;s initial state, as illustrated by the following examples. Starting from the most obvious one: data model objects representing data<a href="chap65.xhtml#fn-footnote_510_note">2</a>. For such object, whole state is initialized using constructor and then hold as properties.</p>
+<pre><code class="lang-kotlin">data <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Student</span></span>(
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: String,
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> surname</span>: String,
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> age</span>: <span class="hljs-keyword">Int</span>
+)
+</code></pre>
+<p>Here&#x2019;s another common example, in which we create a presenter<a href="chap65.xhtml#fn-footnote_511_note">3</a> for displaying a sequence of indexed quotes. There we inject dependencies using a primary constructor:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">QuotationPresenter</span></span>(
+       <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> view</span>: QuotationView,
+       <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> repo</span>: QuotationRepository
+) {
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> nextQuoteId</span> = <span class="hljs-number">-1</span>
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onStart</span><span class="hljs-params">()</span> {</span>
+       onNext()
+   }
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onNext</span><span class="hljs-params">()</span> {</span>
+       nextQuoteId = (nextQuoteId + <span class="hljs-number">1</span>) % repo.quotesNumber
+       <span class="hljs-variable"><span class="hljs-keyword">val</span> quote</span> = repo.getQuote(nextQuoteId)
+       view.showQuote(quote)
+   }
+}
+</code></pre>
+<p>Note that <code>QuotationPresenter</code> has more properties than those declared on a primary constructor. In here <code>nextQuoteId</code> is a property always initialized with the value <code>-1</code>. This is perfectly fine, especially when the initial state is set up using default values or using primary constructor parameters.</p>
+<p>To better understand why the primary constructor is such a good alternative in the majority of cases, we must first consider common Java patterns related to the use of constructors:</p>
+<ul>
+<li>the telescoping constructor pattern</li>
+<li>the builder pattern</li>
+</ul>
+<p>We will see what problems they do solve, and what better alternatives Kotlin offers. </p>
+<h3 id="telescoping-constructor-pattern">Telescoping constructor pattern</h3>
+<p>The telescoping constructor pattern is nothing more than a set of constructors for different possible sets of arguments:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Pizza</span> </span>{
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> size</span>: String
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> cheese</span>: <span class="hljs-keyword">Int</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> olives</span>: <span class="hljs-keyword">Int</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> bacon</span>: <span class="hljs-keyword">Int</span>
+
+   constructor(size: String, cheese: <span class="hljs-keyword">Int</span>, olives: <span class="hljs-keyword">Int</span>, 
+bacon: <span class="hljs-keyword">Int</span>) {
+       this.size = size
+       this.cheese = cheese
+       this.olives = olives
+       this.bacon = bacon
+   }
+   constructor(size: String, cheese: <span class="hljs-keyword">Int</span>, olives: <span class="hljs-keyword">Int</span>):
+this(size, cheese, olives, <span class="hljs-number">0</span>)
+   constructor(size: String, cheese: <span class="hljs-keyword">Int</span>): 
+this(size, cheese, <span class="hljs-number">0</span>)
+   constructor(size: String): this(size, <span class="hljs-number">0</span>)
+}
+</code></pre>
+<p>Well, this code doesn&#x2019;t really make any sense in Kotlin, because instead we can use default arguments:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Pizza</span></span>(
+       <span class="hljs-variable"><span class="hljs-keyword">val</span> size</span>: String,
+       <span class="hljs-variable"><span class="hljs-keyword">val</span> cheese</span>: <span class="hljs-keyword">Int</span> = <span class="hljs-number">0</span>,
+       <span class="hljs-variable"><span class="hljs-keyword">val</span> olives</span>: <span class="hljs-keyword">Int</span> = <span class="hljs-number">0</span>,
+       <span class="hljs-variable"><span class="hljs-keyword">val</span> bacon</span>: <span class="hljs-keyword">Int</span> = <span class="hljs-number">0</span>
+)
+</code></pre>
+<p>Default values are not only cleaner and shorter, but their usage is also more powerful than the telescoping constructor. We can specify just <code>size</code> and <code>olives</code>:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> myFavorite</span> = Pizza(<span class="hljs-string">&quot;L&quot;</span>, olives = <span class="hljs-number">3</span>)
+</code></pre>
+<p>We can also add another named argument either before or after olives:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> myFavorite</span> = Pizza(<span class="hljs-string">&quot;L&quot;</span>, olives = <span class="hljs-number">3</span>, cheese = <span class="hljs-number">1</span>)
+</code></pre>
+<p>As you can see, default arguments are more powerful than the telescoping constructor because:</p>
+<ul>
+<li>We can set any subset of parameters with default arguments we want.</li>
+<li>We can provide arguments in any order.</li>
+<li>We can explicitly name arguments to make it clear what each value means.</li>
+</ul>
+<p>The last reason is quite important. Think of the following object creation:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> villagePizza</span> = Pizza(<span class="hljs-string">&quot;L&quot;</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>)
+</code></pre>
+<p>It is short, but is it clear? I bet that even the person who declared the pizza class won&#x2019;t remember in which position bacon is, and in which position cheese can be found. Sure, in an IDE we can see an explanation, but what about those who just scan code or read it on Github? When arguments are unclear, we should explicitly say what their names are using <em>named arguments</em>:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> villagePizza</span> = Pizza(
+   size = <span class="hljs-string">&quot;L&quot;</span>, 
+   cheese = <span class="hljs-number">1</span>, 
+   olives = <span class="hljs-number">2</span>, 
+   bacon = <span class="hljs-number">3</span>
+)
+</code></pre>
+<p>As you can see, <strong>constructors with default arguments surpass the telescoping constructor pattern</strong>. Though there are more popular construction patterns in Java, and one of them is the Builder Pattern. </p>
+<h3 id="builder-pattern">Builder pattern</h3>
+<p>Named parameters and default arguments are not allowed in Java. This is why Java developers mainly use the builder pattern. It allows them to:</p>
+<ul>
+<li>name parameters,</li>
+<li>specify parameters in any order,</li>
+<li>have default values.</li>
+</ul>
+<p>Here is an example of a builder defined in Kotlin:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Pizza</span> <span class="hljs-title">private</span> <span class="hljs-title">constructor</span></span>(
+       <span class="hljs-variable"><span class="hljs-keyword">val</span> size</span>: String,
+       <span class="hljs-variable"><span class="hljs-keyword">val</span> cheese</span>: <span class="hljs-keyword">Int</span>,
+       <span class="hljs-variable"><span class="hljs-keyword">val</span> olives</span>: <span class="hljs-keyword">Int</span>,
+       <span class="hljs-variable"><span class="hljs-keyword">val</span> bacon</span>: <span class="hljs-keyword">Int</span>
+) {
+   <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Builder</span></span>(<span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> size</span>: String) {
+       <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> cheese</span>: <span class="hljs-keyword">Int</span> = <span class="hljs-number">0</span>
+       <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> olives</span>: <span class="hljs-keyword">Int</span> = <span class="hljs-number">0</span>
+       <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> bacon</span>: <span class="hljs-keyword">Int</span> = <span class="hljs-number">0</span>
+
+       <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">setCheese</span><span class="hljs-params">(value: <span class="hljs-type">Int</span>)</span>: Builder = apply {</span>
+           cheese = value 
+       }
+       <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">setOlives</span><span class="hljs-params">(value: <span class="hljs-type">Int</span>)</span>: Builder = apply {</span>
+           olives = value
+       }
+
+       <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">setBacon</span><span class="hljs-params">(value: <span class="hljs-type">Int</span>)</span>: Builder = apply {</span>
+           bacon = value
+       }
+
+       <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">build</span><span class="hljs-params">()</span> = <span class="hljs-title">Pizza</span><span class="hljs-params">(size, cheese, olives, bacon)</span></span>
+   }
+}
+</code></pre>
+<p>With the builder pattern, we can set those parameters as we want, using their names:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> myFavorite</span> = Pizza.Builder(<span class="hljs-string">&quot;L&quot;</span>).setOlives(<span class="hljs-number">3</span>).build()
+
+<span class="hljs-variable"><span class="hljs-keyword">val</span> villagePizza</span> = Pizza.Builder(<span class="hljs-string">&quot;L&quot;</span>)
+       .setCheese(<span class="hljs-number">1</span>)
+       .setOlives(<span class="hljs-number">2</span>)
+       .setBacon(<span class="hljs-number">3</span>)
+       .build()
+</code></pre>
+<p>As we&#x2019;ve already mentioned, these two advantages are fully satisfied by Kotlin default arguments and named parameters:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> villagePizza</span> = Pizza(
+   size = <span class="hljs-string">&quot;L&quot;</span>, 
+   cheese = <span class="hljs-number">1</span>, 
+   olives = <span class="hljs-number">2</span>, 
+   bacon = <span class="hljs-number">3</span>
+)
+</code></pre>
+<p>Comparing these two simple usages, you can see the advantages of named parameters over the builder:</p>
+<ul>
+<li>It&#x2019;s shorter&#x200A;&#x2014;&#x200A;a constructor or factory method with default arguments is much easier to implement than the builder pattern. It is a time-saver both for the developer who implements this code and for those who read it. It is a significant difference because the builder pattern implementation can be time-consuming. Any builder modification is hard as well, for instance, changing a name of a parameter requires not only name change of the function used to set it, but also name of parameter in this function, body of this function, internal field used to keep it, parameter name in the private constructor etc. </li>
+<li>It&#x2019;s cleaner&#x200A;&#x2014;&#x200A;when you want to see how an object is constructed, all you need is in a single method instead of being spread around a whole builder class. How are objects held? Do they interact? These are questions that are not so easy to answer when we have a big builder. On the other hand, class creation is usually clear on a factory method.</li>
+<li>Offers simpler usage - the primary constructor is a built-in concept. The builder pattern is an artificial concept and it requires some knowledge about it. For instance, a developer can easily forget to call the <code>build</code> function (or in other cases <code>create</code>).</li>
+<li>No problems with concurrence &#x2014;this is a rare problem, but function parameters are always immutable in Kotlin, while properties in most builders are mutable. Therefore it is harder to implement a thread-safe build function for a builder.</li>
+</ul>
+<p>It doesn&#x2019;t mean that we should always use a constructor instead of a builder. Let&#x2019;s see cases where different advantages of this pattern shine.</p>
+<p>Builders can require a set of values for a name (<code>setPositiveButton</code>, <code>setNegativeButton</code>, and <code>addRoute</code>), and allows us to aggregate (<code>addRoute</code>):</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> dialog</span> = AlertDialog.Builder(context)
+       .setMessage(R.string.fire_missiles)
+       .setPositiveButton(R.string.fire, { d, id -&gt;
+           <span class="hljs-comment">// FIRE MISSILES!</span>
+       })
+       .setNegativeButton(R.string.cancel, { d, id -&gt;
+           <span class="hljs-comment">// User cancelled the dialog</span>
+       })
+       .create()
+
+<span class="hljs-variable"><span class="hljs-keyword">val</span> router</span> = Router.Builder()
+       .addRoute(path = <span class="hljs-string">&quot;/home&quot;</span>, ::showHome)
+       .addRoute(path = <span class="hljs-string">&quot;/users&quot;</span>, ::showUsers)
+       .build()
+</code></pre>
+<p>To achieve similar behavior with a constructor we would need to introduce special types to hold more data in a single argument:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> dialog</span> = AlertDialog(context,
+   message = R.string.fire_missiles,
+   positiveButtonDescription = 
+       ButtonDescription(R.string.fire, { d, id -&gt;
+           <span class="hljs-comment">// FIRE MISSILES!</span>
+       }),
+   negativeButtonDescription = 
+       ButtonDescription(R.string.cancel, { d, id -&gt;
+           <span class="hljs-comment">// User cancelled the dialog</span>
+       })
+)
+
+<span class="hljs-variable"><span class="hljs-keyword">val</span> router</span> = Router(
+   routes = listOf(
+       Route(<span class="hljs-string">&quot;/home&quot;</span>, ::showHome),
+       Route(<span class="hljs-string">&quot;/users&quot;</span>, ::showUsers)
+   )
+)
+</code></pre>
+<p>This notation is generally badly received in the Kotlin community, and we tend to prefer using DSL (Domain Specific Language) builder for such cases:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> dialog</span> = context.alert(R.string.fire_missiles) {
+   positiveButton(R.string.fire) {
+       <span class="hljs-comment">// FIRE MISSILES!</span>
+   }
+   negativeButton {
+       <span class="hljs-comment">// User cancelled the dialog</span>
+   }
+}
+
+<span class="hljs-variable"><span class="hljs-keyword">val</span> route</span> = router {
+   <span class="hljs-string">&quot;/home&quot;</span> directsTo ::showHome
+   <span class="hljs-string">&quot;/users&quot;</span> directsTo ::showUsers
+}
+</code></pre>
+<p>These kinds of DSL builders are generally preferred over classic builder pattern, since they give more flexibility and cleaner notation. It is true that making a DSL is harder. On the other hand making a builder is already hard. If we decide to invest more time to allow a better notation at the cost of a less obvious definition, why not take this one step further. In return we will have more flexibility and readability. In the next chapter, we are going to talk more about using DSLs for object creation. </p>
+<p>Another advantage of the classic builder pattern is that it can be used as a factory. It might be filled partially and passed further, for example a default dialog in our application: </p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> Context.<span class="hljs-title">makeDefaultDialogBuilder</span><span class="hljs-params">()</span> =</span>
+   AlertDialog.Builder(this)
+       .setIcon(R.drawable.ic_dialog)
+       .setTitle(R.string.dialog_title)
+       .setOnCancelListener { it.cancel() }
+</code></pre>
+<p>To have a similar possibility in a constructor or factory method, we would need currying, which is not supported in Kotlin. Alternatively we could keep object configuration in a data class and use <code>copy</code> to modify an existing one:</p>
+<pre><code class="lang-kotlin">data <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DialogConfig</span></span>(
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> icon</span>: <span class="hljs-keyword">Int</span> = <span class="hljs-number">-1</span>,
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> title</span>: <span class="hljs-keyword">Int</span> = <span class="hljs-number">-1</span>,
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> onCancelListener</span>: (() -&gt; <span class="hljs-keyword">Unit</span>)? = <span class="hljs-literal">null</span>
+   <span class="hljs-comment">//...</span>
+)
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">makeDefaultDialogConfig</span><span class="hljs-params">()</span> = <span class="hljs-title">DialogConfig</span><span class="hljs-params">(
+   icon = R.drawable.ic_dialog,
+   title = R.string.dialog_title,
+   onCancelListener = { it.cancel()</span> }</span>
+)
+</code></pre>
+<p>Although both options are rarely seen as an option. If we want to define, let&#x2019;s say, a default dialog for an application, we can create it using a function and pass all customization elements as optional arguments. Such a method would have more control over dialog creation. This is why this advantage of the builder pattern I treat as minor. </p>
+<p>In the end, the builder pattern is rarely the best option in Kotlin. It is sometimes chosen:</p>
+<ul>
+<li>to make code consistent with libraries written in other languages that used builder pattern,</li>
+<li>when we design API to be easily used in other languages that do not support default arguments or DSLs.</li>
+</ul>
+<p>Except of that, we rather prefer either a primary constructor with default arguments, or an expressive DSL. </p>
+<h3 id="summary">Summary</h3>
+<p>Creating objects using a primary constructor is the most appropriate approach for the vast majority of objects in our projects. Telescoping constructor patterns should be treated as obsolete in Kotlin. I recommend using default values instead, as they are cleaner, more flexible, and more expressive. The builder pattern is very rarely reasonable either as in simpler cases we can just use a primary constructor with named arguments, and when we need to create more complex object we can define a DSL for that.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1411,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 34 Consider A Primary Constructor With Named Optional Arguments","level":"1.3.3.3","depth":3,"next":{"title":"Item 35 Consider Defining A DSL For Complex Object Creation","level":"1.3.3.4","depth":3,"path":"Part 2 Code design/Chapter 5 Object creation/Item 35 Consider defining a DSL for complex object creation.md","ref":"Part 2 Code design/Chapter 5 Object creation/Item 35 Consider defining a DSL for complex object creation.md","articles":[]},"previous":{"title":"Item 33 Consider Factory Functions Instead Of Constructors","level":"1.3.3.2","depth":3,"path":"Part 2 Code design/Chapter 5 Object creation/Item 33 Consider factory functions instead of constructors.md","ref":"Part 2 Code design/Chapter 5 Object creation/Item 33 Consider factory functions instead of constructors.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 5 Object creation/Item 34 Consider a primary constructor with named optional arguments.md","mtime":"2021-11-27T17:45:50.111Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T17:46:24.854Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 34 Consider A Primary Constructor With Named Optional Arguments","level":"1.3.3.3","depth":3,"next":{"title":"Item 35 Consider Defining A DSL For Complex Object Creation","level":"1.3.3.4","depth":3,"path":"Part 2 Code design/Chapter 5 Object creation/Item 35 Consider defining a DSL for complex object creation.md","ref":"Part 2 Code design/Chapter 5 Object creation/Item 35 Consider defining a DSL for complex object creation.md","articles":[]},"previous":{"title":"Item 33 Consider Factory Functions Instead Of Constructors","level":"1.3.3.2","depth":3,"path":"Part 2 Code design/Chapter 5 Object creation/Item 33 Consider factory functions instead of constructors.md","ref":"Part 2 Code design/Chapter 5 Object creation/Item 33 Consider factory functions instead of constructors.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 5 Object creation/Item 34 Consider a primary constructor with named optional arguments.md","mtime":"2021-11-27T17:50:36.639Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T17:51:22.858Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
