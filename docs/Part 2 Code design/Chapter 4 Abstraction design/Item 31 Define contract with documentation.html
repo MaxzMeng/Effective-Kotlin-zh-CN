@@ -1136,7 +1136,259 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-31-define-contract-with-documentation">Item 31: Define contract with documentation</h2>
+<p>Think again about the function to display a message from <em>Item 27: Use abstraction to protect code against changes</em>:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> Context.<span class="hljs-title">showMessage</span><span class="hljs-params">(
+    message: <span class="hljs-type">String, 
+    length: MessageLength</span> = MessageLength.LONG
+)</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> toastLength</span> = <span class="hljs-keyword">when</span>(length) {
+       SHORT -&gt; Toast.LENGTH_SHORT
+       LONG -&gt; Toast.LENGTH_LONG
+   }
+   Toast.makeText(this, message, toastLength).show()
+}
+
+<span class="hljs-keyword">enum</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MessageLength</span> </span>{ SHORT, LONG }
+</code></pre>
+<p>We extracted it to give ourselves the freedom to change how the message is displayed. However, it is not well documented. Another developer might read its code and assume that it always displays a toast. This is the opposite of what we wanted to achieve by naming it in a way not suggesting concrete message type. To make it clear it would be better to add a meaningful KDoc comment explaining what should be expected from this function. </p>
+<pre><code class="lang-kotlin"><span class="hljs-comment">/**
+* Universal way for the project to display a short 
+* message to a user.
+* <span class="hljs-doctag">@param</span> message The text that should be shown to
+* the user
+* <span class="hljs-doctag">@param</span> length How long to display the message.
+*/</span> 
+<span class="hljs-function"><span class="hljs-keyword">fun</span> Context.<span class="hljs-title">showMessage</span><span class="hljs-params">(
+    message: <span class="hljs-type">String, 
+    duration: MessageLength</span> = MessageLength.LONG
+)</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> toastDuration</span> = <span class="hljs-keyword">when</span>(duration) {
+       SHORT -&gt; Toast.LENGTH_SHORT
+       LONG -&gt; Toast.LENGTH_LONG
+   }
+   Toast.makeText(this, message, toastDuration).show()
+}
+
+<span class="hljs-keyword">enum</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MessageLength</span> </span>{ SHORT, LONG }
+</code></pre>
+<p>In many cases, there are details that are not clearly inferred by the name at all. For instance, <em>powerset</em>, even though it is a well-defined mathematical concept, needs an explanation since it is not so well known and interpretation is not clear enough:</p>
+<pre><code class="lang-kotlin"><span class="hljs-comment">/**
+* Powerset returns a set of all subsets of the receiver 
+* including itself and the empty set
+*/</span> 
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T&gt;</span> Collection<span class="hljs-type">&lt;T&gt;</span>.<span class="hljs-title">powerset</span><span class="hljs-params">()</span>: Set<span class="hljs-type">&lt;Set&lt;T&gt;</span>&gt; =</span>
+    <span class="hljs-keyword">if</span> (isEmpty()) setOf(emptySet())
+    <span class="hljs-keyword">else</span> take(size - <span class="hljs-number">1</span>)
+        .powerset()
+        .let { it + it.map { it + last() } }
+</code></pre>
+<p>Notice that this description gives us some freedom. It does not specify the order of those elements. As a user, we should not depend on how those elements are ordered. Implementation hidden behind this abstraction can be optimized without changing how this function looks from the outside:</p>
+<pre><code class="lang-kotlin"><span class="hljs-comment">/**
+* Powerset returns a set of all subsets of the receiver 
+* including itself and empty set
+*/</span> 
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T&gt;</span> Collection<span class="hljs-type">&lt;T&gt;</span>.<span class="hljs-title">powerset</span><span class="hljs-params">()</span>: Set<span class="hljs-type">&lt;Set&lt;T&gt;</span>&gt; = </span>
+      powerset(this, setOf(setOf()))
+
+<span class="hljs-keyword">private</span> tailrec <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T&gt;</span> <span class="hljs-title">powerset</span><span class="hljs-params">(
+    left: <span class="hljs-type">Collection&lt;T&gt;, 
+    acc: Set&lt;Set&lt;T&gt;&gt;</span>
+)</span>: Set<span class="hljs-type">&lt;Set&lt;T&gt;</span>&gt; = <span class="hljs-keyword">when</span> {</span>
+   left.isEmpty() -&gt; acc
+   <span class="hljs-keyword">else</span> -&gt; {
+      <span class="hljs-variable"><span class="hljs-keyword">val</span> head</span> = left.first()
+      <span class="hljs-variable"><span class="hljs-keyword">val</span> tail</span> = left.drop(<span class="hljs-number">1</span>)
+      powerset(tail, acc + acc.map { it + head })
+   }
+}
+</code></pre>
+<p>The general problem is that <strong>when the behavior is not documented and the element name is not clear, developers will depend on current implementation instead of on the abstraction we intended to create</strong>. We solve this problem by describing what behavior can be expected. </p>
+<h3 id="contract">Contract</h3>
+<p>Whenever we describe some behavior, users treat it as a promise and based on that they adjust their expectations. We call all such expected behaviors a contract of an element. Just like in a real-life contract another side expects us to honor it, here as well users will expect us to keep this contract once it is stable (<em>Item 28: Specify API stability</em>).</p>
+<p>At this point, defining a contract might sound scary, but actually, it is great for both sides. <strong>When a contract is well specified, creators do not need to worry about how the class is used, and users do not need to worry about how something is implemented under the hood.</strong> Users can rely on this contract without knowing anything about the actual implementation. For creators, the contract gives freedom to change everything as long as the contract is satisfied. <strong>Both users and creators depend on abstractions defined in the contract, and so they can work independently.</strong> Everything will work perfectly fine as long as the contract is respected. This is a comfort and freedom for both sides. </p>
+<p>What if we don&#x2019;t set a contract? <strong>Without users knowing what they can and cannot do, they&#x2019;ll depend on implementation details instead. A creator without knowing what users depend on would be either blocked or they would risk breaking users implementations.</strong> As you can see, it is important to specify a contract. </p>
+<h3 id="defining-a-contract">Defining a contract</h3>
+<p>How do we define a contract? There are various ways, including:</p>
+<ul>
+<li>Names - when a name is connected to some more general concept, we expect this element to be consistent with this concept. For instance, when you see <code>sum</code> method, you don&#x2019;t need to read its comment to know how it will behave. It is because the summation is a well defined mathematical concept. </li>
+<li>Comments and documentation - the most powerful way as it can describe everything that is needed.</li>
+<li>Types - Types say a lot about objects. Each type specifies a set of often well-defined methods, and some types additionally have set-up responsibilities in their documentation. When we see a function, information about return type and arguments types are very meaningful. </li>
+</ul>
+<h3 id="do-we-need-comments">Do we need comments?</h3>
+<p>Looking at history, it is amazing to see how opinions in the community fluctuate. When Java was still young, there was a very popular concept of literate programming. It suggested explaining everything in comments<a href="chap65.xhtml#fn-footnote_420_note">12</a>. A decade later we can hear a very strong critique of comments and strong voices that we should omit comments and concentrate on writing readable code instead (I believe that the most influential book was the Clean Code by Robert C. Martin). </p>
+<p>No extreme is healthy. I absolutely agree that we should first concentrate on writing readable code. Though what needs to be understood is that comments before elements (functions or classes) can describe it at a higher level, and set their contract. <strong>Additionally, comments are now often used to automatically generate documentation, which generally is treated as a source of truth in projects.</strong></p>
+<p>Sure, we often do not need comments. For instance, many functions are self-explanatory and they don&#x2019;t need any special description. We might, for instance, assume that product is a clear mathematical concept that is known by programmers, and leave it without any comment:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> List<span class="hljs-type">&lt;Int&gt;</span>.<span class="hljs-title">product</span><span class="hljs-params">()</span> = <span class="hljs-title">fold</span><span class="hljs-params">(1)</span> { acc, i -&gt; acc * i }</span>
+</code></pre>
+<p>Obvious comments are a noise that only distracts us. Do not write comments that only describe what is clearly expressed by a function name and parameters. The following example demonstrates an unnecessary comment because the functionality can be inferred from the method&#x2019;s name and parameter type:</p>
+<pre><code class="lang-kotlin"><span class="hljs-comment">// Product of all numbers in a list</span>
+<span class="hljs-function"><span class="hljs-keyword">fun</span> List<span class="hljs-type">&lt;Int&gt;</span>.<span class="hljs-title">product</span><span class="hljs-params">()</span> = <span class="hljs-title">fold</span><span class="hljs-params">(1)</span> { acc, i -&gt; acc * i }</span>
+</code></pre>
+<p>I also agree that when we just need to organize our code, instead of comments in the implementation, we should extract a function. Take a look at the example below:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">update</span><span class="hljs-params">()</span> {</span>
+   <span class="hljs-comment">// Update users</span>
+   <span class="hljs-keyword">for</span> (user <span class="hljs-keyword">in</span> users) {
+       user.update()
+   }
+
+   <span class="hljs-comment">// Update books</span>
+   <span class="hljs-keyword">for</span> (book <span class="hljs-keyword">in</span> books) {
+       updateBook(book)
+   }
+}
+</code></pre>
+<p>Function <code>update</code> is clearly composed of extractable parts, and comment suggests that those parts can be described with a different explanation. Therefore it is better to extract those parts into separate abstractions like for instance methods, and their names are clear enough to explain what they mean (just like it in <em>Item 26: Each function should be written in terms of a single level of abstraction</em>). </p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">update</span><span class="hljs-params">()</span> {</span>
+   updateUsers()
+   updateBooks()
+}
+
+<span class="hljs-keyword">private</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">updateBooks</span><span class="hljs-params">()</span> {</span>
+   <span class="hljs-keyword">for</span> (book <span class="hljs-keyword">in</span> books) {
+       updateBook(book)
+   }
+}
+
+<span class="hljs-keyword">private</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">updateUsers</span><span class="hljs-params">()</span> {</span>
+   <span class="hljs-keyword">for</span> (user <span class="hljs-keyword">in</span> users) {
+       user.update()
+   }
+}
+</code></pre>
+<p>Although comments are often useful and important. To find examples, take a look at nearly any public function from the Kotlin standard library. They have well-defined contracts that give a lot of freedom. For instance, take a look at the function <code>listOf</code>: </p>
+<pre><code class="lang-kotlin"><span class="hljs-comment">/**
+* Returns a new read-only list of given elements. 
+* The returned list is serializable (JVM).
+* <span class="hljs-doctag">@sample</span> samples.collections.Collections.Lists.
+readOnlyList
+*/</span>
+<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T&gt;</span> <span class="hljs-title">listOf</span><span class="hljs-params">(vararg elements: <span class="hljs-type">T</span>)</span>: List<span class="hljs-type">&lt;T&gt;</span> = </span>
+     <span class="hljs-keyword">if</span> (elements.size &gt; <span class="hljs-number">0</span>) elements.asList() 
+     <span class="hljs-keyword">else</span> emptyList()
+</code></pre>
+<p>All it promises is that it returns <code>List</code> that is read-only and serializable on JVM. Nothing else. The list does not need to be immutable. No concrete class is promised. This contract is minimalistic, but satisfactory for the needs of most Kotlin developers. You can also see that it points to sample uses, which are also useful when we are learning how to use an element. </p>
+<h3 id="kdoc-format">KDoc format</h3>
+<p>When we document functions using comments, the official format in which we present that comment is called KDoc. All KDoc comments start with <code>/**</code> and end with <code>*/</code>, and internally all lines generally start with <code>*</code>. Descriptions there are written in KDoc markdown. </p>
+<p>The structure of this KDoc comment is the following:</p>
+<ul>
+<li>The first paragraph of the documentation text is the summary description of the element.</li>
+<li>The second part is the detailed description.</li>
+<li>Every next line begins with a tag. Those tags are used to reference an element to describe it.</li>
+</ul>
+<p>Here are tags that are supported:</p>
+<ul>
+<li>@param <name> - Documents a value parameter of a function or a type parameter of a class, property or function. </name></li>
+<li>@return - Documents the return value of a function.</li>
+<li>@constructor - Documents the primary constructor of a class.</li>
+<li>@receiver - Documents the receiver of an extension function.</li>
+<li>@property <name> - Documents the property of a class which has the specified name. Used for properties defined on the primary constructor. </name></li>
+<li>@throws <class>, @exception <class> - Documents an exception which can be thrown by a method.</class></class></li>
+<li>@sample <identifier> - Embeds the body of the function with the specified qualified name into the documentation for the current element, in order to show an example of how the element could be used.</identifier></li>
+<li>@see <identifier> - Adds a link to the specified class or method</identifier></li>
+<li>@author - Specifies the author of the element being documented.</li>
+<li>@since - Specifies the version of the software in which the element being documented was introduced.</li>
+<li>@suppress - Excludes the element from the generated documentation. Can be used for elements which are not part of the official API of a module but still have to be visible externally.</li>
+</ul>
+<p>Both in descriptions and in texts describing tags we can link classes, methods, properties or parameters. Links are in square brackets or with double square brackets when we want to have different description than the name of the linked element.</p>
+<pre><code class="lang-kotlin"><span class="hljs-comment">/**
+* This is an example descriptions linking to [element1], 
+* [com.package.SomeClass.element2] and 
+* [this element with custom description][element3]
+*/</span>
+</code></pre>
+<p>All those tags will be understood by Kotlin documentation generation tools. The official one is called Dokka. They generate documentation files that can be published online and presented to outside users. Here is as example documentation with shortened description:</p>
+<pre><code class="lang-kotlin"><span class="hljs-comment">/**
+* Immutable tree data structure.
+*
+* Class represents immutable tree having from 1 to 
+* infinitive number of elements. In the tree we hold 
+* elements on each node and nodes can have left and 
+* right subtrees...
+*
+* <span class="hljs-doctag">@param</span> T the type of elements this tree holds.
+* <span class="hljs-doctag">@property</span> value the value kept in this node of the tree.
+* <span class="hljs-doctag">@property</span> left the left subtree. 
+* <span class="hljs-doctag">@property</span> right the right subtree. 
+*/</span>
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Tree</span>&lt;<span class="hljs-type">T</span>&gt;</span>(
+    <span class="hljs-variable"><span class="hljs-keyword">val</span> value</span>: T, 
+    <span class="hljs-variable"><span class="hljs-keyword">val</span> left</span>: Tree<span class="hljs-type">&lt;T&gt;</span>? = <span class="hljs-literal">null</span>, 
+    <span class="hljs-variable"><span class="hljs-keyword">val</span> right</span>: Tree<span class="hljs-type">&lt;T&gt;</span>? = <span class="hljs-literal">null</span>
+) {
+    <span class="hljs-comment">/**
+    * Creates a new tree based on the current but with 
+    * [element] added.
+    * <span class="hljs-doctag">@return</span> newly created tree with additional element. 
+    */</span>
+    operator <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">plus</span><span class="hljs-params">(element: <span class="hljs-type">T</span>)</span>: Tree { ... }</span>
+}
+</code></pre>
+<p>Notice that not everything needs to be described. The best documentation is short and on-point describes what might be unclear. </p>
+<h3 id="type-system-and-expectations">Type system and expectations</h3>
+<p>Type hierarchy is an important source of information about an object. An interface is more than just a list of methods we promise to implement. Classes and interfaces can also have some expectations. If a class promises an expectation, all of its subclasses should guarantee that too. This principle is known as <em>Liskov substitution principle</em>, and it is one of the most important rules in the <em>object-oriented programming</em>. It is generally translated to &#x201C;if S is a subtype of T, then objects of type T may be replaced with objects of type S without altering any of the desirable properties of the program&#x201D;. A simple explanation why it is important is that every class can be used as a superclass, and so if it does not behave as we expect its superclass to behave, we might end up with unexpected failure. In programming, children should always satisfy parents&#x2019; contracts. </p>
+<p>One important implication of this rule is that we should properly specify contracts for open functions. For instance, coming back to our car metaphor, we could represent a car in our code using the following interface:</p>
+<pre><code class="lang-kotlin">interface Car {
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">setWheelPosition</span><span class="hljs-params">(angle: <span class="hljs-type">Float</span>)</span></span>
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">setBreakPedal</span><span class="hljs-params">(pressure: <span class="hljs-type">Double</span>)</span></span>
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">setGasPedal</span><span class="hljs-params">(pressure: <span class="hljs-type">Double</span>)</span></span>
+}
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">GasolineCar</span>: <span class="hljs-type">Car {</span></span>
+   <span class="hljs-comment">// ...</span>
+}
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">GasCar</span>: <span class="hljs-type">Car {</span></span>
+   <span class="hljs-comment">// ...</span>
+}
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ElectricCar</span>: <span class="hljs-type">Car {</span></span>
+   <span class="hljs-comment">// ...</span>
+}
+</code></pre>
+<p>The problem with this interface is that it leaves a lot of questions. What does <code>angle</code> in the <code>setWheelPosition</code> function means? In what units it is measured. What if it is not clear for someone what the gas and brake pedals do? People using instances of type <code>Car</code> need to know how to use them, and all brands should behave similarly when they are used as a <code>Car</code>. We can address those concerns with documentation:</p>
+<pre><code class="lang-kotlin">interface Car {
+   <span class="hljs-comment">/**
+    * Changes car direction.
+    *
+    * <span class="hljs-doctag">@param</span> angle Represents position of wheels in 
+    * radians relatively to car axis. 0 means driving
+    * straight, pi/2 means driving maximally right, 
+    * -pi/2 maximally left. 
+    * Value needs to be in (-pi/2, pi/2)
+    */</span>
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">setWheelPosition</span><span class="hljs-params">(angle: <span class="hljs-type">Float</span>)</span></span>
+
+   <span class="hljs-comment">/**
+    * Decelerates vehicle speed until 0.
+    *
+    * <span class="hljs-doctag">@param</span> pressure The percentage of brake pedal use. 
+    * Number from 0 to 1 where 0 means not using break 
+    * at all, and 1 means maximal pedal pedal use.
+    */</span>
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">setBreakPedal</span><span class="hljs-params">(pressure: <span class="hljs-type">Double</span>)</span></span>
+
+   <span class="hljs-comment">/**
+    * Accelerates vehicle speed until max speed possible
+    * for user.
+    *
+    * <span class="hljs-doctag">@param</span> pressure The percentage of gas pedal use. 
+    * Number from 0 to 1 where 0 means not using gas at 
+    * all, and 1 means maximal gas pedal use.
+    */</span>
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">setGasPedal</span><span class="hljs-params">(pressure: <span class="hljs-type">Double</span>)</span></span>
+}
+</code></pre>
+<p>Now all cars have set a standard that describes how they all should behave. </p>
+<p>Most classes in the stdlib and in popular libraries have well-defined and well-described contracts and expectancies for their children. We should define contracts for our elements as well. Those contracts will make those interfaced truly useful. They will give us the freedom to use classes that implement those interfaces in the way their contract guarantees. </p>
+<h3 id="leaking-implementation">Leaking implementation</h3>
+<p>Implementation details always leak. In a car, different kinds of engines behave a bit differently. We are still able to drive the car, but we can feel a difference. It is fine as this is not described in the contract. </p>
+<p>In programming languages, implementation details leak as well. For instance, calling a function using reflection works, but it is significantly slower than a normal function call (unless it is optimized by the compiler). We will see more examples in the chapter about performance optimization. Though as long as a language works as it promises, everything is fine. We just need to remember and apply good practices. </p>
+<p>In our abstractions, implementation will leak as well, but still, we should protect it as much as we can. We protect it by encapsulation, which can be described as &#x201C;You can do what I allow, and nothing more&#x201D;. The more encapsulated classes and functions are, the more freedom we have inside them because we don&#x2019;t need to think about how one might depend on our implementation.</p>
+<h3 id="summary">Summary</h3>
+<p>When we define an element, especially parts of external API, we should define a contract. We do that through names, documentation, comments, and types. The contract specifies what the expectations are on those elements. It can also describe how an element should be used. </p>
+<p>A contract gives users confidence about how elements behave now and will behave in the future, and it gives creators the freedom to change what is not specified in the contract. The contract is a kind of agreement, and it works well as long as both sides respect it.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1431,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 31 Define Contract With Documentation","level":"1.3.2.7","depth":3,"next":{"title":"Item 32 Respect Abstraction Contracts","level":"1.3.2.8","depth":3,"path":"Part 2 Code design/Chapter 4 Abstraction design/Item 32 Respect abstraction contracts.md","ref":"Part 2 Code design/Chapter 4 Abstraction design/Item 32 Respect abstraction contracts.md","articles":[]},"previous":{"title":"Item 30 Minimize Elements Visibility","level":"1.3.2.6","depth":3,"path":"Part 2 Code design/Chapter 4 Abstraction design/Item 30 Minimize elements visibility.md","ref":"Part 2 Code design/Chapter 4 Abstraction design/Item 30 Minimize elements visibility.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 4 Abstraction design/Item 31 Define contract with documentation.md","mtime":"2021-11-27T17:33:18.581Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T17:33:55.646Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 31 Define Contract With Documentation","level":"1.3.2.7","depth":3,"next":{"title":"Item 32 Respect Abstraction Contracts","level":"1.3.2.8","depth":3,"path":"Part 2 Code design/Chapter 4 Abstraction design/Item 32 Respect abstraction contracts.md","ref":"Part 2 Code design/Chapter 4 Abstraction design/Item 32 Respect abstraction contracts.md","articles":[]},"previous":{"title":"Item 30 Minimize Elements Visibility","level":"1.3.2.6","depth":3,"path":"Part 2 Code design/Chapter 4 Abstraction design/Item 30 Minimize elements visibility.md","ref":"Part 2 Code design/Chapter 4 Abstraction design/Item 30 Minimize elements visibility.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 4 Abstraction design/Item 31 Define contract with documentation.md","mtime":"2021-11-27T17:37:33.299Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T17:38:07.908Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
