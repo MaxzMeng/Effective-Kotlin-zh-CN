@@ -26,9 +26,9 @@ Effective Kotlin 中文翻译
         - [x] [Item 13 Avoid Returning Or Operating On Unit](Part 1 Good code/Chapter 2 Readability/Item 13 Avoid returning or operating on Unit?.md)
         - [x] [Item 14 Specify The Variable Type When It Is Not Clear](Part 1 Good code/Chapter 2 Readability/Item 14 Specify the variable type when it is not clear.md)
         - [x] [Item 15 Consider Referencing Receivers Explicitly](Part 1 Good code/Chapter 2 Readability/Item 15 Consider referencing receivers explicitly.md)
-        - [ ] [Item 16 Properties Should Represent State Not Behavior](Part 1 Good code/Chapter 2 Readability/Item 16 Properties should represent state not behavior.md)
-        - [ ] [Item 17 Consider Naming Arguments](Part 1 Good code/Chapter 2 Readability/Item 17 Consider naming arguments.md)
-        - [ ] [Item 18 Respect Coding Conventions](Part 1 Good code/Chapter 2 Readability/Item 18 Respect coding conventions.md)
+        - [x] [Item 16 Properties Should Represent State Not Behavior](Part 1 Good code/Chapter 2 Readability/Item 16 Properties should represent state not behavior.md)
+        - [x] [Item 17 Consider Naming Arguments](Part 1 Good code/Chapter 2 Readability/Item 17 Consider naming arguments.md)
+        - [x] [Item 18 Respect Coding Conventions](Part 1 Good code/Chapter 2 Readability/Item 18 Respect coding conventions.md)
 - Part 2 Code Design
     - Chapter 3 Reusability
         - [ ] [Introduction](Part 2 Code design/Chapter 3 Reusability/Introduction.md)
