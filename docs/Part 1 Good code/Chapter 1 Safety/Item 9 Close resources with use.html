@@ -1136,7 +1136,57 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-9-close-resources-with-use">Item 9: Close resources with <code>use</code></h2>
+<p>There are resources that cannot be closed automatically, and we need to invoke the <code>close</code> method once we do not need them anymore. The Java standard library, that we use in Kotlin/JVM, contains a lot of these resources, such as:</p>
+<ul>
+<li><code>InputStream</code> and <code>OutputStream</code>,</li>
+<li><code>java.sql.Connection</code>,</li>
+<li><code>java.io.Reader</code> (<code>FileReader</code>, <code>BufferedReader</code>, <code>CSSParser</code>),</li>
+<li><code>java.new.Socket</code> and <code>java.util.Scanner</code>.</li>
+</ul>
+<p>All these resources implement the <code>Closeable</code> interface, which extends <code>AutoCloseable</code>. </p>
+<p>The problem is that in all these cases, we need to be sure that we invoke the <code>close</code> method when we no longer need the resource because these resources are rather expensive and they aren&#x2019;t easily closed by themselves (the Garbage Collector will eventually handle it if we do not keep any reference to this resource, but it will take some time). Therefore, to be sure that we will not miss closing them, we traditionally wrapped such resources in a <code>try-finally</code> block and called <code>close</code> there:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">countCharactersInFile</span><span class="hljs-params">(path: <span class="hljs-type">String</span>)</span>: <span class="hljs-keyword">Int</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> reader</span> = BufferedReader(FileReader(path))
+   <span class="hljs-keyword">try</span> {
+       <span class="hljs-keyword">return</span> reader.lineSequence().sumBy { it.length }
+   } <span class="hljs-keyword">finally</span> {
+       reader.close()
+   }
+}
+</code></pre>
+<p>Such a structure is complicated and incorrect. It is incorrect because close can throw an error, and such an error will not be caught. Also, if we had errors from both the body of the <code>try</code> and from <code>finally</code> blocks, only one would be properly propagated. The behavior we should expect is for the information about the new error to be added to the previous one. The proper implementation of this is long and complicated, but it is also common and so it has been extracted into the <code>use</code>function from the standard library. It should be used to properly close resources and handle exceptions. This function can be used on any <code>Closeable</code> object:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">countCharactersInFile</span><span class="hljs-params">(path: <span class="hljs-type">String</span>)</span>: <span class="hljs-keyword">Int</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> reader</span> = BufferedReader(FileReader(path))
+   reader.use {
+       <span class="hljs-keyword">return</span> reader.lineSequence().sumBy { it.length }
+   }
+}
+</code></pre>
+<p>Receiver (<code>reader</code> in this case) is also passed as an argument to the lambda, so the syntax can be shortened:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">countCharactersInFile</span><span class="hljs-params">(path: <span class="hljs-type">String</span>)</span>: <span class="hljs-keyword">Int</span> {</span>
+   BufferedReader(FileReader(path)).use { reader -&gt;
+       <span class="hljs-keyword">return</span> reader.lineSequence().sumBy { it.length }
+   }
+}
+</code></pre>
+<p>As this support is often needed for files, and as it is common to read files line-by-line, there is also a <code>useLines</code> function in the Kotlin Standard Library that gives us a sequence of lines (<code>String</code>) and closes the underlying reader once the processing is complete:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">countCharactersInFile</span><span class="hljs-params">(path: <span class="hljs-type">String</span>)</span>: <span class="hljs-keyword">Int</span> {</span>
+   File(path).useLines { lines -&gt;
+       <span class="hljs-keyword">return</span> lines.sumBy { it.length }
+   }
+}
+</code></pre>
+<p>This is a proper way to process even large files as this sequence will read lines on-demand and does not hold more than one line at a time in memory. The cost is that this sequence can be used only once. If you need to iterate over the lines of the file more than once, you need to open it more than once. The <code>useLines</code> function can be also used as an expression:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">countCharactersInFile</span><span class="hljs-params">(path: <span class="hljs-type">String</span>)</span>: <span class="hljs-keyword">Int</span> =</span>
+   File(path).useLines { lines -&gt; 
+       lines.sumBy { it.length } 
+   }
+</code></pre>
+<p>All the above implementations use sequences to operate on the file and it is the correct way to do it. Thanks to that we can always read only one line instead of loading the content of the whole file. More about it in the item <em>Item 49: Prefer Sequence for big collections with more than one processing step</em>.</p>
+<h3 id="summary">Summary</h3>
+<p>Operate on objects implementing <code>Closeable</code> or <code>AutoCloseable</code> using <code>use</code>. It is a safe and easy option. When you need to operate on a file, consider <code>useLines</code> that produces a sequence to iterate over the next lines.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1229,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 9 Close Resources With Use","level":"1.2.1.10","depth":3,"next":{"title":"Item 10 Write Unit Tests","level":"1.2.1.11","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 10 Write unit tests.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 10 Write unit tests.md","articles":[]},"previous":{"title":"Item 8 Handle Nulls Properly","level":"1.2.1.9","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 8 Handle nulls properly.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 8 Handle nulls properly.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 1 Good code/Chapter 1 Safety/Item 9 Close resources with use.md","mtime":"2021-11-24T18:38:40.196Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-24T18:39:12.450Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 9 Close Resources With Use","level":"1.2.1.10","depth":3,"next":{"title":"Item 10 Write Unit Tests","level":"1.2.1.11","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 10 Write unit tests.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 10 Write unit tests.md","articles":[]},"previous":{"title":"Item 8 Handle Nulls Properly","level":"1.2.1.9","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 8 Handle nulls properly.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 8 Handle nulls properly.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 1 Good code/Chapter 1 Safety/Item 9 Close resources with use.md","mtime":"2021-11-27T03:50:50.296Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-27T03:51:33.887Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
