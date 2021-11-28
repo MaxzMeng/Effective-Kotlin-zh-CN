@@ -1136,7 +1136,99 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-43-consider-extracting-non-essential-parts-of-your-api-into-extensions">Item 43: Consider extracting non-essential parts of your API into extensions</h2>
+<p>When we define final methods in a class, we need to make a decision if we want to define them as members, or if we want to define them as extension functions. </p>
+<pre><code class="lang-kotlin"><span class="hljs-comment">// Defining methods as members</span>
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Workshop</span></span>(<span class="hljs-comment">/*...*/</span>) {
+   <span class="hljs-comment">//...</span>
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">makeEvent</span><span class="hljs-params">(date: <span class="hljs-type">DateTime</span>)</span>: Event = <span class="hljs-comment">//...</span></span>
+
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> permalink
+       get()</span> = <span class="hljs-string">&quot;/workshop/$name&quot;</span>
+}
+</code></pre>
+<pre><code class="lang-kotlin"><span class="hljs-comment">// Defining methods as extensions</span>
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Workshop</span></span>(<span class="hljs-comment">/*...*/</span>) {
+   <span class="hljs-comment">//...</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> Workshop.<span class="hljs-title">makeEvent</span><span class="hljs-params">(date: <span class="hljs-type">DateTime</span>)</span>: Event = <span class="hljs-comment">//...</span></span>
+
+<span class="hljs-variable"><span class="hljs-keyword">val</span> Workshop.permalink
+   get()</span> = <span class="hljs-string">&quot;/workshop/$name&quot;</span>
+</code></pre>
+<p>Both approaches are similar in many ways. Their use and even referencing them via reflection is very similar:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">useWorkshop</span><span class="hljs-params">(workshop: <span class="hljs-type">Workshop</span>)</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> event</span> = workshop.makeEvent(date)
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> permalink</span> = workshop.permalink
+
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> makeEventRef</span> = Workshop::makeEvent
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> permalinkPropRef</span> = Workshop::permalink
+}
+</code></pre>
+<p>There are also significant differences though. They both have their pros and cons, and one way does not dominate over another. This is why my suggestion is to consider such extraction, not necessarily to do it. The point is to make smart decisions, and for that, we need to understand the differences. </p>
+<p>The biggest difference between members and extensions in terms of use is that <strong>extensions need to be imported separately</strong>. For this reason, they can be located in a different package. This fact is used when we cannot add a member ourselves. It is also used in projects designed to separate data and behavior. Properties with fields need to be located in a class, but methods can be located separately as long as they only access public API of the class. </p>
+<p>Thanks to the fact that extensions need to be imported <strong>we can have many extensions with the same name on the same type</strong>. This is good because different libraries can provide extra methods and we won&#x2019;t have a conflict. On the other hand, it would be dangerous to have two extensions with the same name, but having different behavior. For such cases, we can cut the Gordian knot by making a member function. The compiler always chooses member functions over extensions<a href="chap65.xhtml#fn-footnote_630_note">5</a>.</p>
+<p>Another significant difference is that <strong>extensions are not virtual</strong>, meaning that they cannot be redefined in derived classes. The extension function to call is selected statically during compilation. This is different behavior from member elements that are virtual in Kotlin. Therefore we should not use extensions for elements that are designed for inheritance. </p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">open</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">C</span></span>
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">D</span>: <span class="hljs-type">C</span></span>()
+<span class="hljs-function"><span class="hljs-keyword">fun</span> C.<span class="hljs-title">foo</span><span class="hljs-params">()</span> = &quot;c&quot;</span>
+<span class="hljs-function"><span class="hljs-keyword">fun</span> D.<span class="hljs-title">foo</span><span class="hljs-params">()</span> = &quot;d&quot;</span>
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> d</span> = D()
+   print(d.foo()) <span class="hljs-comment">// d</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> c</span>: C = d
+   print(c.foo()) <span class="hljs-comment">// c</span>
+
+   print(D().foo()) <span class="hljs-comment">// d</span>
+   print((D() <span class="hljs-keyword">as</span> C).foo()) <span class="hljs-comment">// c</span>
+}
+</code></pre>
+<p>This behavior is the result of the fact that extension functions under the hood are compiled into normal functions where the extension&#x2019;s receiver is placed as the first argument: </p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">foo</span><span class="hljs-params">(`this$receiver`: <span class="hljs-type">C</span>)</span> = &quot;c&quot;</span>
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">foo</span><span class="hljs-params">(`this$receiver`: <span class="hljs-type">D</span>)</span> = &quot;d&quot;</span>
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> d</span> = D()
+   print(foo(d)) <span class="hljs-comment">// d</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> c</span>: C =d
+   print(foo(c)) <span class="hljs-comment">// c</span>
+
+   print(foo(D())) <span class="hljs-comment">// d</span>
+   print(foo(D() <span class="hljs-keyword">as</span> C)) <span class="hljs-comment">// c</span>
+}
+</code></pre>
+<p>Another consequence of this fact is that <strong>we define extensions on types, not on classes</strong>. This gives us more freedom. For instance, we can define an extension on a nullable or a concrete substitution of a generic type:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">inline</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> CharSequence?.<span class="hljs-title">isNullOrBlank</span><span class="hljs-params">()</span>: <span class="hljs-keyword">Boolean</span> {</span>
+   contract {
+       returns(<span class="hljs-literal">false</span>) implies (this@isNullOrBlank != <span class="hljs-literal">null</span>)
+   }
+
+   <span class="hljs-keyword">return</span> this == <span class="hljs-literal">null</span> || this.isBlank()
+}
+
+<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> Iterable<span class="hljs-type">&lt;Int&gt;</span>.<span class="hljs-title">sum</span><span class="hljs-params">()</span>: <span class="hljs-keyword">Int</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> sum</span>: <span class="hljs-keyword">Int</span> = <span class="hljs-number">0</span>
+   <span class="hljs-keyword">for</span> (element <span class="hljs-keyword">in</span> this) {
+       sum += element
+   }
+   <span class="hljs-keyword">return</span> sum
+}
+</code></pre>
+<p>The last important difference is that <strong>extensions are not listed as members in the class reference</strong>. This is why they are not considered by annotation processors and why, when we process a class using annotation processing, we cannot extract elements that should be processed into extension functions. On the other hand, if we extract non-essential elements into extensions, we don&#x2019;t need to worry about them being seen by those processors. We don&#x2019;t need to hide them, because they are not in the class anyway.</p>
+<h3 id="summary">Summary</h3>
+<p>The most important differences between members and extensions are:</p>
+<ul>
+<li>Extensions need to be imported</li>
+<li>Extensions are not virtual</li>
+<li>Member has a higher priority</li>
+<li>Extensions are on a type, not on a class</li>
+<li>Extensions are not listed in the class reference</li>
+</ul>
+<p>To summarize it, extensions give us more freedom and flexibility. Although they do not support inheritance, annotation processing, and it might be confusing that they are not present in the class. Essential parts of our API should rather stay as members, but there are good reasons to extract non-essential parts of your API as extensions.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1271,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 43 Consider Extracting Non Essential Parts Of Your API Into Extensions","level":"1.3.4.9","depth":3,"next":{"title":"Item 44 Avoid Member Extensions","level":"1.3.4.10","depth":3,"path":"Part 2 Code design/Chapter 6 Class design/Item 44 Avoid member extensions.md","ref":"Part 2 Code design/Chapter 6 Class design/Item 44 Avoid member extensions.md","articles":[]},"previous":{"title":"Item 42 Respect The Contract Of Compare To","level":"1.3.4.8","depth":3,"path":"Part 2 Code design/Chapter 6 Class design/Item 42 Respect the contract of compareTo.md","ref":"Part 2 Code design/Chapter 6 Class design/Item 42 Respect the contract of compareTo.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 6 Class design/Item 43 Consider extracting non-essential parts of your API into extensions.md","mtime":"2021-11-28T03:31:46.508Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-28T03:32:25.949Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 43 Consider Extracting Non Essential Parts Of Your API Into Extensions","level":"1.3.4.9","depth":3,"next":{"title":"Item 44 Avoid Member Extensions","level":"1.3.4.10","depth":3,"path":"Part 2 Code design/Chapter 6 Class design/Item 44 Avoid member extensions.md","ref":"Part 2 Code design/Chapter 6 Class design/Item 44 Avoid member extensions.md","articles":[]},"previous":{"title":"Item 42 Respect The Contract Of Compare To","level":"1.3.4.8","depth":3,"path":"Part 2 Code design/Chapter 6 Class design/Item 42 Respect the contract of compareTo.md","ref":"Part 2 Code design/Chapter 6 Class design/Item 42 Respect the contract of compareTo.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 6 Class design/Item 43 Consider extracting non-essential parts of your API into extensions.md","mtime":"2021-11-28T03:34:14.965Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-28T03:34:49.314Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
