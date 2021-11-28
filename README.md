@@ -72,9 +72,9 @@ Effective Kotlin 中文翻译
         - [x] [Item 47 Consider Using Inline Classes](Part 3 Efficiency/Chapter 7 Make it cheap/Item 47 Consider using inline classes.md)
         - [x] [Item 48 Eliminate Obsolete Object References](Part 3 Efficiency/Chapter 7 Make it cheap/Item 48 Eliminate obsolete object references.md)
     - Chapter 8 Efficient Collection Processing
-        - [ ] [Introduction](Part 3 Efficiency/Chapter 8 Efficient collection processing/Introduction.md)
-        - [ ] [Item 49 Prefer Sequence For Big Collections With More Than One Processing Step](Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 49 Prefer Sequence for big collections with more than one processing step.md)
-        - [ ] [Item 50 Limit The Number Of Operations](Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.md)
-        - [ ] [Item 51 Consider Arrays With Primitives For Performance Critical Processing](Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 51 Consider Arrays with primitives for performance-critical processing.md)
-        - [ ] [Item 52 Consider Using Mutable Collections](Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 52 Consider using mutable collections.md)
+        - [x] [Introduction](Part 3 Efficiency/Chapter 8 Efficient collection processing/Introduction.md)
+        - [x] [Item 49 Prefer Sequence For Big Collections With More Than One Processing Step](Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 49 Prefer Sequence for big collections with more than one processing step.md)
+        - [x] [Item 50 Limit The Number Of Operations](Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.md)
+        - [x] [Item 51 Consider Arrays With Primitives For Performance Critical Processing](Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 51 Consider Arrays with primitives for performance-critical processing.md)
+        - [x] [Item 52 Consider Using Mutable Collections](Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 52 Consider using mutable collections.md)
 
