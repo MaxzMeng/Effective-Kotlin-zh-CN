@@ -14,7 +14,7 @@ Effective Kotlin 中文翻译
 
 - Part 1 Good Code
     - Chapter 1 Safety
-        - [ ] Introduction
+        - [x] 引言
         - [ ] Item 1 Limit Mutability
         - [ ] Item 2 Minimize The Scope Of Variables
         - [ ] Item 3 Eliminate Platform Types As Soon As Possible

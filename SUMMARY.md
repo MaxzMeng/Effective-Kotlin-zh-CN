@@ -2,7 +2,7 @@
 
 - Part 1 Good Code
   - Chapter 1 Safety
-    * [Introduction](Part 1 Good code/Chapter 1 Safety/Introduction.md)
+    * [引言](Part 1 Good code/Chapter 1 Safety/Introduction.md)
     * [Item 1 Limit Mutability](Part 1 Good code/Chapter 1 Safety/Item 1 Limit mutability.md)
     * [Item 2 Minimize The Scope Of Variables](Part 1 Good code/Chapter 1 Safety/Item 2 Minimize the scope of variables.md)
     * [Item 3 Eliminate Platform Types As Soon As Possible](Part 1 Good code/Chapter 1 Safety/Item 3 Eliminate platform types as soon as possible.md)
