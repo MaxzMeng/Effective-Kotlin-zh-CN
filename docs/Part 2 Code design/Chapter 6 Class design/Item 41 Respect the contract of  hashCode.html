@@ -1136,7 +1136,213 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-41-respect-the-contract-of-hashcode">Item 41: Respect the contract of <code>hashCode</code></h2>
+<p>Another method from <code>Any</code> that we can override is <code>hashCode</code>. First, let&#x2019;s explain why we need it. The <code>hashCode</code> function is used in a popular data structure called <em>hash table</em>, which is used in a variety of different collections or algorithms under the hood.</p>
+<h3 id="hash-table">Hash table</h3>
+<p>Let&#x2019;s start with the problem hash table was invented to solve. Let&#x2019;s say that we need a collection that quickly both adds and finds elements. An example of this type of collection is a set or map, neither of which allow for duplicates. So whenever we add an element, we first need to look for an equal element. </p>
+<p>A collection based on an array or on linked elements is not fast enough for checking if it contains an element, because to check that we need to compare this element with all elements on this list one after another. Imagine that you have an array with millions of pieces of text, and now you need to check if it contains a certain one. It will be really time-consuming to compare your text one after another with those millions. </p>
+<p>A popular solution to this problem is a hash table. All you need is a function that will assign a number to each element. Such a function is called a hash function and it must always return the same value for equal elements. Additionally, it is good if our hash function:</p>
+<ul>
+<li>Is fast</li>
+<li>Ideally returns different values for unequal elements, or at least has enough variation to limit collisions to a minimum</li>
+</ul>
+<p>Such a function categorizes elements into different buckets by assigning a number to each one. What is more, based on our requirement for the hash function, all elements equal to each other will always be placed in the same bucket. Those buckets are kept in a structure called hash table, which is an array with a size equal to the number of buckets. Every time we add an element, we use our hash function to calculate where it should be placed, and we add it there. Notice that this process is very fast because calculating the hash should be fast, and then we just use the result of the hash function as an index in the array to find our bucket. When we search for an element, we find its bucket the same way and then we only need to check if it is equal to any element in this bucket. We don&#x2019;t need to check any other bucket, because the hash function must return the same value for equal elements. This way, at a low cost, it divides the number of operations needed to find an element by the number of buckets. For instance, if we have 1,000,000 elements and 1,000 buckets, searching for duplicates only requires to compare about 1,000 elements on average, and the performance cost of this improvement is really small. </p>
+<p>To see a more concrete example, let&#x2019;s say that we have the following strings and a hash function that splits into 4 buckets:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Text</th>
+<th style="text-align:left">Hash code</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">&#x201C;How much wood would a woodchuck chuck&#x201D;</td>
+<td style="text-align:left">3</td>
+</tr>
+<tr>
+<td style="text-align:left">&#x201C;Peter Piper picked a peck of pickled peppers&#x201D;</td>
+<td style="text-align:left">2</td>
+</tr>
+<tr>
+<td style="text-align:left">&#x201C;Betty bought a bit of butter&#x201D;</td>
+<td style="text-align:left">1</td>
+</tr>
+<tr>
+<td style="text-align:left">&#x201C;She sells seashells by the seashore&#x201D;</td>
+<td style="text-align:left">2</td>
+</tr>
+</tbody>
+</table>
+<p>Based on those numbers, we will have the following hash table built:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Index</th>
+<th style="text-align:left">Object to which hash table points</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">0</td>
+<td style="text-align:left">[]</td>
+</tr>
+<tr>
+<td style="text-align:left">1</td>
+<td style="text-align:left">[&#x201C;Betty bought a bit of butter&#x201D;]</td>
+</tr>
+<tr>
+<td style="text-align:left">2</td>
+<td style="text-align:left">[&#x201C;Peter Piper picked a peck of pickled peppers&#x201D;, &#x201C;She sells seashells by the seashore&#x201D; ]</td>
+</tr>
+<tr>
+<td style="text-align:left">3</td>
+<td style="text-align:left">[&#x201C;How much wood would a woodchuck chuck&#x201D;]</td>
+</tr>
+</tbody>
+</table>
+<p>Now, when we are checking if a new text is in this hash table, we are calculating its hash code. If it is equal to 0, then we know that it is not on this list. If it is either 1 or 3, we need to compare it with a single text. If it is 2, we need to compare it with two pieces of text. </p>
+<p>This concept is very popular in technology. It is used in databases, in many internet protocols, and also in standard library collections in many languages. In Kotlin/JVM both the default set (<code>LinkedHashSet</code>) and default map (<code>LinkedHashMap</code>) use it. To produce a hash code, we use the <code>hashCode</code> function<a href="chap65.xhtml#fn-footnote_620_note">4</a>.</p>
+<h3 id="problem-with-mutability">Problem with mutability</h3>
+<p>Notice that a hash is calculated for an element only when this element is added. An element is not moved when it mutates. This is why both <code>LinkedHashSet</code> and <code>LinkedHashMap</code> key will not behave properly when an object mutates after it has been added:</p>
+<pre><code class="lang-kotlin">data <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">FullName</span></span>(
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> name</span>: String,
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> surname</span>: String
+)
+
+<span class="hljs-variable"><span class="hljs-keyword">val</span> person</span> = FullName(<span class="hljs-string">&quot;Maja&quot;</span>, <span class="hljs-string">&quot;Markiewicz&quot;</span>)
+<span class="hljs-variable"><span class="hljs-keyword">val</span> s</span> = mutableSetOf<span class="hljs-type">&lt;FullName&gt;</span>()
+s.add(person)
+person.surname = <span class="hljs-string">&quot;Moska&#x142;a&quot;</span>
+print(person) <span class="hljs-comment">// FullName(name=Maja, surname=Moska&#x142;a)</span>
+print(person <span class="hljs-keyword">in</span> s) <span class="hljs-comment">// false</span>
+print(s.first() == person) <span class="hljs-comment">// true</span>
+</code></pre>
+<p>This problem was already noted on <em>Item 1: Limit mutability</em>: Mutable objects are not to be used in data structures based on hashes or on any other data structure that organizes elements based on their mutable properties. We should not use mutable elements for sets or as keys for maps, or at least we should not mutate elements that are in such collections. This is also a great reason to use immutable objects in general. </p>
+<h3 id="the-contract-of-hashcode">The contract of hashCode</h3>
+<p>Knowing what we need <code>hashCode</code> for, it should be clear how we expect it to behave. The formal contract is as follows (Kotlin 1.3.11):</p>
+<ul>
+<li>Whenever it is invoked on the same object more than once, the <code>hashCode</code> method must consistently return the same integer, provided no information used in <code>equals</code> comparisons on the object is modified.</li>
+<li>If two objects are equal according to the <code>equals</code> method, then calling the <code>hashCode</code> method on each of the two objects must produce the same integer result. </li>
+</ul>
+<p>Notice that the first requirement is that we need <code>hashCode</code> to be <strong>consistent</strong>. The second one is the one that developers often forget about, and that needs to be highlighted: <code>hashCode</code> <strong>always needs to be consistent with</strong> <code>equals</code><strong>, and equal elements must have the same hash code.</strong> If they don&#x2019;t, elements will be lost in collections using a hash table under the hood: </p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">FullName</span></span>(
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> name</span>: String,
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> surname</span>: String
+) {
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">equals</span><span class="hljs-params">(other: <span class="hljs-type">Any?</span>)</span>: <span class="hljs-keyword">Boolean</span> =</span>
+       other <span class="hljs-keyword">is</span> FullName
+               &amp;&amp; other.name == name
+               &amp;&amp; other.surname == surname
+}
+
+<span class="hljs-variable"><span class="hljs-keyword">val</span> s</span> = mutableSetOf<span class="hljs-type">&lt;FullName&gt;</span>()
+s.add(FullName(<span class="hljs-string">&quot;Marcin&quot;</span>, <span class="hljs-string">&quot;Moska&#x142;a&quot;</span>))
+<span class="hljs-variable"><span class="hljs-keyword">val</span> p</span> = FullName(<span class="hljs-string">&quot;Marcin&quot;</span>, <span class="hljs-string">&quot;Moska&#x142;a&quot;</span>)
+print(p <span class="hljs-keyword">in</span> s) <span class="hljs-comment">// false</span>
+print(p == s.first()) <span class="hljs-comment">// true</span>
+</code></pre>
+<p>This is why Kotlin suggests overriding <code>hashCode</code> when you have a custom <code>equals</code> implementation. </p>
+<p><img src="../../assets/chapter6/chapter6-5.png" alt=""></p>
+<p>There is also a requirement that is not required, but very important if we want this function to be useful. <code>hashCode</code> should spread elements as widely as possible. Different elements should have the highest possible probability of having different hash values. </p>
+<p>Think about what happens when many different elements are placed in the same bucket - there is no advantage in using a hash table! An extreme example would be making <code>hashCode</code> always return the same number. Such a function would always place all elements into the same bucket. This is fulfilling the formal contract, but it is completely useless. There is no advantage to using a hash table when <code>hashCode</code> always returns the same value. Just take a look at the examples below where you can see a properly implemented <code>hashCode</code>, and one that always returns 0. For each <code>equals</code> we added a counter that counts how many times it was used. You can see that when we operate on sets with values of both types, the second one, named <code>Terrible</code>, requires many more comparisons:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Proper</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: String) {
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">equals</span><span class="hljs-params">(other: <span class="hljs-type">Any?</span>)</span>: <span class="hljs-keyword">Boolean</span> {</span>
+       equalsCounter++
+       <span class="hljs-keyword">return</span> other <span class="hljs-keyword">is</span> Proper &amp;&amp; name == other.name
+   }
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">hashCode</span><span class="hljs-params">()</span>: <span class="hljs-keyword">Int</span> {</span>
+       <span class="hljs-keyword">return</span> name.hashCode()
+   }
+
+   <span class="hljs-keyword">companion</span> <span class="hljs-keyword">object</span> {
+       <span class="hljs-variable"><span class="hljs-keyword">var</span> equalsCounter</span> = <span class="hljs-number">0</span>
+   }
+}
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Terrible</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: String) {
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">equals</span><span class="hljs-params">(other: <span class="hljs-type">Any?</span>)</span>: <span class="hljs-keyword">Boolean</span> {</span>
+       equalsCounter++
+       <span class="hljs-keyword">return</span> other <span class="hljs-keyword">is</span> Terrible &amp;&amp; name == other.name
+   }
+
+   <span class="hljs-comment">// Terrible choice, DO NOT DO THAT</span>
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">hashCode</span><span class="hljs-params">()</span> = 0</span>
+
+   <span class="hljs-keyword">companion</span> <span class="hljs-keyword">object</span> {
+       <span class="hljs-variable"><span class="hljs-keyword">var</span> equalsCounter</span> = <span class="hljs-number">0</span>
+   }
+}
+
+<span class="hljs-variable"><span class="hljs-keyword">val</span> properSet</span> = List(<span class="hljs-number">10000</span>) { Proper(<span class="hljs-string">&quot;$it&quot;</span>) }.toSet()
+println(Proper.equalsCounter) <span class="hljs-comment">// 0</span>
+<span class="hljs-variable"><span class="hljs-keyword">val</span> terribleSet</span> = List(<span class="hljs-number">10000</span>) { Terrible(<span class="hljs-string">&quot;$it&quot;</span>) }.toSet()
+println(Terrible.equalsCounter) <span class="hljs-comment">// 50116683</span>
+
+Proper.equalsCounter = <span class="hljs-number">0</span>
+println(Proper(<span class="hljs-string">&quot;9999&quot;</span>) <span class="hljs-keyword">in</span> properSet) <span class="hljs-comment">// true</span>
+println(Proper.equalsCounter) <span class="hljs-comment">// 1</span>
+
+Proper.equalsCounter = <span class="hljs-number">0</span>
+println(Proper(<span class="hljs-string">&quot;A&quot;</span>) <span class="hljs-keyword">in</span> properSet) <span class="hljs-comment">// false</span>
+println(Proper.equalsCounter) <span class="hljs-comment">// 0</span>
+
+Terrible.equalsCounter = <span class="hljs-number">0</span>
+println(Terrible(<span class="hljs-string">&quot;9999&quot;</span>) <span class="hljs-keyword">in</span> terribleSet) <span class="hljs-comment">// true</span>
+println(Terrible.equalsCounter) <span class="hljs-comment">// 4324</span>
+
+Terrible.equalsCounter = <span class="hljs-number">0</span>
+println(Terrible(<span class="hljs-string">&quot;A&quot;</span>) <span class="hljs-keyword">in</span> terribleSet) <span class="hljs-comment">// false</span>
+println(Terrible.equalsCounter) <span class="hljs-comment">// 10001</span>
+</code></pre>
+<h3 id="implementing-hashcode">Implementing hashCode</h3>
+<p>We define <code>hashCode</code> in Kotlin practically only when we define custom <code>equals</code>. When we use the data modifier, it generates both <code>equals</code> and a consistent <code>hashCode</code>. When you do not have a custom <code>equals</code> method, do not define a custom <code>hashCode</code> unless you are sure you know what you are doing and you have a good reason. When you have a custom <code>equals</code>, implement <code>hashCode</code> that always returns the same value for equal elements. </p>
+<p>If you implemented typical <code>equals</code> that checks equality of significant properties, then a typical <code>hashCode</code> should be calculated using the hash codes of those properties. How can we make a single hash code out of those many hash codes? A typical way is that we accumulate them all in a result, and every time we add the next one, we multiply the result by the number 31. It doesn&#x2019;t need to be exactly 31, but its characteristics make it a good number for this purpose. It is used this way so often that now we can treat it as a convention. Hash codes generated by the data modifier are consistent with this convention. Here is an example implementation of a typical <code>hashCode</code> together with its <code>equals</code>:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DateTime</span></span>(
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> millis</span>: <span class="hljs-keyword">Long</span> = <span class="hljs-number">0</span>L,
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> timeZone</span>: TimeZone? = <span class="hljs-literal">null</span>
+) {
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> asStringCache</span> = <span class="hljs-string">&quot;&quot;</span>
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> changed</span> = <span class="hljs-literal">false</span>
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">equals</span><span class="hljs-params">(other: <span class="hljs-type">Any?</span>)</span>: <span class="hljs-keyword">Boolean</span> =</span>
+       other <span class="hljs-keyword">is</span> DateTime &amp;&amp;
+               other.millis == millis &amp;&amp;
+               other.timeZone == timeZone
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">hashCode</span><span class="hljs-params">()</span>: <span class="hljs-keyword">Int</span> {</span>
+       <span class="hljs-variable"><span class="hljs-keyword">var</span> result</span> = millis.hashCode()
+       result = result * <span class="hljs-number">31</span> + timeZone.hashCode()
+       <span class="hljs-keyword">return</span> result
+   }
+}
+</code></pre>
+<p>One helpful function on Kotlin/JVM is <code>Objects.hash</code>, that calculates hash of multiple objects using the same algorithm as presented above:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">hashCode</span><span class="hljs-params">()</span>: <span class="hljs-keyword">Int</span> = </span>
+    Objects.hash(timeZone, millis)
+</code></pre>
+<p>There is no such function in the Kotlin stdlib, but if you need it on other platforms you can implement it yourself: </p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">hashCode</span><span class="hljs-params">()</span>: <span class="hljs-keyword">Int</span> =</span>
+   hashCodeFrom(timeZone, millis)
+
+<span class="hljs-keyword">inline</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">hashCodeOf</span><span class="hljs-params">(vararg values: <span class="hljs-type">Any?</span>)</span> =</span>
+   values.fold(<span class="hljs-number">0</span>) { acc, value -&gt;
+       (acc * <span class="hljs-number">31</span>) + value.hashCode()
+   }
+</code></pre>
+<p>The reason why such a function is not in the stdlib is that we rarely need to implement <code>hashCode</code> ourselves. For instance, in the <code>DateTime</code> class presented above, instead of implementing <code>equals</code> and <code>hashCode</code> ourselves, we can just use <code>data</code> modifier:</p>
+<pre><code class="lang-kotlin">data <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DateTime2</span></span>(
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> millis</span>: <span class="hljs-keyword">Long</span> = <span class="hljs-number">0</span>L,
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> timeZone</span>: TimeZone? = <span class="hljs-literal">null</span>
+) {
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> asStringCache</span> = <span class="hljs-string">&quot;&quot;</span>
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> changed</span> = <span class="hljs-literal">false</span>
+}
+</code></pre>
+<p>When you do implement <code>hashCode</code>, remember that the most important rule is that it always needs to be consistent with <code>equals</code>, and it should always return the same value for elements that are equal.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1385,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 41 Respect The Contract Of Hash Code","level":"1.3.4.7","depth":3,"next":{"title":"Item 42 Respect The Contract Of Compare To","level":"1.3.4.8","depth":3,"path":"Part 2 Code design/Chapter 6 Class design/Item 42 Respect the contract of compareTo.md","ref":"Part 2 Code design/Chapter 6 Class design/Item 42 Respect the contract of compareTo.md","articles":[]},"previous":{"title":"Item 40 Respect The Contract Of Equals","level":"1.3.4.6","depth":3,"path":"Part 2 Code design/Chapter 6 Class design/Item 40 Respect the contract of  equals.md","ref":"Part 2 Code design/Chapter 6 Class design/Item 40 Respect the contract of  equals.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 6 Class design/Item 41 Respect the contract of  hashCode.md","mtime":"2021-11-28T03:24:52.242Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-28T03:25:32.440Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 41 Respect The Contract Of Hash Code","level":"1.3.4.7","depth":3,"next":{"title":"Item 42 Respect The Contract Of Compare To","level":"1.3.4.8","depth":3,"path":"Part 2 Code design/Chapter 6 Class design/Item 42 Respect the contract of compareTo.md","ref":"Part 2 Code design/Chapter 6 Class design/Item 42 Respect the contract of compareTo.md","articles":[]},"previous":{"title":"Item 40 Respect The Contract Of Equals","level":"1.3.4.6","depth":3,"path":"Part 2 Code design/Chapter 6 Class design/Item 40 Respect the contract of  equals.md","ref":"Part 2 Code design/Chapter 6 Class design/Item 40 Respect the contract of  equals.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 6 Class design/Item 41 Respect the contract of  hashCode.md","mtime":"2021-11-28T03:29:33.303Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-28T03:30:15.075Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
