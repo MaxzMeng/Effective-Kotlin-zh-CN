@@ -1136,7 +1136,359 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-46-use-inline-modifier-for-functions-with-parameters-of-functional-types">Item 46: Use inline modifier for functions with parameters of functional types</h2>
+<p>You might have noticed that nearly all Kotlin stdlib higher-order functions have an inline modifier. Have you ever asked yourself why are they defined in this way? Here is, for instance, how the <code>repeat</code> function from Kotlin stdlib is implemented:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">inline</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">repeat</span><span class="hljs-params">(times: <span class="hljs-type">Int, action: (Int</span>)</span> -&gt; <span class="hljs-keyword">Unit</span>) {</span>
+   <span class="hljs-keyword">for</span> (index <span class="hljs-keyword">in</span> <span class="hljs-number">0</span> until times) {
+       action(index)
+   }
+}
+</code></pre>
+<p>What this <code>inline</code> modifier does is that during compilation, all uses of this function are replaced with its body. Also, all calls of function arguments inside <code>repeat</code> are replaced with those functions bodies. So the following <code>repeat</code> function call:</p>
+<pre><code class="lang-kotlin">repeat(<span class="hljs-number">10</span>) { 
+   print(it) 
+}
+</code></pre>
+<p>During compilation will be replaced with the following:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">for</span> (index <span class="hljs-keyword">in</span> <span class="hljs-number">0</span> until <span class="hljs-number">10</span>) {
+   print(index)
+}
+</code></pre>
+<p>It is a significant change compared to how functions are executed normally. In a normal function, execution jumps into this function body, invokes all statements, then jumps back to the place where the function was invoked. Replacing calls with bodies is a significantly different behavior. </p>
+<p>There are a few advantages to this behavior:</p>
+<ol>
+<li>A type argument can be reified</li>
+<li>Functions with functional parameters are faster when they are inline</li>
+<li>Non-local return is allowed</li>
+</ol>
+<p>There are also some costs to using this modifier. Let&#x2019;s review both all the advantages and costs of <code>inline</code> modifier. </p>
+<h3 id="a-type-argument-can-be-reified">A type argument can be reified</h3>
+<p>Java does not have generics in older versions. They were added to the Java programming language in 2004 within version J2SE 5.0. They are still not present in the JVM bytecode though. Therefore during compilation, generic types are erased. For instance <code>List&lt;Int&gt;</code> compiles to <code>List</code>. This is why we cannot check if an object is <code>List&lt;Int&gt;</code>. We can only check if it is a <code>List</code>.</p>
+<pre><code class="lang-kotlin">any <span class="hljs-keyword">is</span> List<span class="hljs-type">&lt;Int&gt;</span> <span class="hljs-comment">// Error</span>
+any <span class="hljs-keyword">is</span> List<span class="hljs-type">&lt;*&gt;</span> <span class="hljs-comment">// OK</span>
+</code></pre>
+<p><img src="../../assets/chapter7/chapter7-1.png" alt=""></p>
+<p>For the same reason, we cannot operate on a type argument:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T&gt;</span> <span class="hljs-title">printTypeName</span><span class="hljs-params">()</span> {</span>
+   print(T::<span class="hljs-class"><span class="hljs-keyword">class</span>.<span class="hljs-title">simpleName</span>) // <span class="hljs-title">ERROR</span></span>
+}
+</code></pre>
+<p>We can overcome this limitation by making a function inline. Function calls are replaced with its body, so type parameters uses can be replaced with type arguments, by using the <em>reified</em> modifier:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">inline</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;<span class="hljs-keyword">reified</span> T&gt;</span> <span class="hljs-title">printTypeName</span><span class="hljs-params">()</span> {</span>
+   print(T::<span class="hljs-class"><span class="hljs-keyword">class</span>.<span class="hljs-title">simpleName</span>)</span>
+}
+
+<span class="hljs-comment">// Usage</span>
+printTypeName<span class="hljs-type">&lt;Int&gt;</span>()    <span class="hljs-comment">// Int</span>
+printTypeName<span class="hljs-type">&lt;Char&gt;</span>()   <span class="hljs-comment">// Char</span>
+printTypeName<span class="hljs-type">&lt;String&gt;</span>() <span class="hljs-comment">// String</span>
+</code></pre>
+<p>During compilation, the body of <code>printTypeName</code> replaces usages, and the type argument replaces the type parameter:</p>
+<pre><code class="lang-kotlin">print(<span class="hljs-keyword">Int</span>::<span class="hljs-class"><span class="hljs-keyword">class</span>.<span class="hljs-title">simpleName</span>) // <span class="hljs-title">Int</span></span>
+print(<span class="hljs-keyword">Char</span>::<span class="hljs-class"><span class="hljs-keyword">class</span>.<span class="hljs-title">simpleName</span>) // <span class="hljs-title">Char</span></span>
+print(String::<span class="hljs-class"><span class="hljs-keyword">class</span>.<span class="hljs-title">simpleName</span>) // <span class="hljs-title">String</span></span>
+</code></pre>
+<p><code>reified</code> is a useful modifier. For instance, it is used in <code>filterIsInstance</code> from the stdlib to filter only elements of a certain type:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Worker</span></span>
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Manager</span></span>
+
+<span class="hljs-variable"><span class="hljs-keyword">val</span> employees</span>: List<span class="hljs-type">&lt;Any&gt;</span> = 
+     listOf(Worker(), Manager(), Worker())
+
+<span class="hljs-variable"><span class="hljs-keyword">val</span> workers</span>: List<span class="hljs-type">&lt;Worker&gt;</span> = 
+     employees.filterIsInstance<span class="hljs-type">&lt;Worker&gt;</span>()
+</code></pre>
+<h3 id="functions-with-functional-parameters-are-faster-when-they-are-inlined">Functions with functional parameters are faster when they are inlined</h3>
+<p>To be more concrete, all functions are slightly faster when they are inlined. There is no need to jump with execution and to track the back-stack. This is why small functions that are used very often in the stdlib are often inlined:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">inline</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">print</span><span class="hljs-params">(message: <span class="hljs-type">Any?</span>)</span> {</span>
+   System.out.print(message)
+}
+</code></pre>
+<p>This difference is most likely insignificant when a function does not have any functional parameter though. This is the reason why IntelliJ gives such a warning:</p>
+<p><img src="../../assets/chapter7/chapter7-1.png" alt=""></p>
+<p>To understand why, we first need to understand what the problem is with operating on functions as objects. These kinds of objects, created using function literals, need to be held somehow. In Kotlin/JS, it is simple since JavaScript treats functions as first-class citizens. Therefore in Kotlin/JS, it is either a function or a function reference. On Kotlin/JVM, some object needs to be created, either using a JVM anonymous class or a normal class. Therefore the following lambda expression:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> lambda</span>: ()-&gt;<span class="hljs-keyword">Unit</span> = {
+   <span class="hljs-comment">// code</span>
+}
+</code></pre>
+<p>Will be compiled to a class. Either a JVM anonymous class:</p>
+<pre><code class="lang-java"><span class="hljs-comment">// Java</span>
+Function0&lt;Unit&gt; lambda = <span class="hljs-keyword">new</span> Function0&lt;Unit&gt;() {
+   <span class="hljs-function"><span class="hljs-keyword">public</span> Unit <span class="hljs-title">invoke</span><span class="hljs-params">()</span> </span>{
+       <span class="hljs-comment">// code</span>
+   }
+};
+</code></pre>
+<p>Or it can be compiled into a normal class defined in a separate file:</p>
+<pre><code class="lang-java"><span class="hljs-comment">// Java</span>
+<span class="hljs-comment">// Additional class in separate file</span>
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Test</span>$<span class="hljs-title">lambda</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Function0</span>&lt;<span class="hljs-title">Unit</span>&gt; </span>{
+   <span class="hljs-function"><span class="hljs-keyword">public</span> Unit <span class="hljs-title">invoke</span><span class="hljs-params">()</span> </span>{
+       <span class="hljs-comment">// code</span>
+   }
+}
+
+<span class="hljs-comment">// Usage</span>
+Function0 lambda = <span class="hljs-keyword">new</span> Test$lambda()
+</code></pre>
+<p>There is no significant difference between those two options.</p>
+<p>Notice that the function type translates to the <code>Function0</code> type. This is what a function type with no arguments in JVM is compiled to. And the same is true with other function types:</p>
+<ul>
+<li><code>()-&gt;Unit</code> compiles to <code>Function0&lt;Unit&gt;</code></li>
+<li><code>()-&gt;Int</code> compiles to <code>Function0&lt;Int&gt;</code></li>
+<li><code>(Int)-&gt;Int</code> compiles to <code>Function1&lt;Int, Int&gt;</code></li>
+<li><code>(Int, Int)-&gt;Int</code> compiles to <code>Function2&lt;Int, Int, Int&gt;</code></li>
+</ul>
+<p>All those interfaces are generated by the Kotlin compiler. You cannot use them explicitly in Kotlin though because they are generated on demand. We should use function types instead. Although knowing that function types are just interfaces opens your eyes to some new possibilities:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">OnClickListener</span>: <span class="hljs-type"></span></span>()-&gt;<span class="hljs-keyword">Unit</span> {
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">invoke</span><span class="hljs-params">()</span> {</span>
+       <span class="hljs-comment">// ...</span>
+   }
+}
+</code></pre>
+<p>As illustrated in <em>Item 45: Avoid unnecessary object creation</em>, wrapping the body of a function into an object will slow down the code. This is why among the two functions below, the first one will be faster:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">inline</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">repeat</span><span class="hljs-params">(times: <span class="hljs-type">Int, action: (Int</span>)</span> -&gt; <span class="hljs-keyword">Unit</span>) {</span>
+   <span class="hljs-keyword">for</span> (index <span class="hljs-keyword">in</span> <span class="hljs-number">0</span> until times) {
+       action(index)
+   }
+}
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">repeatNoinline</span><span class="hljs-params">(times: <span class="hljs-type">Int, action: (Int</span>)</span> -&gt; <span class="hljs-keyword">Unit</span>) {</span>
+   <span class="hljs-keyword">for</span> (index <span class="hljs-keyword">in</span> <span class="hljs-number">0</span> until times) {
+       action(index)
+   }
+}
+</code></pre>
+<p>The difference is visible, but rarely significant in real-life examples. Although if we design our test well, you can see this difference clearly:</p>
+<pre><code class="lang-kotlin">@Benchmark
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">nothingInline</span><span class="hljs-params">(blackhole: <span class="hljs-type">Blackhole</span>)</span> {</span>
+   repeat(<span class="hljs-number">100</span>_000_000) {
+       blackhole.consume(it)
+   }
+}
+
+@Benchmark
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">nothingNoninline</span><span class="hljs-params">(blackhole: <span class="hljs-type">Blackhole</span>)</span> {</span>
+   noinlineRepeat(<span class="hljs-number">100</span>_000_000) {
+       blackhole.consume(it)
+   }
+}
+</code></pre>
+<p>The first one takes on my computer on average 189 ms. The second one takes on average 447 ms. This difference comes from the fact that in the first function we only iterate over numbers and call an empty function. In the second function, we call a method that iterates over numbers and calls an object, and this object calls an empty function. All that difference comes from the fact that we use an extra object (<em>Item 45: Avoid unnecessary object creation</em>). </p>
+<p>To show a more typical example, let&#x2019;s say that we have 5 000 products and we need to sum up the prices of the ones that were bought. We can do it simply by:</p>
+<pre><code class="lang-kotlin">users.filter { it.bought }.sumByDouble { it.price }
+</code></pre>
+<p>In my machine, it takes 38 ms to calculate on average. How much would it be if <code>filter</code> and <code>sumByDouble</code> functions were not inline? 42 ms on average on my machine. This doesn&#x2019;t look like a lot, but this is ~10% difference every time when you use methods for collection processing. </p>
+<p>A more significant difference between inline and non-inline functions manifests itself when we capture local variables in function literals. A captured value needs to be wrapped as well into some object and whenever it is used, it needs to be done using this object. For instance, in the following code:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">var</span> l</span> = <span class="hljs-number">1</span>L
+noinlineRepeat(<span class="hljs-number">100</span>_000_000) {
+   l += it
+}
+</code></pre>
+<p>A local variable cannot be really used directly in non-inlines lambda. This is why during compilation time, the value of <code>a</code> will be wrapped into a reference object:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> a</span> = Ref.LongRef()
+a.element = <span class="hljs-number">1</span>L
+noinlineRepeat(<span class="hljs-number">100</span>_000_000) {
+   a.element = a.element + it
+}
+</code></pre>
+<p>This is a more significant difference because often, such objects might be used many times: every time we use a function created by a function literal. For instance, in the above example, we use <code>a</code> two times. Therefore extra object use will happen 2 * 100 000 000. To see this difference, let&#x2019;s compare the following functions:</p>
+<pre><code class="lang-kotlin">@Benchmark
+<span class="hljs-comment">// On average 30 ms</span>
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">nothingInline</span><span class="hljs-params">(blackhole: <span class="hljs-type">Blackhole</span>)</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> l</span> = <span class="hljs-number">0</span>L
+   repeat(<span class="hljs-number">100</span>_000_000) {
+       l += it
+   }
+   blackhole.consume(l)
+}
+
+@Benchmark
+<span class="hljs-comment">// On average 274 ms</span>
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">nothingNoninline</span><span class="hljs-params">(blackhole: <span class="hljs-type">Blackhole</span>)</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> l</span> = <span class="hljs-number">0</span>L
+   noinlineRepeat(<span class="hljs-number">100</span>_000_000) {
+       l += it
+   }
+   blackhole.consume(l)
+}
+</code></pre>
+<p>The first one on my machine takes 30 ms. The second one 274 ms. This comes from the accumulated effects of the facts that the function is compiled to be an object, and the local variable needs to be wrapped. This is a significant difference. Since in most cases we don&#x2019;t know how functions with parameters of functional types will be used, when we define a utility function with such parameters, for instance for collection processing, it is good practice to make it inline. This is why most extension functions with parameters of functional types in the stdlib are inlined. </p>
+<h3 id="non-local-return-is-allowed">Non-local return is allowed</h3>
+<p>Previously defined <code>repeatNoninline</code> looks much like a control structure. Just compare it with a if or for-loop:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">if</span>(value != <span class="hljs-literal">null</span>) {
+   print(value)
+}
+
+<span class="hljs-keyword">for</span> (i <span class="hljs-keyword">in</span> <span class="hljs-number">1.</span><span class="hljs-number">.10</span>) {
+   print(i)
+}
+
+repeatNoninline(<span class="hljs-number">10</span>) {
+   print(it)
+}
+</code></pre>
+<p>Although one significant difference is that return is not allowed inside:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> {</span>
+   repeatNoinline(<span class="hljs-number">10</span>) {
+       print(it)
+       <span class="hljs-keyword">return</span> <span class="hljs-comment">// ERROR: Not allowed</span>
+   }
+}
+</code></pre>
+<p>This is the result of what function literals are compiled to. We cannot return from <code>main</code>, when our code is located in another class. There is no such limitation when a function literal is inlined. The code will be located in the <code>main</code> function anyway. </p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> {</span>
+   repeat(<span class="hljs-number">10</span>) {
+       print(it)
+       <span class="hljs-keyword">return</span> <span class="hljs-comment">// OK</span>
+   }
+}
+</code></pre>
+<p>Thanks to that, functions can look and behave more like control structures:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">getSomeMoney</span><span class="hljs-params">()</span>: Money? {</span>
+   repeat(<span class="hljs-number">100</span>) {
+       <span class="hljs-variable"><span class="hljs-keyword">val</span> money</span> = searchForMoney()
+       <span class="hljs-keyword">if</span>(money != <span class="hljs-literal">null</span>) <span class="hljs-keyword">return</span> money
+   }
+   <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>
+}
+</code></pre>
+<h3 id="costs-of-inline-modifier">Costs of inline modifier</h3>
+<p>Inline is a useful modifier but it should not be used everywhere. <strong>Inline functions cannot be recursive</strong>. Otherwise, they would replace their calls infinitely. Recurrent cycles are especially dangerous because, at the moment, it does not show an error in the IntelliJ:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">inline</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">a</span><span class="hljs-params">()</span> { <span class="hljs-title">b</span><span class="hljs-params">()</span> }</span>
+<span class="hljs-keyword">inline</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">b</span><span class="hljs-params">()</span> { <span class="hljs-title">c</span><span class="hljs-params">()</span> }</span>
+<span class="hljs-keyword">inline</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">c</span><span class="hljs-params">()</span> { <span class="hljs-title">a</span><span class="hljs-params">()</span> }</span>
+</code></pre>
+<p><strong>Inline functions cannot use elements with more restrictive visibility.</strong> We cannot use private or internal functions or properties in a public inline function. In fact, an inline function cannot use anything with more restrictive visibility:</p>
+<pre><code class="lang-kotlin">internal <span class="hljs-keyword">inline</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">read</span><span class="hljs-params">()</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> reader</span> = Reader() <span class="hljs-comment">// Error</span>
+   <span class="hljs-comment">// ...</span>
+}
+
+<span class="hljs-keyword">private</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Reader</span> </span>{
+   <span class="hljs-comment">// ...</span>
+}
+</code></pre>
+<p>This is why they cannot be used to hide implementation, and so they are rarely used in classes. </p>
+<p>Finally, they make our code grow. To see the scale, let&#x2019;s say that I really like printing <code>3</code>. I first defined the following function:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">inline</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">printThree</span><span class="hljs-params">()</span> {</span>
+   print(<span class="hljs-number">3</span>)
+}
+</code></pre>
+<p>I liked to call it 3 times, so I added this function:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">inline</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">threePrintThree</span><span class="hljs-params">()</span> {</span>
+   printThree()
+   printThree()
+   printThree()
+}
+</code></pre>
+<p>Still not satisfied. I&#x2019;ve defined the following functions:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">inline</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">threeThreePrintThree</span><span class="hljs-params">()</span> {</span>
+   threePrintThree()
+   threePrintThree()
+   threePrintThree()
+}
+
+<span class="hljs-keyword">inline</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">threeThreeThreePrintThree</span><span class="hljs-params">()</span> {</span>
+   threeThreePrintThree()
+   threeThreePrintThree()
+   threeThreePrintThree()
+}
+</code></pre>
+<p>What are they all compiled to? First two are very readable:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">inline</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">printThree</span><span class="hljs-params">()</span> {</span>
+   print(<span class="hljs-number">3</span>)
+}
+
+<span class="hljs-keyword">inline</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">threePrintThree</span><span class="hljs-params">()</span> {</span>
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+}
+</code></pre>
+<p>Next two were compiled to the following functions:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">inline</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">threeThreePrintThree</span><span class="hljs-params">()</span> {</span>
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+}
+
+<span class="hljs-keyword">inline</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">threeThreeThreePrintThree</span><span class="hljs-params">()</span> {</span>
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+   print(<span class="hljs-number">3</span>)
+}
+</code></pre>
+<p>This is an abstract example, but it shows a big problem with inline functions: code grows really quickly when we overuse them. I met with this problem in a real-life project. Having too many inline functions calling each other is dangerous because our code might start growing exponentially. </p>
+<h3 id="crossinline-and-noinline">Crossinline and noinline</h3>
+<p>There are cases when we want to inline a function, but for some reason, we cannot inline all function type arguments. In such cases we can use the following modifiers:</p>
+<ul>
+<li><code>crossinline</code> - it means that the function should be inlined but non-local return is not allowed. We use it when this function is used in another scope where non-local return is not allowed, for instance in another lambda that is not inlined.</li>
+<li><code>noinline</code> - it means that this argument should not be inlined at all. It is used mainly when we use this function as an argument to another function that is not inlined.</li>
+</ul>
+<pre><code>inline fun requestNewToken(
+   hasToken: Boolean,
+   crossinline onRefresh: ()-&gt;Unit,
+   noinline onGenerate: ()-&gt;Unit
+) {
+   if (hasToken) {
+       httpCall(&quot;get-token&quot;, onGenerate) // We must use 
+       // noinline to pass function as an argument to a
+       // function that is not inlined
+   } else {
+       httpCall(&quot;refresh-token&quot;) {
+           onRefresh() // We must use crossinline to 
+           // inline function in a context where 
+           // non-local return is not allowed
+           onGenerate()
+       }
+   }
+}
+
+fun httpCall(url: String, callback: ()-&gt;Unit) {
+   /*...*/
+}
+</code></pre><p>It is good to know what the meaning of both modifiers is, but we can live without remembering them as IntelliJ IDEA suggests them when they are needed:</p>
+<p><img src="../../assets/chapter7/chapter7-2.png" alt=""></p>
+<h3 id="summary">Summary</h3>
+<p>The main cases where we use inline functions are:</p>
+<ul>
+<li>Very often used functions, like <code>print</code>.</li>
+<li>Functions that need to have a reified type passed as a type argument, like <code>filterIsInstance</code>.</li>
+<li>When we define top-level functions with parameters of functional types. Especially helper functions, like collection processing functions (like <code>map</code>, <code>filter</code>, <code>flatMap</code>, <code>joinToString</code>), scope functions (like <code>also</code>, <code>apply</code>, <code>let</code>), or top-level utility functions (like <code>repeat</code>, <code>run</code>, <code>with</code>).</li>
+</ul>
+<p>We rarely use inline functions to define an API and we should be careful with cases when one inline function calls some other inline functions. Remember that code growth accumulates.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1531,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 46 Use Inline Modifier For Functions With Parameters Of Functional Types","level":"1.4.1.3","depth":3,"next":{"title":"Item 47 Consider Using Inline Classes","level":"1.4.1.4","depth":3,"path":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 47 Consider using inline classes.md","ref":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 47 Consider using inline classes.md","articles":[]},"previous":{"title":"Item 45 Avoid Unnecessary Object Creation","level":"1.4.1.2","depth":3,"path":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 45 Avoid unnecessary object creation.md","ref":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 45 Avoid unnecessary object creation.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 46 Use inline modifier for functions with parameters of functional types.md","mtime":"2021-11-28T03:42:18.645Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-28T03:43:03.113Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 46 Use Inline Modifier For Functions With Parameters Of Functional Types","level":"1.4.1.3","depth":3,"next":{"title":"Item 47 Consider Using Inline Classes","level":"1.4.1.4","depth":3,"path":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 47 Consider using inline classes.md","ref":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 47 Consider using inline classes.md","articles":[]},"previous":{"title":"Item 45 Avoid Unnecessary Object Creation","level":"1.4.1.2","depth":3,"path":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 45 Avoid unnecessary object creation.md","ref":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 45 Avoid unnecessary object creation.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 46 Use inline modifier for functions with parameters of functional types.md","mtime":"2021-11-28T04:06:01.899Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-28T04:06:34.037Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
