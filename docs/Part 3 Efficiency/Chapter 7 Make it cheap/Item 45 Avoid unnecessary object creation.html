@@ -1136,7 +1136,324 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-45-avoid-unnecessary-object-creation">Item 45: Avoid unnecessary object creation</h2>
+<p>Object creation can sometimes be expensive and always costs something. This is why avoiding unnecessary object creation can be an important optimization. It can be done on many levels. For instance, in JVM it is guaranteed that a string object will be reused by any other code running in the same virtual machine that happens to contain the same string literal<a href="chap65.xhtml#fn-java_spec">1</a>:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> str1</span> = <span class="hljs-string">&quot;Lorem ipsum dolor sit amet&quot;</span>
+<span class="hljs-variable"><span class="hljs-keyword">val</span> str2</span> = <span class="hljs-string">&quot;Lorem ipsum dolor sit amet&quot;</span>
+print(str1 == str2) <span class="hljs-comment">// true</span>
+print(str1 === str2) <span class="hljs-comment">// true</span>
+</code></pre>
+<p>Boxed primitives (Integer, Long) are also reused in JVM when they are small (by default Integer Cache holds numbers in a range from -128 to 127).</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> i1</span>: <span class="hljs-keyword">Int</span>? = <span class="hljs-number">1</span>
+<span class="hljs-variable"><span class="hljs-keyword">val</span> i2</span>: <span class="hljs-keyword">Int</span>? = <span class="hljs-number">1</span>
+print(i1 == i2) <span class="hljs-comment">// true</span>
+print(i1 === i2) <span class="hljs-comment">// true, because i2 was taken from cache</span>
+</code></pre>
+<p>Reference equality shows that this is the same object. If we use number that is either smaller than -128 or bigger than 127 though, different objects will be produced:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> j1</span>: <span class="hljs-keyword">Int</span>? = <span class="hljs-number">1234</span>
+<span class="hljs-variable"><span class="hljs-keyword">val</span> j2</span>: <span class="hljs-keyword">Int</span>? = <span class="hljs-number">1234</span>
+print(j1 == j2) <span class="hljs-comment">// true</span>
+print(j1 === j2) <span class="hljs-comment">// false</span>
+</code></pre>
+<p>Notice that a nullable type is used to force <code>Integer</code> instead of <code>int</code> under the hood. When we use <code>Int</code>, it is generally compiled to the primitive <code>int</code>, but when we make it nullable or when we use it as a type argument, <code>Integer</code> is used instead. It is because primitive cannot be <code>null</code> and cannot be used as a type argument. Knowing that such mechanisms were introduced in the language, you might wonder how significant they are. Is object creation expensive?</p>
+<h3 id="is-object-creation-expensive">Is object creation expensive?</h3>
+<p>Wrapping something into an object has 3 parts of cost:</p>
+<ul>
+<li><strong>Objects take additional space.</strong> In a modern 64-bit JDK, an object has a 12-byte header, padded to a multiple of 8 bytes, so the minimum object size is 16 bytes. For 32-bit JVMs, the overhead is 8 bytes. Additionally, object references take space as well. Typically, references are 4 bytes on 32bit platforms or on 64bit platforms up to -Xmx32G, and 8 bytes above 32Gb (-Xmx32G). Those are relatively small numbers, but they can add up to a significant cost. When we think about such small elements like integers, they make a difference. <code>Int</code> as a primitive fits in 4 bytes, when as a wrapped type on 64-bit JDK we mainly use today, it requires 16 bytes (it fits in the 4 bytes after the header) + its reference requires 4 or 8 bytes. In the end, it takes 5 or 6 times more space<a href="chap65.xhtml#fn-measure">2</a>.</li>
+<li><strong>Access requires an additional function call when elements are encapsulated.</strong> That is again a small cost as function use is really fast, but it can add-up when we need to operate on a huge pool of objects. Do not limit encapsulation, avoid creating unnecessary objects especially in performance critical parts of your code. </li>
+<li><strong>Objects need to be created.</strong> An object needs to be created, allocated in the memory, a reference needs to be created, etc. It is also a really small cost, but it can add up. </li>
+</ul>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">A</span></span>
+<span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> a</span> = A()
+
+<span class="hljs-comment">// Benchmark result: 2.698 ns/op</span>
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">accessA</span><span class="hljs-params">(blackhole: <span class="hljs-type">Blackhole</span>)</span> {</span>
+   blackhole.consume(a)
+}
+
+<span class="hljs-comment">// Benchmark result: 3.814 ns/op</span>
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">createA</span><span class="hljs-params">(blackhole: <span class="hljs-type">Blackhole</span>)</span> {</span>
+   blackhole.consume(A())
+}
+
+<span class="hljs-comment">// Benchmark result: 3828.540 ns/op</span>
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">createListAccessA</span><span class="hljs-params">(blackhole: <span class="hljs-type">Blackhole</span>)</span> {</span>
+   blackhole.consume(List(<span class="hljs-number">1000</span>) { a })
+}
+
+<span class="hljs-comment">// Benchmark result: 5322.857 ns/op</span>
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">createListCreateA</span><span class="hljs-params">(blackhole: <span class="hljs-type">Blackhole</span>)</span> {</span>
+   blackhole.consume(List(<span class="hljs-number">1000</span>) { A() })
+}
+</code></pre>
+<p>By eliminating objects, we can avoid all three costs. By reusing objects, we can eliminate the first and the third one. Knowing that, you might start thinking about limiting the number of unnecessary objects in your code. Let&#x2019;s see some ways we can do that.</p>
+<h3 id="object-declaration">Object declaration</h3>
+<p>A very simple way to reuse an object instead of creating it every time is using object declaration (singleton). To see an example, let&#x2019;s imagine that you need to implement a linked list. The linked list can be either empty, or it can be a node containing an element and pointing to the rest. This is how it can be implemented:</p>
+<pre><code class="lang-kotlin">sealed <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">LinkedList</span>&lt;<span class="hljs-type">T</span>&gt;</span>
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Node</span>&lt;<span class="hljs-type">T</span>&gt;</span>(
+    <span class="hljs-variable"><span class="hljs-keyword">val</span> head</span>: T, 
+    <span class="hljs-variable"><span class="hljs-keyword">val</span> tail</span>: LinkedList<span class="hljs-type">&lt;T&gt;</span>
+): LinkedList<span class="hljs-type">&lt;T&gt;</span>()
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Empty</span>&lt;<span class="hljs-type">T</span>&gt;: <span class="hljs-type">LinkedList</span>&lt;<span class="hljs-type">T</span>&gt;</span>()
+
+<span class="hljs-comment">// Usage</span>
+<span class="hljs-variable"><span class="hljs-keyword">val</span> list</span>: LinkedList<span class="hljs-type">&lt;Int&gt;</span> = 
+    Node(<span class="hljs-number">1</span>, Node(<span class="hljs-number">2</span>, Node(<span class="hljs-number">3</span>, Empty())))
+<span class="hljs-variable"><span class="hljs-keyword">val</span> list2</span>: LinkedList<span class="hljs-type">&lt;String&gt;</span> = 
+    Node(<span class="hljs-string">&quot;A&quot;</span>, Node(<span class="hljs-string">&quot;B&quot;</span>, Empty()))
+</code></pre>
+<p>One problem with this implementation is that we need to create an instance of <code>Empty</code> every time we create a list. Instead, we should just have one instance and use it universally. The only problem is the generic type. What generic type should we use? We want this empty list to be subtype of all lists. We cannot use all types, but we also don&#x2019;t need to. A solution is that we can make it a list of <code>Nothing</code>. <code>Nothing</code> is a subtype of every type, and so <code>LinkedList&lt;Nothing&gt;</code> will be a subtype of every <code>LinkedList</code> once this list is covariant (<code>out</code> modifier). Making type arguments covariant truly makes sense here since the list is immutable and this type is used only in out positions (Item 24: Consider variance for generic types). So this is the improved code:</p>
+<pre><code class="lang-kotlin">sealed <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">LinkedList</span>&lt;<span class="hljs-type">out T</span>&gt;</span>
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Node</span>&lt;<span class="hljs-type">out T</span>&gt;</span>(
+       <span class="hljs-variable"><span class="hljs-keyword">val</span> head</span>: T,
+       <span class="hljs-variable"><span class="hljs-keyword">val</span> tail</span>: LinkedList<span class="hljs-type">&lt;T&gt;</span>
+) : LinkedList<span class="hljs-type">&lt;T&gt;</span>()
+
+<span class="hljs-keyword">object</span> Empty : LinkedList<span class="hljs-type">&lt;Nothing&gt;</span>()
+
+<span class="hljs-comment">// Usage</span>
+<span class="hljs-variable"><span class="hljs-keyword">val</span> list</span>: LinkedList<span class="hljs-type">&lt;Int&gt;</span> = 
+    Node(<span class="hljs-number">1</span>, Node(<span class="hljs-number">2</span>, Node(<span class="hljs-number">3</span>, Empty)))
+
+<span class="hljs-variable"><span class="hljs-keyword">val</span> list2</span>: LinkedList<span class="hljs-type">&lt;String&gt;</span> = 
+    Node(<span class="hljs-string">&quot;A&quot;</span>, Node(<span class="hljs-string">&quot;B&quot;</span>, Empty))
+</code></pre>
+<p>This is a useful trick that is often used, especially when we define immutable sealed classes. Immutable, because using it for mutable objects can lead to subtle and hard to detect bugs connected to shared state management. The general rule is that mutable objects should not be cached (<em>Item 1: Limit mutability</em>). Apart from object declaration, there are more ways to reuse objects. Another one is a factory function with a cache.</p>
+<h3 id="factory-function-with-a-cache">Factory function with a cache</h3>
+<p>Every time we use a constructor, we have a new object. Though it is not necessarily true when you use a factory method. Factory functions can have cache. The simplest case is when a factory function always returns the same object. This is, for instance, how <code>emptyList</code> from stdlib is implemented:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T&gt;</span> <span class="hljs-title">emptyList</span><span class="hljs-params">()</span>: List<span class="hljs-type">&lt;T&gt;</span> = EmptyList</span>
+</code></pre>
+<p>Sometimes we have a set of objects, and we return one of them. For instance, when we use the default dispatcher in the Kotlin coroutines library <code>Dispatchers.Default</code>, it has a pool of threads, and whenever we start anything using it, it will start it in one that is not in use. Similarly, we might have a pool of connections with a database. Having a pool of objects is a good solution when object creation is heavy, and we might need to use a few mutable objects at the same time. </p>
+<p>Caching can also be done for parameterized factory methods. In such a case, we might keep our objects in a map:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> connections</span>: MutableMap<span class="hljs-type">&lt;String, Connection&gt;</span> = 
+    mutableMapOf<span class="hljs-type">&lt;String, Connection&gt;</span>()
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">getConnection</span><span class="hljs-params">(host: <span class="hljs-type">String</span>)</span> =</span>
+    connections.getOrPut(host) { createConnection(host) }
+</code></pre>
+<p>Caching can be used for all pure functions. In such a case, we call it memoization. Here is, for instance, a function that calculates the Fibonacci number at a position based on the definition:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> FIB_CACHE</span>: MutableMap<span class="hljs-type">&lt;Int, BigInteger&gt;</span> = 
+   mutableMapOf<span class="hljs-type">&lt;Int, BigInteger&gt;</span>()
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">fib</span><span class="hljs-params">(n: <span class="hljs-type">Int</span>)</span>: BigInteger = FIB_CACHE.<span class="hljs-title">getOrPut</span><span class="hljs-params">(n)</span> {</span>
+   <span class="hljs-keyword">if</span> (n <span class="hljs-type">&lt;= 1) BigInteger.ONE else fib(n - 1) + fib(n - 2)
+}
+</span></code></pre>
+<p>Now our method during the first run is nearly as efficient as a linear solution, and later it gives result immediately if it was already calculated. Comparison between this and classic linear fibonacci implementation on an example machine is presented in the below table. Also the iterative implementation we compare it to is presented below. </p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left"></th>
+<th style="text-align:left">n = 100</th>
+<th style="text-align:left">n = 200</th>
+<th style="text-align:left">n = 300</th>
+<th style="text-align:left">n = 400</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">fibIter</td>
+<td style="text-align:left">1997 ns</td>
+<td style="text-align:left">5234 ns</td>
+<td style="text-align:left">7008 ns</td>
+<td style="text-align:left">9727 ns</td>
+</tr>
+<tr>
+<td style="text-align:left">fib (first)</td>
+<td style="text-align:left">4413 ns</td>
+<td style="text-align:left">9815 ns</td>
+<td style="text-align:left">15484 ns</td>
+<td style="text-align:left">22205 ns</td>
+</tr>
+<tr>
+<td style="text-align:left">fib (later)</td>
+<td style="text-align:left">8 ns</td>
+<td style="text-align:left">8 ns</td>
+<td style="text-align:left">8 ns</td>
+<td style="text-align:left">8 ns</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">fibIter</span><span class="hljs-params">(n: <span class="hljs-type">Int</span>)</span>: BigInteger {</span>
+   <span class="hljs-keyword">if</span>(n <span class="hljs-type">&lt;= 1) return BigInteger.ONE
+   var p = BigInteger.ONE
+   var pp = BigInteger.ONE
+   for (i in 2..n) {
+       val temp = p + pp
+       pp = p
+       p = temp
+   }
+   return p
+}
+</span></code></pre>
+<p>You can see that using this function for the first time is slower than using the classic approach as there is additional overhead on checking if the value is in the cache and adding it there. Once values are added, the retrieval is nearly instantaneous. </p>
+<p>It has a significant drawback though: we are reserving and using more memory since the <code>Map</code> needs to be stored somewhere. Everything would be fine if this was cleared at some point. But take into account that for the Garbage Collector (GC), there is no difference between a cache and any other static field that might be necessary in the future. It will hold this data as long as possible, even if we never use the <code>fib</code> function again. One thing that helps is using a soft reference that can be removed by the GC when memory is needed. It should not be confused with weak reference. In simple words, the difference is:</p>
+<ul>
+<li>Weak references do not prevent Garbage Collector from cleaning-up the value. So once no other reference (variable) is using it, the value will be cleaned.</li>
+<li>Soft references are not guaranteeing that the value won&#x2019;t be cleaned up by the GC either, but in most JVM implementations, this value won&#x2019;t be cleaned unless memory is needed. Soft references are perfect when we implement a cache.</li>
+</ul>
+<p>This is an example property delegate (details in <em>Item 21: Use property delegation to extract common property patterns</em>) that on-demand creates a map and lets us use it, but does not stop Garbage Collector from recycling this map when memory is needed (full implementation should include thread synchronization):</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> FIB_CACHE</span>: MutableMap<span class="hljs-type">&lt;Int, BigInteger&gt;</span> by
+ SoftReferenceDelegate { mutableMapOf<span class="hljs-type">&lt;Int, BigInteger&gt;</span>() }
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">fib</span><span class="hljs-params">(n: <span class="hljs-type">Int</span>)</span>: BigInteger = FIB_CACHE.<span class="hljs-title">getOrPut</span><span class="hljs-params">(n)</span> {</span>
+   <span class="hljs-keyword">if</span> (n <span class="hljs-type">&lt;= 1) BigInteger.ONE else fib(n - 1) + fib(n - 2)
+}
+
+class SoftReferenceDelegate&lt;T: Any&gt;</span>(
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> initialization</span>: ()-&gt;T
+) {
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> reference</span>: SoftReference<span class="hljs-type">&lt;T&gt;</span>? = <span class="hljs-literal">null</span>
+
+   operator <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">getValue</span><span class="hljs-params">(
+       thisRef: <span class="hljs-type">Any?,
+       property: KProperty&lt;*&gt;</span>
+   )</span>: T {</span>
+       <span class="hljs-variable"><span class="hljs-keyword">val</span> stored</span> = reference?.<span class="hljs-keyword">get</span>()
+       <span class="hljs-keyword">if</span> (stored != <span class="hljs-literal">null</span>) <span class="hljs-keyword">return</span> stored
+       <span class="hljs-variable"><span class="hljs-keyword">val</span> new</span> = initialization()
+       reference = SoftReference(new)
+       <span class="hljs-keyword">return</span> new
+   }
+}
+</code></pre>
+<p>Designing a cache well is not easy, and in the end, caching is always a tradeoff: performance for memory. Remember this, and use caches wisely. No-one wants to move from performance issues to lack of memory issues. </p>
+<h3 id="heavy-object-lifting">Heavy object lifting</h3>
+<p>A very useful trick for performance is lifting a heavy object to an outer scope. Surely, we should lift if possible all heavy operations from collection processing functions to a general processing scope. For instance, in this function we can see that we will need to find the maximal element for every element in the <code>Iterable</code>:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T: Comparable&lt;T&gt;</span>&gt; Iterable<span class="hljs-type">&lt;T&gt;</span>.<span class="hljs-title">countMax</span><span class="hljs-params">()</span>: <span class="hljs-keyword">Int</span> = </span>
+    count { it == this.max() }
+</code></pre>
+<p>A better solution is to extract the maximal element to the level of <code>countMax</code> function:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T: Comparable&lt;T&gt;</span>&gt; Iterable<span class="hljs-type">&lt;T&gt;</span>.<span class="hljs-title">countMax</span><span class="hljs-params">()</span>: <span class="hljs-keyword">Int</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> max</span> = this.max()
+   <span class="hljs-keyword">return</span> count { it == max }
+}
+</code></pre>
+<p>This solution is better for performance because we will not need to find the maximal element on the receiver on every iteration. Notice that it also improves readability by making it visible that <code>max</code> is called on the extension receiver and so it is the same through all iterations. </p>
+<p>Extracting a value calculation to an outer scope to not calculate it is an important practice. It might sound obvious, but it is not always so clear. Just take a look at this function where we use a regex to validate if a string contains a valid IP address:</p>
+<pre><code class="lang-kotlin">fun String.isValidIpAddress(): Boolean {
+   return this.matches(&quot;\\A(?:(?:25[0-5]|2[0-4][0-9]
+|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]
+?[0-9][0-9]?)\\z&quot;.toRegex())
+}
+
+// Usage
+print(&quot;5.173.80.254&quot;.isValidIpAddress()) // true
+</code></pre>
+<p>The problem with this function is that <code>Regex</code> object needs to be created every time we use it. It is a serious disadvantage since regex pattern compilation is a complex operation. This is why this function is not suitable to be used repeatedly in performance-constrained parts of our code. Though we can improve it by lifting regex up to the top-level:</p>
+<pre><code class="lang-kotlin">private val IS_VALID_EMAIL_REGEX = &quot;\\A(?:(?:25[0-5]
+|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4]
+[0-9]|[01]?[0-9][0-9]?)\\z&quot;.toRegex()
+
+fun String.isValidIpAddress(): Boolean = 
+    matches(IS_VALID_EMAIL_REGEX)
+</code></pre>
+<p>If this function is in a file together with some other functions and we don&#x2019;t want to create this object if it is not used, we can even initialize the regex lazily:</p>
+<pre><code class="lang-kotlin">private val IS_VALID_EMAIL_REGEX by lazy { 
+&quot;\\A(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.)
+{3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\z&quot;.toRegex() 
+}
+</code></pre>
+<p>Making properties lazy is also useful when we are dealing with classes. </p>
+<h3 id="lazy-initialization">Lazy initialization</h3>
+<p>Often when we need to create a heavy class, it is better to do that lazily. For instance, imagine that class <code>A</code> needs instances of <code>B</code>, <code>C</code>, and <code>D</code> that are heavy. If we just create them during class creation, <code>A</code> creation will be very heavy, because it will need to create <code>B</code>, <code>C</code> and <code>D</code> and then the rest of its body. The heaviness of objects creation will just accumulates.</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">A</span> </span>{
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> b</span> = B()
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> c</span> = C()
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> d</span> = D()
+
+   <span class="hljs-comment">//...</span>
+}
+</code></pre>
+<p>There is a cure though. We can just initialize those heavy objects lazily:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">A</span> </span>{
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> b by lazy { B() }
+   <span class="hljs-keyword">val</span> c by lazy { C() }
+   <span class="hljs-keyword">val</span> d by lazy { D() }
+
+   //...
+}
+</span></code></pre>
+<p>Each object will then be initialized just before its first usage. The cost of those objects creation will be spread instead of accumulated. </p>
+<p>Keep in mind that this sword is double-edged. You might have a case where object creation can be heavy, but you need methods to be as fast as possible. Imagine that <code>A</code> is a controller in a backend application that responds to HTTP calls. It starts quickly, but the first call requires all heavy objects initialization. So the first call needs to wait significantly longer for the response, and it doesn&#x2019;t matter for how long our application runs. This is not the desired behavior. This is also something that might clutter our performance tests. </p>
+<h3 id="using-primitives">Using primitives</h3>
+<p>In JVM we have a special built-in type to represent basic elements like number or character. They are called primitives, and they are used by Kotlin/JVM compiler under the hood wherever possible. Although there are some cases where a wrapped class needs to be used instead. The two main cases are:</p>
+<ol>
+<li>When we operate on a nullable type (primitives cannot be <code>null</code>)</li>
+<li>When we use the type as a generic</li>
+</ol>
+<p>So in short:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Kotlin type</th>
+<th style="text-align:left">Java type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Int</td>
+<td style="text-align:left">int</td>
+</tr>
+<tr>
+<td style="text-align:left">Int?</td>
+<td style="text-align:left">Integer</td>
+</tr>
+<tr>
+<td style="text-align:left">List<int></int></td>
+<td style="text-align:left">List<integer></integer></td>
+</tr>
+</tbody>
+</table>
+<p>Knowing that, you can optimize your code to have primitives under the hood instead of wrapped types. Such optimization makes sense mainly on Kotlin/JVM and on some flavours of Kotlin/Native. Not at all on Kotlin/JS. It also needs to be remembered that it makes sense only when operations on a number are repeated many times. Access of both primitive and wrapped types are relatively fast compared to other operations. The difference manifests itself when we deal with a really big collections (we will discuss it in the <em>Item 51: Consider Arrays with primitives for performance critical processing</em>) or when we operate on an object intensively. Also remember that forced changes might lead to less readable code. <strong>This is why I suggest this optimization only for performance critical parts of our code and in libraries.</strong> You can find out what is performance critical using a profiler.</p>
+<p>To see an example, imagine that you implement a standard library for Kotlin, and you want to introduce a function that will return the maximal element or <code>null</code> if this iterable is empty. You don&#x2019;t want to iterate over the iterable more than once. This is not a trivial problem, but it can be solved with the following function:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> Iterable<span class="hljs-type">&lt;Int&gt;</span>.<span class="hljs-title">maxOrNull</span><span class="hljs-params">()</span>: <span class="hljs-keyword">Int</span>? {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> max</span>: <span class="hljs-keyword">Int</span>? = <span class="hljs-literal">null</span>
+   <span class="hljs-keyword">for</span> (i <span class="hljs-keyword">in</span> this) {
+       max = <span class="hljs-keyword">if</span>(i &gt; (max ?: <span class="hljs-keyword">Int</span>.MIN_VALUE)) i <span class="hljs-keyword">else</span> max
+   }
+   <span class="hljs-keyword">return</span> max
+}
+</code></pre>
+<p>This implementation has serious disadvantages:</p>
+<ol>
+<li>We need to use an Elvis operator in every step</li>
+<li>We use a nullable value, so under the hood in JVM, there will be an <code>Integer</code> instead of an <code>int</code>. </li>
+</ol>
+<p>Resolving these two problems requires us to implement the iteration using while loop:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> Iterable<span class="hljs-type">&lt;Int&gt;</span>.<span class="hljs-title">maxOrNull</span><span class="hljs-params">()</span>: <span class="hljs-keyword">Int</span>? {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> iterator</span> = iterator()
+   <span class="hljs-keyword">if</span> (!iterator.hasNext()) <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> max</span>: <span class="hljs-keyword">Int</span> = iterator.next()
+   <span class="hljs-keyword">while</span> (iterator.hasNext()) {
+       <span class="hljs-variable"><span class="hljs-keyword">val</span> e</span> = iterator.next()
+       <span class="hljs-keyword">if</span> (max <span class="hljs-type">&lt; e) max = e
+   }
+   return max
+}
+</span></code></pre>
+<p>For a collection of elements from 1 to 10 million, in my computer, the optimized implementation took 289 ms, while the previous one took 518 ms. This is nearly 2 times faster, but remember that this is an extreme case designed to show the difference. Such optimization is rarely reasonable in a code that is not performance-critical. Though if you implement a Kotlin standard library, everything is performance critical. This is why the second approach is chosen here:</p>
+<pre><code class="lang-kotlin"><span class="hljs-comment">/**
+* Returns the largest element or `null` if there are
+* no elements.
+*/</span>
+<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T : Comparable&lt;T&gt;</span>&gt; Iterable<span class="hljs-type">&lt;T&gt;</span>.<span class="hljs-title">max</span><span class="hljs-params">()</span>: T? {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> iterator</span> = iterator()
+   <span class="hljs-keyword">if</span> (!iterator.hasNext()) <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> max</span> = iterator.next()
+   <span class="hljs-keyword">while</span> (iterator.hasNext()) {
+       <span class="hljs-variable"><span class="hljs-keyword">val</span> e</span> = iterator.next()
+       <span class="hljs-keyword">if</span> (max <span class="hljs-type">&lt; e) max = e
+   }
+   return max
+}
+</span></code></pre>
+<h3 id="summary">Summary</h3>
+<p>In this item, you&#x2019;ve seen different ways to avoid object creation. Some of them are cheap in terms of readability: those should be used freely. For instance, heavy object lifting out of a loop or function is generally a good idea. It is a good practice for performance, and also thanks to this extraction, we can name this object so we make our function easier to read. Those optimizations that are tougher or require bigger changes should possibly be skipped. We should avoid premature optimization unless we have such guidelines in our project or we develop a library that might be used in who-knows-what-way. We&#x2019;ve also learned some optimizations that might be used to optimize the performance critical parts of our code.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1496,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 45 Avoid Unnecessary Object Creation","level":"1.4.1.2","depth":3,"next":{"title":"Item 46 Use Inline Modifier For Functions With Parameters Of Functional Types","level":"1.4.1.3","depth":3,"path":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 46 Use inline modifier for functions with parameters of functional types.md","ref":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 46 Use inline modifier for functions with parameters of functional types.md","articles":[]},"previous":{"title":"Introduction","level":"1.4.1.1","depth":3,"path":"Part 3 Efficiency/Chapter 7 Make it cheap/Introduction.md","ref":"Part 3 Efficiency/Chapter 7 Make it cheap/Introduction.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 45 Avoid unnecessary object creation.md","mtime":"2021-11-28T03:36:32.508Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-28T03:37:06.702Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 45 Avoid Unnecessary Object Creation","level":"1.4.1.2","depth":3,"next":{"title":"Item 46 Use Inline Modifier For Functions With Parameters Of Functional Types","level":"1.4.1.3","depth":3,"path":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 46 Use inline modifier for functions with parameters of functional types.md","ref":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 46 Use inline modifier for functions with parameters of functional types.md","articles":[]},"previous":{"title":"Introduction","level":"1.4.1.1","depth":3,"path":"Part 3 Efficiency/Chapter 7 Make it cheap/Introduction.md","ref":"Part 3 Efficiency/Chapter 7 Make it cheap/Introduction.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 45 Avoid unnecessary object creation.md","mtime":"2021-11-28T03:42:18.645Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-28T03:43:03.113Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
