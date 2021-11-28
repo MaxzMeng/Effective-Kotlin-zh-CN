@@ -1134,7 +1134,41 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-52-consider-using-mutable-collections">Item 52: Consider using mutable collections</h2>
+<p>The biggest advantage of using mutable collections instead of immutable is that they are faster in terms of performance. When we add an element to an immutable collection, we need to create a new collection and add all elements to it. Here is how it is currently implemented in the Kotlin stdlib (Kotlin 1.2):</p>
+<pre><code class="lang-kotlin">operator <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T&gt;</span> Iterable<span class="hljs-type">&lt;T&gt;</span>.<span class="hljs-title">plus</span><span class="hljs-params">(element: <span class="hljs-type">T</span>)</span>: List<span class="hljs-type">&lt;T&gt;</span> {</span>
+   <span class="hljs-keyword">if</span> (this <span class="hljs-keyword">is</span> Collection) <span class="hljs-keyword">return</span> this.plus(element)
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> result</span> = ArrayList<span class="hljs-type">&lt;T&gt;</span>()
+   result.addAll(this)
+   result.add(element)
+   <span class="hljs-keyword">return</span> result
+}
+</code></pre>
+<p>Adding all elements from a previous collection is a costly process when we deal with bigger collections. This is why using mutable collections, especially if we need to add elements, is a performance optimization. On the other hand <em>Item 1: Limit mutability</em> taught us the advantages of using immutable collections for safety. Although notice that those arguments rarely apply to local variables where synchronization or encapsulation is rarely needed. This is why for local processing, it generally makes more sense to use mutable collections. This fact can be reflected in the standard library where all collection processing functions are internally implemented using mutable collections:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">inline</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T, R&gt;</span> Iterable<span class="hljs-type">&lt;T&gt;</span>.<span class="hljs-title">map</span><span class="hljs-params">(
+    transform: <span class="hljs-type">(T</span>)</span> -&gt; R</span>
+): List<span class="hljs-type">&lt;R&gt;</span> {
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> size</span> = <span class="hljs-keyword">if</span> (this <span class="hljs-keyword">is</span> Collection<span class="hljs-type">&lt;*&gt;</span>) this.size <span class="hljs-keyword">else</span> <span class="hljs-number">10</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> destination</span> = ArrayList<span class="hljs-type">&lt;R&gt;</span>(size)
+   <span class="hljs-keyword">for</span> (item <span class="hljs-keyword">in</span> this)
+       destination.add(transform(item))
+   <span class="hljs-keyword">return</span> destination
+}
+</code></pre>
+<p>Instead of using immutable collections:</p>
+<pre><code class="lang-kotlin"><span class="hljs-comment">// This is not how map is implemented</span>
+<span class="hljs-keyword">inline</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T, R&gt;</span> Iterable<span class="hljs-type">&lt;T&gt;</span>.<span class="hljs-title">map</span><span class="hljs-params">(
+    transform: <span class="hljs-type">(T</span>)</span> -&gt; R</span>
+): List<span class="hljs-type">&lt;R&gt;</span> {
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> destination</span> = listOf<span class="hljs-type">&lt;R&gt;</span>()
+   <span class="hljs-keyword">for</span> (item <span class="hljs-keyword">in</span> this)
+       destination += transform(item)
+   <span class="hljs-keyword">return</span> destination
+}
+</code></pre>
+<h3 id="summary">Summary</h3>
+<p>Adding to mutable collections is generally faster, but immutable collections give us more control over how they are changed. Though in local scope we generally do not need that control, so mutable collections should be preferred. Especially in utils, where element insertion might happen many times.</p>
+
                                 
                                 </section>
                             
@@ -1173,7 +1207,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 52 Consider Using Mutable Collections","level":"1.4.2.5","depth":3,"previous":{"title":"Item 51 Consider Arrays With Primitives For Performance Critical Processing","level":"1.4.2.4","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 51 Consider Arrays with primitives for performance-critical processing.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 51 Consider Arrays with primitives for performance-critical processing.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 52 Consider using mutable collections.md","mtime":"2021-11-28T05:55:47.704Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-28T05:56:22.503Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 52 Consider Using Mutable Collections","level":"1.4.2.5","depth":3,"previous":{"title":"Item 51 Consider Arrays With Primitives For Performance Critical Processing","level":"1.4.2.4","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 51 Consider Arrays with primitives for performance-critical processing.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 51 Consider Arrays with primitives for performance-critical processing.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 52 Consider using mutable collections.md","mtime":"2021-11-28T05:58:15.803Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-28T05:58:49.941Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
