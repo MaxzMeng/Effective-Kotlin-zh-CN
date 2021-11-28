@@ -1136,7 +1136,75 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-42-respect-the-contract-of-compareto">Item 42: Respect the contract of <code>compareTo</code></h2>
+<p>The <code>compareTo</code> method is not in the <code>Any</code> class. It is an operator in Kotlin that translates into the mathematical comparison signs:</p>
+<pre><code class="lang-kotlin">obj1 &gt; obj2 <span class="hljs-comment">// Translates to obj1.compareTo(obj2) &gt; 0</span>
+obj1 <span class="hljs-type">&lt; obj2 // Translates to obj1.compareTo(obj2) &lt; 0
+obj1 &gt;</span>= obj2 <span class="hljs-comment">// Translates to obj1.compareTo(obj2) &gt;= 0</span>
+obj1 <span class="hljs-type">&lt;= obj2 // Translates to obj1.compareTo(obj2) &lt;= 0
+</span></code></pre>
+<p>It is also located in the <code>Comparable&lt;T&gt;</code> interface. When an object implements this interface or when it has an operator method named <code>compareTo</code>, it means that this object has a natural order. Such an order needs to be:</p>
+<ul>
+<li><strong>Antisymmetric</strong>, meaning that if a &gt;= b and b &gt;= a then a == b. Therefore there is a relation between comparison and equality and they need to be consistent with each other. </li>
+<li><strong>Transitive</strong>, meaning that if a &gt;= b and b &gt;= c then a &gt;= c. Similarly when a &gt; b and b &gt; c then a &gt; c. This property is important because without it, sorting of elements might take literally forever in some sorting algorithms. </li>
+<li><strong>Connex</strong>, meaning that there must be a relationship between every two elements. So either a &gt;= b, or b &gt;= a. In Kotlin, it is guaranteed by typing system for <code>compareTo</code> because it returns <code>Int</code>, and every <code>Int</code> is either positive, negative or zero. This property is important because if there is no relationship between two elements, we cannot use classic sorting algorithms like quicksort or insertion sort. Instead, we need to use one of the special algorithms for partial orders, like topological sorting. </li>
+</ul>
+<h3 id="do-we-need-a-compareto">Do we need a compareTo?</h3>
+<p>In Kotlin we rarely implement <code>compareTo</code> ourselves. We get more freedom by specifying the order on a case by case basis than by assuming one global natural order. For instance, we can sort a collection using <code>sortedBy</code> and provide a key that is comparable. So in the example below, we sort users by their surname:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">User</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: String, <span class="hljs-variable"><span class="hljs-keyword">val</span> surname</span>: String)
+<span class="hljs-variable"><span class="hljs-keyword">val</span> names</span> = listOf<span class="hljs-type">&lt;User&gt;</span>(<span class="hljs-comment">/*...*/</span>)
+
+<span class="hljs-variable"><span class="hljs-keyword">val</span> sorted</span> = names.sortedBy { it.surname }
+</code></pre>
+<p>What if we need a more complex comparison than just by a key? For that, we can use the <code>sortedWith</code> function that sorts elements using a comparator. This comparator can be produced using a function <code>compareBy</code>. So in the following example, we first sort users comparing them by their <code>surname</code>, and if they match, we compare them by their <code>name</code>:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> sorted</span> = names
+    .sortedWith(compareBy({ it.surname }, { it.name }))
+</code></pre>
+<p>Surely, we might make <code>User</code> implement <code>Comparable&lt;User&gt;</code>, but what order should it choose? We might need to sort them by any property. When this is not absolutely clear, it is better to not make such objects comparable. </p>
+<p><code>String</code> has a natural order, which is an alphanumerical order, and so it implements <code>Comparable&lt;String&gt;</code>. This fact is very useful because we often do need to sort text alphanumerically. However, it also has its downsides. For instance, we can compare two strings using a comparision sign, which seems highly unintuitive. Most people seeing comparison sign between two strings will be rather confused.</p>
+<pre><code class="lang-kotlin"><span class="hljs-comment">// DON&apos;T DO THIS! </span>
+print(<span class="hljs-string">&quot;Kotlin&quot;</span> &gt; <span class="hljs-string">&quot;Java&quot;</span>) <span class="hljs-comment">// true</span>
+</code></pre>
+<p>Surely there are objects with a clear natural order. Units of measure, date and time are all perfect examples. Although if you are not sure about whether your object has a natural order, it is better to use comparators instead. If you use a few of them often, you can place them in the companion object of your class:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">User</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: String, <span class="hljs-variable"><span class="hljs-keyword">val</span> surname</span>: String) {
+   <span class="hljs-comment">// ...</span>
+
+   <span class="hljs-keyword">companion</span> <span class="hljs-keyword">object</span> {
+       <span class="hljs-variable"><span class="hljs-keyword">val</span> DISPLAY_ORDER</span> =
+               compareBy(User::surname, User::name)
+   }
+}
+
+<span class="hljs-variable"><span class="hljs-keyword">val</span> sorted</span> = names.sortedWith(User.DISPLAY_ORDER)
+</code></pre>
+<h3 id="implementing-compareto">Implementing <code>compareTo</code></h3>
+<p>When we do need to implement <code>compareTo</code> ourselves, we have top-level functions that can help us. If all you need is to compare two values, you can use the <code>compareValues</code> function:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">User</span></span>(
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: String, 
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> surname</span>: String
+): Comparable<span class="hljs-type">&lt;User&gt;</span> {
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">compareTo</span><span class="hljs-params">(other: <span class="hljs-type">User</span>)</span>: <span class="hljs-keyword">Int</span> =</span>
+           compareValues(surname, other.surname)
+}
+</code></pre>
+<p>If you need to use more values, or if you need to compare them using selectors, use <code>compareValuesBy</code>:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">User</span></span>(
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: String, 
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> surname</span>: String
+): Comparable<span class="hljs-type">&lt;User&gt;</span> {
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">compareTo</span><span class="hljs-params">(other: <span class="hljs-type">User</span>)</span>: <span class="hljs-keyword">Int</span> =</span>
+     compareValuesBy(this, other, { it.surname }, { 
+it.name })
+}
+</code></pre>
+<p>This function helps us create most comparators we might need. If you need to implement some with a special logic, remember that it should return:</p>
+<ul>
+<li>0 if the receiver and <code>other</code> are equal</li>
+<li>a positive number if the receiver is greater than <code>other</code></li>
+<li>a negative number if the receiver is smaller than <code>other</code></li>
+</ul>
+<p>Once you did that, don&#x2019;t forget to verify that your comparison is antisymmetric, transitive and connex.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1247,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 42 Respect The Contract Of Compare To","level":"1.3.4.8","depth":3,"next":{"title":"Item 43 Consider Extracting Non Essential Parts Of Your API Into Extensions","level":"1.3.4.9","depth":3,"path":"Part 2 Code design/Chapter 6 Class design/Item 43 Consider extracting non-essential parts of your API into extensions.md","ref":"Part 2 Code design/Chapter 6 Class design/Item 43 Consider extracting non-essential parts of your API into extensions.md","articles":[]},"previous":{"title":"Item 41 Respect The Contract Of Hash Code","level":"1.3.4.7","depth":3,"path":"Part 2 Code design/Chapter 6 Class design/Item 41 Respect the contract of  hashCode.md","ref":"Part 2 Code design/Chapter 6 Class design/Item 41 Respect the contract of  hashCode.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 6 Class design/Item 42 Respect the contract of compareTo.md","mtime":"2021-11-28T03:29:33.303Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-28T03:30:15.075Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 42 Respect The Contract Of Compare To","level":"1.3.4.8","depth":3,"next":{"title":"Item 43 Consider Extracting Non Essential Parts Of Your API Into Extensions","level":"1.3.4.9","depth":3,"path":"Part 2 Code design/Chapter 6 Class design/Item 43 Consider extracting non-essential parts of your API into extensions.md","ref":"Part 2 Code design/Chapter 6 Class design/Item 43 Consider extracting non-essential parts of your API into extensions.md","articles":[]},"previous":{"title":"Item 41 Respect The Contract Of Hash Code","level":"1.3.4.7","depth":3,"path":"Part 2 Code design/Chapter 6 Class design/Item 41 Respect the contract of  hashCode.md","ref":"Part 2 Code design/Chapter 6 Class design/Item 41 Respect the contract of  hashCode.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 6 Class design/Item 42 Respect the contract of compareTo.md","mtime":"2021-11-28T03:31:46.508Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-28T03:32:25.949Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
