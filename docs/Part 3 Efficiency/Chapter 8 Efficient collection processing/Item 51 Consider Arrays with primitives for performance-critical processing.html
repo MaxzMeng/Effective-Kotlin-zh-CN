@@ -1136,7 +1136,80 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-51-consider-arrays-with-primitives-for-performance-critical-processing">Item 51: Consider Arrays with primitives for performance-critical processing</h2>
+<p>We cannot declare primitives in Kotlin, but as an optimization, they are used under the hood. This is a significant optimization, described already in <em>Item 45: Avoid unnecessary object creation</em>. Primitives are:</p>
+<ul>
+<li>Lighter, as every object adds additional weight,</li>
+<li>Faster, as accessing the value through accessors is an additional cost.</li>
+</ul>
+<p>Therefore using primitives for a huge amount of data might be a significant optimization. One problem is that in Kotlin typical collections, like <code>List</code> or <code>Set</code>, are generic types. Primitives cannot be used as generic types, and so we end up using wrapped types instead. This is a convenient solution that suits most cases, as it is easier to do processing over standard collections. Having said that, in the performance-critical parts of our code we should instead consider using arrays with primitives, like <code>IntArray</code> or <code>LongArray</code>, as they are lighter in terms of memory and their processing is more efficient. </p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Kotlin type</th>
+<th style="text-align:left">Java type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Int</td>
+<td style="text-align:left">int</td>
+</tr>
+<tr>
+<td style="text-align:left">List<int></int></td>
+<td style="text-align:left">List<integer></integer></td>
+</tr>
+<tr>
+<td style="text-align:left">Array<int></int></td>
+<td style="text-align:left">Integer[]</td>
+</tr>
+<tr>
+<td style="text-align:left">IntArray</td>
+<td style="text-align:left">int[]</td>
+</tr>
+</tbody>
+</table>
+<p>How much lighter arrays with primitives are? Let&#x2019;s say that in Kotlin/JVM we need to hold 1 000 000 integers, and we can either choose to keep them in <code>IntArray</code> or in <code>List&lt;Int&gt;</code>. When you make measurements, you will find out that the <code>IntArray</code> allocates 4 000 016 bytes, while <code>List&lt;Int&gt;</code> allocates 20 000 040 bytes. It is 5 times more. If you optimize for memory use and you keep collections of types with primitive analogs, like <code>Int</code>, choose arrays with primitives. </p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">import</span> jdk.nashorn.internal.ir.debug.ObjectSizeCalculator.getObjectSize
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> ints</span> = List(<span class="hljs-number">1</span>_000_000) { it }
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> array</span>: Array<span class="hljs-type">&lt;Int&gt;</span> = ints.toTypedArray()
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> intArray</span>: IntArray = ints.toIntArray()
+   println(getObjectSize(ints))     <span class="hljs-comment">// 20 000 040</span>
+   println(getObjectSize(array))    <span class="hljs-comment">// 20 000 016</span>
+   println(getObjectSize(intArray)) <span class="hljs-comment">//  4 000 016</span>
+}
+</code></pre>
+<p>There is also a difference in performance. For the same collection of 1 000 000 numbers, when calculating an average, the processing over primitives is around 25% faster.</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">open</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">InlineFilterBenchmark</span> </span>{
+
+    lateinit <span class="hljs-variable"><span class="hljs-keyword">var</span> list</span>: List<span class="hljs-type">&lt;Int&gt;</span>
+    lateinit <span class="hljs-variable"><span class="hljs-keyword">var</span> array</span>: IntArray
+
+    @Setup
+    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">init</span><span class="hljs-params">()</span> {</span>
+        list = List(<span class="hljs-number">1</span>_000_000) { it }
+        array = IntArray(<span class="hljs-number">1</span>_000_000) { it }
+    }
+
+    @Benchmark
+    <span class="hljs-comment">// On average 1 260 593 ns</span>
+    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">averageOnIntList</span><span class="hljs-params">()</span>: <span class="hljs-keyword">Double</span> {</span>
+        <span class="hljs-keyword">return</span> list.average()
+    }
+
+    @Benchmark
+    <span class="hljs-comment">// On average 868 509 ns</span>
+    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">averageOnIntArray</span><span class="hljs-params">()</span>: <span class="hljs-keyword">Double</span> {</span>
+        <span class="hljs-keyword">return</span> array.average()
+    }
+}
+</code></pre>
+<p>As you can see, primitives and arrays with primitives can be used as an optimization in performance-critical parts of your code. They allocate less memory and their processing is faster. Although improvement in most cases is not significant enough to use arrays with primitives by default instead of lists. Lists are more intuitive and much more often in use, so in most cases we should use them instead. Just keep in mind this optimization in case you need to optimize some performance-critical parts.</p>
+<h3 id="summary">Summary</h3>
+<p>In a typical case, <code>List</code> or <code>Set</code> should be preferred over <code>Array</code>. Though if you hold big collections of primitives, using <code>Array</code> might significantly improve your performance and memory use. This item is especially for library creators or developers writing games or advanced graphic processing.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1252,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 51 Consider Arrays With Primitives For Performance Critical Processing","level":"1.4.2.4","depth":3,"next":{"title":"Item 52 Consider Using Mutable Collections","level":"1.4.2.5","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 52 Consider using mutable collections.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 52 Consider using mutable collections.md","articles":[]},"previous":{"title":"Item 50 Limit The Number Of Operations","level":"1.4.2.3","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 51 Consider Arrays with primitives for performance-critical processing.md","mtime":"2021-11-28T05:54:17.768Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-28T05:55:05.203Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 51 Consider Arrays With Primitives For Performance Critical Processing","level":"1.4.2.4","depth":3,"next":{"title":"Item 52 Consider Using Mutable Collections","level":"1.4.2.5","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 52 Consider using mutable collections.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 52 Consider using mutable collections.md","articles":[]},"previous":{"title":"Item 50 Limit The Number Of Operations","level":"1.4.2.3","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 51 Consider Arrays with primitives for performance-critical processing.md","mtime":"2021-11-28T05:55:47.704Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-28T05:56:22.503Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
