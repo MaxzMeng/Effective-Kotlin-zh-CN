@@ -1136,7 +1136,98 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-38-use-function-types-instead-of-interfaces-to-pass-operations-and-actions">Item 38: Use function types instead of interfaces to pass operations and actions</h2>
+<p>Many languages do not have the concept of a function type. Instead, they use interfaces with a single method. Such interfaces are known as SAM&#x2019;s (Single-Abstract Method). Here is an example SAM used to pass information about what should happen when a view is clicked:</p>
+<pre><code class="lang-kotlin">interface OnClick {
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">clicked</span><span class="hljs-params">(view: <span class="hljs-type">View</span>)</span></span>
+}
+</code></pre>
+<p>When a function expects a SAM, we must pass an instance of an object that implements this interface<a href="chap65.xhtml#fn-footnote_610_note">1</a>. </p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">setOnClickListener</span><span class="hljs-params">(listener: <span class="hljs-type">OnClick</span>)</span> {</span>
+   <span class="hljs-comment">//...</span>
+}
+
+setOnClickListener(<span class="hljs-keyword">object</span> : OnClick {
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">clicked</span><span class="hljs-params">(view: <span class="hljs-type">View</span>)</span> {</span>
+       <span class="hljs-comment">// ...</span>
+   }
+})
+</code></pre>
+<p>However, notice that declaring a parameter with a function type gives us much more freedom:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">setOnClickListener</span><span class="hljs-params">(listener: <span class="hljs-type">(View</span>)</span> -&gt; <span class="hljs-keyword">Unit</span>) {</span>
+   <span class="hljs-comment">//... </span>
+}
+</code></pre>
+<p>Now, we can pass the parameter as:</p>
+<ul>
+<li>A lambda expression or an anonymous function</li>
+</ul>
+<pre><code class="lang-kotlin">setOnClickListener { <span class="hljs-comment">/*...*/</span> }
+setOnClickListener(<span class="hljs-function"><span class="hljs-title">fun</span><span class="hljs-params">(view)</span> { <span class="hljs-comment">/*...*/</span> })</span>
+</code></pre>
+<ul>
+<li>A function reference or bounded function reference</li>
+</ul>
+<pre><code class="lang-kotlin">setOnClickListener(::println)
+setOnClickListener(this::showUsers)
+</code></pre>
+<ul>
+<li>Objects that implement the declared function type</li>
+</ul>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ClickListener</span>: <span class="hljs-type"></span></span>(View)-&gt;<span class="hljs-keyword">Unit</span> {
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">invoke</span><span class="hljs-params">(view: <span class="hljs-type">View</span>)</span> {</span>
+       <span class="hljs-comment">// ...</span>
+   }
+}
+
+setOnClickListener(ClickListener())
+</code></pre>
+<p>These options can cover a wider spectrum of use cases. On the other hand, one might argue that the advantage of a SAM is that it and its arguments are named. Notice that we can name function types using type aliases as well. </p>
+<pre><code class="lang-kotlin">typealias OnClick = (View) -&gt; <span class="hljs-keyword">Unit</span>
+</code></pre>
+<p>Parameters can also be named. The advantage of naming them is that these names can then be suggested by default by an IDE.</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">setOnClickListener</span><span class="hljs-params">(listener: <span class="hljs-type">OnClick</span>)</span> { <span class="hljs-comment">/*...*/</span> }</span>
+typealias OnClick = (view: View)-&gt;<span class="hljs-keyword">Unit</span>
+</code></pre>
+<p><img src="../../assets/chapter6/chapter6-3.png" alt=""></p>
+<p>Notice that when we use lambda expressions, we can also destructure arguments. Together, this makes function types generally a better option than SAMs. </p>
+<p>This argument is especially true when we set many observers. The classic Java way often is to collect them in a single listener interface:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CalendarView</span> </span>{
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> listener</span>: Listener? = <span class="hljs-literal">null</span>
+
+   interface Listener {
+       <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onDateClicked</span><span class="hljs-params">(date: <span class="hljs-type">Date</span>)</span></span>
+       <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onPageChanged</span><span class="hljs-params">(date: <span class="hljs-type">Date</span>)</span></span>
+   }
+}
+</code></pre>
+<p>I believe this is largely a result of laziness. From an API consumer&#x2019;s point of view, it is better to set them as separate properties holding function types:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CalendarView</span> </span>{
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> onDateClicked</span>: ((date: Date) -&gt; <span class="hljs-keyword">Unit</span>)? = <span class="hljs-literal">null</span>
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> onPageChanged</span>: ((date: Date) -&gt; <span class="hljs-keyword">Unit</span>)? = <span class="hljs-literal">null</span>
+}
+</code></pre>
+<p>This way, the implementations of <code>onDateClicked</code> and <code>onPageChanged</code> do not need to be tied together in an interface. Now, these functions may be changed independently. </p>
+<p>If you don&#x2019;t have a good reason to define an interface, prefer using function types. They are well supported and are used frequently by Kotlin developers. </p>
+<h3 id="when-should-we-prefer-a-sam">When should we prefer a SAM?</h3>
+<p>There is one case when we prefer a SAM: When we design a class to be used from another language than Kotlin. Interfaces are cleaner for Java clients. They cannot see type aliases nor name suggestions. Finally, Kotlin function types when used from some languages (especially Java) require functions to return <code>Unit</code> explicitly:</p>
+<pre><code class="lang-kotlin"><span class="hljs-comment">// Kotlin</span>
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CalendarView</span></span>() {
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> onDateClicked</span>: ((date: Date) -&gt; <span class="hljs-keyword">Unit</span>)? = <span class="hljs-literal">null</span>
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> onPageChanged</span>: OnDateClicked? = <span class="hljs-literal">null</span>
+}
+
+interface OnDateClicked {
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onClick</span><span class="hljs-params">(date: <span class="hljs-type">Date</span>)</span></span>
+}
+
+<span class="hljs-comment">// Java</span>
+CalendarView c = new CalendarView();
+c.setOnDateClicked(date -&gt; <span class="hljs-keyword">Unit</span>.INSTANCE);
+c.setOnPageChanged(date -&gt; {});
+</code></pre>
+<p>This is why it might be reasonable to use SAM instead of function types when we design API for use from Java. Though in other cases, prefer function types.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1270,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 38 Use Function Types Instead Of Interfaces To Pass Operations And Actions","level":"1.3.4.4","depth":3,"next":{"title":"Item 39 Prefer Class Hierarchies To Tagged Classes","level":"1.3.4.5","depth":3,"path":"Part 2 Code design/Chapter 6 Class design/Item 39 Prefer class hierarchies to tagged classes.md","ref":"Part 2 Code design/Chapter 6 Class design/Item 39 Prefer class hierarchies to tagged classes.md","articles":[]},"previous":{"title":"Item 37 Use The Data Modifier To Represent A Bundle Of Data","level":"1.3.4.3","depth":3,"path":"Part 2 Code design/Chapter 6 Class design/Item 37 Use the data modifier to represent a bundle of data.md","ref":"Part 2 Code design/Chapter 6 Class design/Item 37 Use the data modifier to represent a bundle of data.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 6 Class design/Item 38 Use function types instead of interfaces to pass operations and actions.md","mtime":"2021-11-28T03:12:15.857Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-28T03:12:49.862Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 38 Use Function Types Instead Of Interfaces To Pass Operations And Actions","level":"1.3.4.4","depth":3,"next":{"title":"Item 39 Prefer Class Hierarchies To Tagged Classes","level":"1.3.4.5","depth":3,"path":"Part 2 Code design/Chapter 6 Class design/Item 39 Prefer class hierarchies to tagged classes.md","ref":"Part 2 Code design/Chapter 6 Class design/Item 39 Prefer class hierarchies to tagged classes.md","articles":[]},"previous":{"title":"Item 37 Use The Data Modifier To Represent A Bundle Of Data","level":"1.3.4.3","depth":3,"path":"Part 2 Code design/Chapter 6 Class design/Item 37 Use the data modifier to represent a bundle of data.md","ref":"Part 2 Code design/Chapter 6 Class design/Item 37 Use the data modifier to represent a bundle of data.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 6 Class design/Item 38 Use function types instead of interfaces to pass operations and actions.md","mtime":"2021-11-28T03:15:52.436Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-28T03:16:48.381Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
