@@ -1134,7 +1134,61 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h1 id="chapter-8-efficient-collection-processing">Chapter 8: Efficient collection processing</h1>
+<p>Collections are one of the most important concepts in programming. In iOS, one of the most important view elements, <code>UICollectionView</code>, is designed to represent a collection. Similarly, in Android, it is hard to imagine an application without <code>RecyclerView</code> or <code>ListView</code>. When you need to write a portal with news, you will have a list of news. Each of them will probably have a list of authors and a list of tags. When you make an online shop, you start from a list of products. They will most likely have a list of categories and a list of different variants. When a user buys, they use some basket which is probably a collection of products and amounts. Then they need to choose from a list of delivery options and a list of payment methods. In some languages, <code>String</code> is just a list of characters. Collections are everywhere in programming! Just think about your application and you will quickly see lots of collections. </p>
+<p>This fact can be reflected also in programming languages. Most modern languages have some collection literals:</p>
+<pre><code class="lang-python"><span class="hljs-number">1</span> // Python
+<span class="hljs-number">2</span> primes = [<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">5</span>, <span class="hljs-number">7</span>, <span class="hljs-number">13</span>]
+<span class="hljs-number">3</span> // Swift
+<span class="hljs-number">4</span> let primes = [<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">5</span>, <span class="hljs-number">7</span>, <span class="hljs-number">13</span>]
+</code></pre>
+<p>Good collection processing was a flag functionality of functional programming languages. Name of the Lisp programming language<a href="chap65.xhtml#fn-footnote_80_note">1</a> stands for &#x201C;list processing&#x201D;. Most modern languages have good support for collection processing. This statement includes Kotlin which has one of the most powerful sets of tools for collection processing. Just think of the following collection processing:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> visibleNews</span> = mutableListOf<span class="hljs-type">&lt;News&gt;</span>()
+<span class="hljs-keyword">for</span> (n <span class="hljs-keyword">in</span> news) {
+   <span class="hljs-keyword">if</span>(n.visible) {
+       visibleNews.add(n)
+   }
+}
+
+Collections.sort(visibleNews, 
+    { n1, n2 -&gt; n2.publishedAt - n1.publishedAt })
+<span class="hljs-variable"><span class="hljs-keyword">val</span> newsItemAdapters</span> = mutableListOf<span class="hljs-type">&lt;NewsItemAdapter&gt;</span>()
+<span class="hljs-keyword">for</span> (n <span class="hljs-keyword">in</span> visibleNews) {
+   newsItemAdapters.add(NewsItemAdapter(n))
+}
+</code></pre>
+<p>In Kotlin it can be replaced with the following notation:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> newsItemAdapters</span> = news
+       .filter { it.visible }
+       .sortedByDescending { it.publishedAt }
+       .map(::NewsItemAdapter)
+</code></pre>
+<p>Such notation is not only shorter, but it is also more readable. Every step makes a concrete transformation on the list of elements. Here is a visualization of the above processing:</p>
+<p><img src="../../assets/chapter8/chapter8-1.png" alt=""></p>
+<p>The performance of the above examples is very similar. It is not always so simple though. Kotlin has a lot of collection processing methods and we can do the same processing in a lot of different ways. For instance, the below processing implementations have the same result but different performance:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">productsListProcessing</span><span class="hljs-params">()</span>: String {</span>
+   <span class="hljs-keyword">return</span> clientsList
+           .filter { it.adult }
+           .flatMap { it.products }
+           .filter { it.bought }
+           .map { it.price }
+           .filterNotNull()
+           .map { <span class="hljs-string">&quot;$$it&quot;</span> }
+           .joinToString(separator = <span class="hljs-string">&quot; + &quot;</span>)
+}
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">productsSequenceProcessing</span><span class="hljs-params">()</span>: String {</span>
+   <span class="hljs-keyword">return</span> clientsList.asSequence()
+           .filter { it.adult }
+           .flatMap { it.products.asSequence() }
+           .filter { it.bought }
+           .mapNotNull { it.price }
+           .joinToString(separator = <span class="hljs-string">&quot; + &quot;</span>) { <span class="hljs-string">&quot;$$it&quot;</span> }
+}
+</code></pre>
+<p>Collection processing optimization is much more than just a brain-puzzle. Collection processing is extremely important and, in big systems, often performance-critical. This is why it is often key to improve the performance of our program. Especially if we do backend application development or data analysis. Although, when we are implementing front-end clients, we can face collection processing that limits the performance of our application as well. As a consultant, I&#x2019;ve seen a lot of projects and my experience is that I see collection processing again and again in lots of different places. This is not something that can be ignored so easily. </p>
+<p>The good news is that collection processing optimization is not hard to master. There are some rules and a few things to remember but actually, anyone can do it effectively. This is what we are going to learn in this chapter.</p>
+
                                 
                                 </section>
                             
@@ -1173,7 +1227,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Introduction","level":"1.4.2.1","depth":3,"next":{"title":"Item 49 Prefer Sequence For Big Collections With More Than One Processing Step","level":"1.4.2.2","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 49 Prefer Sequence for big collections with more than one processing step.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 49 Prefer Sequence for big collections with more than one processing step.md","articles":[]},"previous":{"title":"Chapter 8 Efficient Collection Processing","level":"1.4.2","depth":2,"ref":"","articles":[{"title":"Introduction","level":"1.4.2.1","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Introduction.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Introduction.md","articles":[]},{"title":"Item 49 Prefer Sequence For Big Collections With More Than One Processing Step","level":"1.4.2.2","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 49 Prefer Sequence for big collections with more than one processing step.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 49 Prefer Sequence for big collections with more than one processing step.md","articles":[]},{"title":"Item 50 Limit The Number Of Operations","level":"1.4.2.3","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.md","articles":[]},{"title":"Item 51 Consider Arrays With Primitives For Performance Critical Processing","level":"1.4.2.4","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 51 Consider Arrays with primitives for performance-critical processing.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 51 Consider Arrays with primitives for performance-critical processing.md","articles":[]},{"title":"Item 52 Consider Using Mutable Collections","level":"1.4.2.5","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 52 Consider using mutable collections.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 52 Consider using mutable collections.md","articles":[]}]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Introduction.md","mtime":"2021-11-28T05:12:03.216Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-28T05:12:37.058Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Introduction","level":"1.4.2.1","depth":3,"next":{"title":"Item 49 Prefer Sequence For Big Collections With More Than One Processing Step","level":"1.4.2.2","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 49 Prefer Sequence for big collections with more than one processing step.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 49 Prefer Sequence for big collections with more than one processing step.md","articles":[]},"previous":{"title":"Chapter 8 Efficient Collection Processing","level":"1.4.2","depth":2,"ref":"","articles":[{"title":"Introduction","level":"1.4.2.1","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Introduction.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Introduction.md","articles":[]},{"title":"Item 49 Prefer Sequence For Big Collections With More Than One Processing Step","level":"1.4.2.2","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 49 Prefer Sequence for big collections with more than one processing step.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 49 Prefer Sequence for big collections with more than one processing step.md","articles":[]},{"title":"Item 50 Limit The Number Of Operations","level":"1.4.2.3","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.md","articles":[]},{"title":"Item 51 Consider Arrays With Primitives For Performance Critical Processing","level":"1.4.2.4","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 51 Consider Arrays with primitives for performance-critical processing.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 51 Consider Arrays with primitives for performance-critical processing.md","articles":[]},{"title":"Item 52 Consider Using Mutable Collections","level":"1.4.2.5","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 52 Consider using mutable collections.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 52 Consider using mutable collections.md","articles":[]}]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Introduction.md","mtime":"2021-11-28T05:51:34.055Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-28T05:52:08.347Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>

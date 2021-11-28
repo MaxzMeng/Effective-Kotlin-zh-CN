@@ -1136,7 +1136,274 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-49-prefer-sequence-for-big-collections-with-more-than-one-processing-step">Item 49: Prefer Sequence for big collections with more than one processing step</h2>
+<p>People often miss the difference between <code>Iterable</code> and <code>Sequence</code>. It is understandable since even their definitions are nearly identical:</p>
+<pre><code class="lang-kotlin">interface Iterable<span class="hljs-type">&lt;out T&gt;</span> {
+   operator <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">iterator</span><span class="hljs-params">()</span>: Iterator<span class="hljs-type">&lt;T&gt;</span></span>
+}
+
+interface Sequence<span class="hljs-type">&lt;out T&gt;</span> {
+   operator <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">iterator</span><span class="hljs-params">()</span>: Iterator<span class="hljs-type">&lt;T&gt;</span></span>
+}
+</code></pre>
+<p>You can say that the only formal difference between them is the name. Although <code>Iterable</code> and <code>Sequence</code> are associated with totally different usages (have different contracts), so nearly all their processing functions work in a different way. <code>Sequences</code> are lazy, so intermediate functions for <code>Sequence</code> processing don&#x2019;t do any calculations. Instead, they return a new <code>Sequence</code> that decorates the previous one with the new operation. All these computations are evaluated during a terminal operation like <code>toList</code> or <code>count</code>. Iterable processing, on the other hand, returns a collection like <code>List</code> on every step. </p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">public</span> <span class="hljs-keyword">inline</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T&gt;</span> Iterable<span class="hljs-type">&lt;T&gt;</span>.<span class="hljs-title">filter</span><span class="hljs-params">(
+   predicate: <span class="hljs-type">(T</span>)</span> -&gt; <span class="hljs-keyword">Boolean</span></span>
+): List<span class="hljs-type">&lt;T&gt;</span> {
+   <span class="hljs-keyword">return</span> filterTo(ArrayList<span class="hljs-type">&lt;T&gt;</span>(), predicate)
+}
+
+<span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T&gt;</span> Sequence<span class="hljs-type">&lt;T&gt;</span>.<span class="hljs-title">filter</span><span class="hljs-params">(
+   predicate: <span class="hljs-type">(T</span>)</span> -&gt; <span class="hljs-keyword">Boolean</span></span>
+): Sequence<span class="hljs-type">&lt;T&gt;</span> {
+   <span class="hljs-keyword">return</span> FilteringSequence(this, <span class="hljs-literal">true</span>, predicate)
+}
+</code></pre>
+<p>As a result, collection processing operations are invoked once they are used. <code>Sequence</code> processing functions are not invoked until the terminal operation (an operation that returns something else but <code>Sequence</code>). For instance, for <code>Sequence</code>, <code>filter</code> is an intermediate operation, so it doesn&#x2019;t do any calculations, but instead, it decorates the sequence with the new processing step. Calculations are done in a terminal operation like <code>toList</code>.</p>
+<p><img src="../../assets/chapter8/chapter8-2.png" alt=""></p>
+<pre><code> 1 val seq = sequenceOf(1,2,3)
+ 2 val filtered = seq.filter { print(&quot;f$it &quot;); it % 2 == 1 }
+ 3 println(filtered)  // FilteringSequence@...
+ 4 
+ 5 val asList = filtered.toList() 
+ 6 // f1 f2 f3
+ 7 println(asList) // [1, 3]
+ 8 
+ 9 val list = listOf(1,2,3)
+10 val listFiltered = list
+11   .filter { print(&quot;f$it &quot;); it % 2 == 1 } 
+12 // f1 f2 f3
+13 println(listFiltered) // [1, 3]
+</code></pre><p>There are a few important advantages of the fact that sequences are lazy in Kotlin:</p>
+<ul>
+<li>They keep the natural order of operations</li>
+<li>They do a minimal number of operations</li>
+<li>They can be infinite</li>
+<li>They do not need to create collections at every step</li>
+</ul>
+<p>Let&#x2019;s talk about those advantages one-by-one.</p>
+<h3 id="order-is-important">Order is important</h3>
+<p>Because of how iterable and sequence processing are implemented, the ordering of their operations is different. In sequence processing, we take the first element and apply all the operations, then we take the next element, and so on. We will call it an element-by-element or lazy order. In iterable processing, we take the first operation and we apply it to the whole collection, then move to the next operation, etc.. We will call it step-by-step or eager order. </p>
+<pre><code> 1 sequenceOf(1,2,3)
+ 2        .filter { print(&quot;F$it, &quot;); it % 2 == 1 }
+ 3        .map { print(&quot;M$it, &quot;); it * 2 }
+ 4        .forEach { print(&quot;E$it, &quot;) }
+ 5 // Prints: F1, M1, E2, F2, F3, M3, E6, 
+ 6 
+ 7 listOf(1,2,3)
+ 8        .filter { print(&quot;F$it, &quot;); it % 2 == 1 }
+ 9        .map { print(&quot;M$it, &quot;); it * 2 }
+10        .forEach { print(&quot;E$it, &quot;) }
+11 // Prints: F1, F2, F3, M1, M3, E2, E6,
+</code></pre><p><img src="../../assets/chapter8/chapter8-3.png" alt=""></p>
+<p>Notice that, if we were to implement those operations without any collection processing functions, but instead using classic loops and conditions, we would have element-by-element order like in sequence processing:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">for</span> (e <span class="hljs-keyword">in</span> listOf(<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>)) {
+   print(<span class="hljs-string">&quot;F$e, &quot;</span>)
+   <span class="hljs-keyword">if</span>(e % <span class="hljs-number">2</span> == <span class="hljs-number">1</span>) {
+       print(<span class="hljs-string">&quot;M$e, &quot;</span>)
+       <span class="hljs-variable"><span class="hljs-keyword">val</span> mapped</span> = e * <span class="hljs-number">2</span>
+       print(<span class="hljs-string">&quot;E$mapped, &quot;</span>)
+   }
+}
+<span class="hljs-comment">// Prints: F1, M1, E2, F2, F3, M3, E6,</span>
+</code></pre>
+<p>Therefore element-by-element order that is used in sequence processing is more natural. It also opens the door for low-level compiler optimizations - sequence processing can be optimized to basic loops and conditions. Maybe in the future, it will be. </p>
+<h3 id="sequences-do-the-minimal-number-of-operations">Sequences do the minimal number of operations</h3>
+<p>Often we do not need to process the whole collection at every step to produce the result. Let&#x2019;s say that we` have a collection with millions of elements, and after processing, we only need to take the first 10. Why process all the other elements? Iterable processing doesn&#x2019;t have the concept of intermediate operations, so the whole collection is processed as if it were to be returned on every operation. Sequences do not need that, and so they will do the minimal number of operations required to get the result. </p>
+<p><img src="../../assets/chapter8/chapter8-4.png" alt=""></p>
+<p>Take a look at the example, where we have a few processing steps and we end our processing with <code>find</code>:</p>
+<pre><code class="lang-kotlin">(<span class="hljs-number">1.</span><span class="hljs-number">.10</span>).asSequence()
+   .filter { print(<span class="hljs-string">&quot;F$it, &quot;</span>); it % <span class="hljs-number">2</span> == <span class="hljs-number">1</span> }
+   .map { print(<span class="hljs-string">&quot;M$it, &quot;</span>); it * <span class="hljs-number">2</span> }
+   .find { it &gt; <span class="hljs-number">5</span> }
+<span class="hljs-comment">// Prints: F1, M1, F2, F3, M3,</span>
+
+(<span class="hljs-number">1.</span><span class="hljs-number">.10</span>)
+   .filter { print(<span class="hljs-string">&quot;F$it, &quot;</span>); it % <span class="hljs-number">2</span> == <span class="hljs-number">1</span> }
+   .map { print(<span class="hljs-string">&quot;M$it, &quot;</span>); it * <span class="hljs-number">2</span> }
+   .find { it &gt; <span class="hljs-number">5</span> }
+<span class="hljs-comment">// Prints: F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, </span>
+<span class="hljs-comment">// M1, M3, M5, M7, M9,</span>
+</code></pre>
+<p>For this reason, when we have some intermediate processing steps and our terminal operation does not necessarily need to iterate over all elements, using a sequence will most likely be better for the performance of your processing. All that while looking nearly the same as the standard collection processing. Examples of such operations are <code>first</code>, <code>find</code>, <code>take</code>, <code>any</code>, <code>all</code>, <code>none</code> or <code>indexOf</code>.</p>
+<h3 id="sequences-can-be-infinite">Sequences can be infinite</h3>
+<p>Thanks to the fact that sequences do processing on-demand, we can have infinite sequences. A typical way to create an infinite sequence is using sequence generators like <code>generateSequence</code> or <code>sequence</code>. The first one needs the first element and a function specifying how to calculate the next one:</p>
+<pre><code class="lang-kotlin">generateSequence(<span class="hljs-number">1</span>) { it + <span class="hljs-number">1</span> }
+       .map { it * <span class="hljs-number">2</span> }
+       .take(<span class="hljs-number">10</span>)
+       .forEach { print(<span class="hljs-string">&quot;$it, &quot;</span>) }
+<span class="hljs-comment">// Prints: 2, 4, 6, 8, 10, 12, 14, 16, 18, 20,</span>
+</code></pre>
+<p>The second mentioned sequence generator - <code>sequence</code> - uses a suspending function (coroutine<a href="chap65.xhtml#fn-coroutine">2</a>) that generates the next number on demand. Whenever we ask for the next number, the sequence builder runs until a value is yielded using <code>yield</code>. The execution then stops until we ask for another number. Here is an infinite list of the next Fibonacci numbers:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> fibonacci</span> = sequence {
+   yield(<span class="hljs-number">1</span>)
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> current</span> = <span class="hljs-number">1</span>
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> prev</span> = <span class="hljs-number">1</span>
+   <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) {
+       yield(current)
+       <span class="hljs-variable"><span class="hljs-keyword">val</span> temp</span> = prev
+       prev = current
+       current += temp
+   }
+}
+
+print(fibonacci.take(<span class="hljs-number">10</span>).toList()) 
+<span class="hljs-comment">// [1, 1, 2, 3, 5, 8, 13, 21, 34, 55]</span>
+</code></pre>
+<p>Notice that infinite sequences need to have a limited number of elements at some point. We cannot iterate over infinity. </p>
+<pre><code class="lang-kotlin">print(fibonacci.toList()) <span class="hljs-comment">// Runs forever</span>
+</code></pre>
+<p>Therefore we either need to limit them using an operation like <code>take</code>, or we need to use a terminal operation that will not need all elements, like <code>first</code>, <code>find</code>, <code>any</code>, <code>all</code>, <code>none</code> or <code>indexOf</code>. Basically, those are the same operations for which sequences are more efficient because they do not need to process all elements. Although notice that for most of those operations, it is easy to fall into an infinite loop. <code>any</code> can only return <code>true</code> or run forever. Similarly <code>all</code> and <code>none</code> can only return <code>false</code> on an infinite collection. As a result, we generally either limit the number of elements by <code>take</code>, or we ask for just the first element using <code>first</code>.</p>
+<h3 id="sequences-do-not-create-collections-at-every-processing-step">Sequences do not create collections at every processing step</h3>
+<p>Standard collection processing functions return a new collection at every step. Most often it is a <code>List</code>. This could be an advantage - after every point, we have something ready to be used or stored. But it comes at a cost. Such collections need to be created and filled with data on every step. </p>
+<pre><code class="lang-kotlin">numbers
+   .filter { it % <span class="hljs-number">10</span> == <span class="hljs-number">0</span> } <span class="hljs-comment">// 1 collection here</span>
+   .map { it * <span class="hljs-number">2</span> } <span class="hljs-comment">// 1 collection here</span>
+   .sum() 
+<span class="hljs-comment">// In total, 2 collections created under the hood</span>
+
+numbers
+   .asSequence()
+   .filter { it % <span class="hljs-number">10</span> == <span class="hljs-number">0</span> }
+   .map { it * <span class="hljs-number">2</span> }
+   .sum() 
+<span class="hljs-comment">// No collections created</span>
+</code></pre>
+<p>This is a problem especially when we are dealing with big or heavy collections. Let&#x2019;s start from an extreme and yet common case: file reading. Files can weigh gigabytes. Allocating all the data in a collection at every processing step would be a huge waste of memory. This is why by default we use sequences to process files. </p>
+<p>As an example, let&#x2019;s analyze crimes in the Chicago city. This city, like many others, shared on the internet the whole database of crimes that took place there since 2001<a href="chap65.xhtml#fn-footnote_81_note">3</a>. This dataset at the moment weights over 1.53 GB. Let&#x2019;s say that our task is to find how many crimes had cannabis in their descriptions. This is what a naive solution using collection processing would look like (<code>readLines</code> returns <code>List&lt;String&gt;</code>):</p>
+<pre><code class="lang-kotlin"><span class="hljs-comment">// BAD SOLUTION, DO NOT USE COLLECTIONS FOR </span>
+<span class="hljs-comment">// POSSIBLY BIG FILES</span>
+File(<span class="hljs-string">&quot;ChicagoCrimes.csv&quot;</span>).readLines()
+   .drop(<span class="hljs-number">1</span>) <span class="hljs-comment">// Drop descriptions of the columns</span>
+   .mapNotNull { it.split(<span class="hljs-string">&quot;,&quot;</span>).getOrNull(<span class="hljs-number">6</span>) } 
+    <span class="hljs-comment">// Find description</span>
+   .filter { <span class="hljs-string">&quot;CANNABIS&quot;</span> <span class="hljs-keyword">in</span> it } 
+   .count()
+   .let(::println)
+</code></pre>
+<p>The result on my computer is <code>OutOfMemoryError</code>. </p>
+<p>Exception in thread &#x201C;main&#x201D; java.lang.OutOfMemoryError: Java heap space</p>
+<p>No wonder why. We create a collection and then we have 3 intermediate processing steps, which add up to 4 collections. 3 out of them contain the majority of this data file, which takes 1.53 GB, so they all need to consume more than 4.59 GB. This is a huge waste of memory. The correct implementation should involve using a sequence, and we do that using the function <code>useLines</code> that always operates on a single line:</p>
+<pre><code class="lang-kotlin">File(<span class="hljs-string">&quot;ChicagoCrimes.csv&quot;</span>).useLines { lines -&gt;
+<span class="hljs-comment">// The type of `lines` is Sequence&lt;String&gt;</span>
+   lines
+       .drop(<span class="hljs-number">1</span>) <span class="hljs-comment">// Drop descriptions of the columns</span>
+       .mapNotNull { it.split(<span class="hljs-string">&quot;,&quot;</span>).getOrNull(<span class="hljs-number">6</span>) } 
+       <span class="hljs-comment">// Find description</span>
+       .filter { <span class="hljs-string">&quot;CANNABIS&quot;</span> <span class="hljs-keyword">in</span> it } 
+       .count()
+       .let { println(it) } <span class="hljs-comment">// 318185</span>
+}
+</code></pre>
+<p>On my computer it took 8.3s. To compare the efficiency of both ways, I made another experiment and I reduced this dataset size by dropping columns I don&#x2019;t need. This way I achieved <code>CrimeData.csv</code> file with the same crimes but with a size of only 728 MB. Then I did the same processing. In the first implementation, using collection processing, it takes around 13s; while the second one, using sequences, around 4.5s. As you can see, using sequences for bigger files is not only for memory but also for performance. </p>
+<p>Although a collection does not need to be heavy. The fact that in every step we are creating a new collection is also a cost in itself, and this cost manifests itself when we are dealing with collections with a larger number of elements. The difference is not huge - mainly because created collections after many steps are initialized with the expected size and so when we add elements we just place them in the next position. This difference is still substantial, and it is the main reason why we should <strong>prefer to use Sequence for big collections with more than one processing step</strong>. </p>
+<p>By &#x201C;big collections&#x201D; I mean both many elements and really heavy collection. It might be a list of integers with tens of thousands of elements. It might also be a list with just a few strings, but so each long that they all take many megabytes of data. Those are not common situations, but they sometimes happen. </p>
+<p>By one processing step, I mean more than a single function for collection processing. So if you compare these two functions:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">singleStepListProcessing</span><span class="hljs-params">()</span>: List<span class="hljs-type">&lt;Product&gt;</span> {</span>
+   <span class="hljs-keyword">return</span> productsList.filter { it.bought }
+}
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">singleStepSequenceProcessing</span><span class="hljs-params">()</span>: List<span class="hljs-type">&lt;Product&gt;</span> {</span>
+   <span class="hljs-keyword">return</span> productsList.asSequence()
+           .filter { it.bought }
+           .toList()
+}
+</code></pre>
+<p>You will notice that there is nearly no difference in performance (actually simple list processing is faster because its <code>filter</code> function is inline). Although when you compare functions with more than one processing step, like the functions below, which use the <code>filter</code> and then <code>map</code>, the difference will be visible for bigger collections. To see a difference, let&#x2019;s compare typical processing with two and three processing steps for 5000 products:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">twoStepListProcessing</span><span class="hljs-params">()</span>: List<span class="hljs-type">&lt;Double&gt;</span> {</span>
+   <span class="hljs-keyword">return</span> productsList
+           .filter { it.bought }
+           .map { it.price }
+}
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">twoStepSequenceProcessing</span><span class="hljs-params">()</span>: List<span class="hljs-type">&lt;Double&gt;</span> {</span>
+   <span class="hljs-keyword">return</span> productsList.asSequence()
+           .filter { it.bought }
+           .map { it.price }
+           .toList()
+}
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">threeStepListProcessing</span><span class="hljs-params">()</span>: <span class="hljs-keyword">Double</span> {</span>
+   <span class="hljs-keyword">return</span> productsList
+           .filter { it.bought }
+           .map { it.price }
+           .average()
+}
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">threeStepSequenceProcessing</span><span class="hljs-params">()</span>: <span class="hljs-keyword">Double</span> {</span>
+   <span class="hljs-keyword">return</span> productsList.asSequence()
+           .filter { it.bought }
+           .map { it.price }
+           .average()
+}
+</code></pre>
+<p>Below you can see the average results on a MacBook Pro (Retina, 15-inch, Late 2013)<a href="chap65.xhtml#fn-footnote_82_note">4</a> for 5000 products in the <code>productsList</code>:</p>
+<pre><code class="lang-kotlin">twoStepListProcessing                        <span class="hljs-number">81</span> <span class="hljs-number">095</span> ns
+twoStepSequenceProcessing                    <span class="hljs-number">55</span> <span class="hljs-number">685</span> ns
+twoStepListProcessingAndAcumulate            <span class="hljs-number">83</span> <span class="hljs-number">307</span> ns
+twoStepSequenceProcessingAndAcumulate         <span class="hljs-number">6</span> <span class="hljs-number">928</span> ns
+</code></pre>
+<p>It is hard to predict what performance improvement we should expect. From my observations, in a typical collection processing with more than one step, for at least a couple of thousands of elements, we can expect around a 20-40% performance improvement. </p>
+<h3 id="when-arent-sequences-faster">When aren&#x2019;t sequences faster?</h3>
+<p>There are some operations where we don&#x2019;t profit from this sequence usage because we have to operate on the whole collection either way. <code>sorted</code> is an example from Kotlin stdlib (currently it is the only example). <code>sorted</code> uses optimal implementation: It accumulates the <code>Sequence</code> into <code>List</code> and then uses <code>sort</code> from Java stdlib. The disadvantage is that this accumulation process takes some additional time if we compare it to the same processing on a <code>Collection</code>(although if Iterable is not a <code>Collection</code> or array, then the difference is not significant because it needs to be accumulated as well).</p>
+<p>It is controversial if <code>Sequence</code> should have methods like <code>sorted</code> because sequences with a method requiring all elements to calculate the next one are only partially lazy (evaluated when we need to get the first element) and don&#x2019;t work on infinite sequences. It was added because it is a popular function and it is much easier to use it in this way. Although Kotlin developers should remember its flaws, and especially that it cannot be used on infinite sequences.</p>
+<pre><code class="lang-kotlin">generateSequence(<span class="hljs-number">0</span>) { it + <span class="hljs-number">1</span> }.take(<span class="hljs-number">10</span>).sorted().toList() 
+<span class="hljs-comment">// [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]</span>
+generateSequence(<span class="hljs-number">0</span>) { it + <span class="hljs-number">1</span> }.sorted().take(<span class="hljs-number">10</span>).toList() 
+<span class="hljs-comment">// Infinite time. Does not return.</span>
+</code></pre>
+<p><code>sorted</code> is a rare example of processing step which is faster on <code>Collection</code> than on <code>Sequence</code>. Still, when we do a few processing steps and single sorted function (or other function that needs to work on the whole collection), we can expect a performance improvement using sequence processing.</p>
+<pre><code class="lang-kotlin"><span class="hljs-comment">// Benchmarking measurement result: 150 482 ns </span>
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">productsSortAndProcessingList</span><span class="hljs-params">()</span>: <span class="hljs-keyword">Double</span> {</span>
+    <span class="hljs-keyword">return</span> productsList.sortedBy { it.price }
+        .filter { it.bought }
+        .map { it.price }
+        .average()
+}
+
+<span class="hljs-comment">// Benchmarking measurement result: 96 811 ns </span>
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">productsSortAndProcessingSequence</span><span class="hljs-params">()</span>: <span class="hljs-keyword">Double</span> {</span>
+    <span class="hljs-keyword">return</span> productsList.asSequence()
+        .sortedBy { it.price }
+        .filter { it.bought }
+        .map { it.price }
+        .average()
+
+}
+</code></pre>
+<h3 id="what-about-java-stream">What about Java stream?</h3>
+<p>Java 8 introduced streams to allow collection processing. They act and look similar to Kotlin sequences.</p>
+<pre><code class="lang-kotlin">productsList.asSequence()
+       .filter { it.bought }
+       .map { it.price }
+       .average()
+
+productsList.stream()
+       .filter { it.bought }
+       .mapToDouble { it.price }
+       .average()
+       .orElse(<span class="hljs-number">0.0</span>)
+</code></pre>
+<p>Java 8 streams are lazy and collected in the last (terminal) processing step. Three big differences between Java streams and Kotlin sequences are the following:</p>
+<ul>
+<li>Kotlin sequences have many more processing functions (because they are defined as extension functions) and they are generally easier to use (this is a result of the fact that Kotlin sequences were designed when Java streams was already used&#x200A;&#x2014;&#x200A;for instance we can collect using <code>toList()</code> instead of <code>collect(Collectors.toList())</code>)</li>
+<li>Java stream processing can be started in parallel mode using a parallel function. This can give us a huge performance improvement in contexts when we have a machine with multiple cores that are often unused (which is common nowadays). Although use this with caution as this feature has known pitfalls<a href="chap65.xhtml#fn-paralell_stream">5</a>.</li>
+<li>Kotlin sequences can be used in common modules, Kotlin/JVM, Kotlin/JS, and Kotlin/Native modules. Java streams only in Kotlin/JVM, and only when the JVM version is at least 8.</li>
+</ul>
+<p>In general, when we don&#x2019;t use parallel mode, it is hard to give a simple answer which of Java stream or Kotlin sequence is more efficient. My suggestion is to use Java streams rarely, only for computationally heavy processing where you can profit from the parallel mode. Otherwise, use Kotlin stdlib functions to have a homogeneous and clean code that can be used in different platforms or on common modules.</p>
+<h3 id="kotlin-sequence-debugging">Kotlin Sequence debugging</h3>
+<p>Both Kotlin Sequence and Java Stream have the support that helps us debug elements flow at every step. For Java Stream, it requires a plugin named &#x201C;Java Stream Debugger&#x201D;. Kotlin Sequences also required plugin named &#x201C;Kotlin Sequence Debugger&#x201D;, though now this functionality is integrated into Kotlin plugin. Here is a screen showing sequence processing at every step:</p>
+<p><img src="../../assets/chapter8/chapter8-5.png" alt=""></p>
+<h3 id="summary">Summary</h3>
+<p>Collection and sequence processing are very similar and both support nearly the same processing methods. Yet there are important differences between the two. Sequence processing is harder, as we generally keep elements in collections and so changing to collections requires a transformation to sequence and often also back to the desired collection. Sequences are lazy, which brings some important advantages:</p>
+<ul>
+<li>They keep the natural order of operations</li>
+<li>They do a minimal number of operations</li>
+<li>They can be infinite</li>
+<li>They do not need to create collections at every step</li>
+</ul>
+<p>As a result, they are better to process heavy objects or for bigger collections with more than one processing step. Sequences are also supported by Kotlin Sequence Debugger that can help us by visualizing how elements are processed. Sequences are not to replace classic collection processing. You should use them only when there&#x2019;s a good reason to, and you&#x2019;ll be rewarded with significant performance optimization.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1446,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 49 Prefer Sequence For Big Collections With More Than One Processing Step","level":"1.4.2.2","depth":3,"next":{"title":"Item 50 Limit The Number Of Operations","level":"1.4.2.3","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.md","articles":[]},"previous":{"title":"Introduction","level":"1.4.2.1","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Introduction.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Introduction.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 49 Prefer Sequence for big collections with more than one processing step.md","mtime":"2021-11-28T05:12:03.216Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-28T05:12:37.058Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 49 Prefer Sequence For Big Collections With More Than One Processing Step","level":"1.4.2.2","depth":3,"next":{"title":"Item 50 Limit The Number Of Operations","level":"1.4.2.3","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.md","articles":[]},"previous":{"title":"Introduction","level":"1.4.2.1","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Introduction.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Introduction.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 49 Prefer Sequence for big collections with more than one processing step.md","mtime":"2021-11-28T05:51:34.055Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-28T05:52:08.347Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
