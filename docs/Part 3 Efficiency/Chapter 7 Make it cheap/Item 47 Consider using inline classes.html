@@ -1136,7 +1136,202 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-47-consider-using-inline-classes">Item 47: Consider using inline classes</h2>
+<p>Not only functions can be inlined, but also objects holding a single value can be replaced with this value. Such possibility was introduced as experimental in Kotlin 1.3, and to make it possible, we need to place the <code>inline</code> modifier before a class with a single primary constructor property:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">inline</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Name</span></span>(<span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> value</span>: String) {
+   <span class="hljs-comment">// ...</span>
+}
+</code></pre>
+<p>Such a class will be replaced with the value it holds whenever possible:</p>
+<pre><code class="lang-kotlin"><span class="hljs-comment">// Code</span>
+<span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: Name = Name(<span class="hljs-string">&quot;Marcin&quot;</span>)
+
+<span class="hljs-comment">// During compilation replaced with code similar to:</span>
+<span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: String = <span class="hljs-string">&quot;Marcin&quot;</span>
+</code></pre>
+<p>Methods from such a class will be evaluated as static methods:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">inline</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Name</span></span>(<span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> value</span>: String) {
+   <span class="hljs-comment">// ...</span>
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">greet</span><span class="hljs-params">()</span> {</span>
+       print(<span class="hljs-string">&quot;Hello, I am $value&quot;</span>)
+   }
+}
+
+<span class="hljs-comment">// Code</span>
+<span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: Name = Name(<span class="hljs-string">&quot;Marcin&quot;</span>)
+name.greet()
+
+<span class="hljs-comment">// During compilation replaced with code similar to:</span>
+<span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: String = <span class="hljs-string">&quot;Marcin&quot;</span>
+Name.`greet-impl`(name)
+</code></pre>
+<p>We can use inline classes to make a wrapper around some type (like <code>String</code> in the above example) with no performance overhead (<em>Item 45: Avoid unnecessary object creation</em>). Two especially popular uses of inline classes are:</p>
+<ul>
+<li>To indicate a unit of measure</li>
+<li>To use types to protect user from misuse</li>
+</ul>
+<p>Let&#x2019;s discuss them separately.</p>
+<h3 id="indicate-unit-of-measure">Indicate unit of measure</h3>
+<p>Imagine that you need to use a method to set up timer:</p>
+<pre><code class="lang-kotlin">interface Timer {
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">callAfter</span><span class="hljs-params">(time: <span class="hljs-type">Int, callback: (</span>)</span>-&gt;<span class="hljs-keyword">Unit</span>)</span>
+}
+</code></pre>
+<p>What is this <code>time</code>? Might be time in milliseconds, seconds, minutes&#x2026; it is not clear at this point and it is easy to make a mistake. A serious mistake. One famous example of such a mistake is Mars Climate Orbiter that crashed into Mars atmosphere. The reason behind that was that the software used to control it was developed by an external company and it produced outputs in different units of measure than the ones expected by NASA. It produced results in pound-force seconds (lbf&#xB7;s), while NASA expected newton-seconds (N&#xB7;s). The total cost of the mission was 327.6 million USD and it was a complete failure. As you can see, confusion of measurement units can be really expensive. </p>
+<p>One common way for developers to suggest a unit of measure is by including it in the parameter name:</p>
+<pre><code class="lang-kotlin">interface Timer {
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">callAfter</span><span class="hljs-params">(timeMillis: <span class="hljs-type">Int, callback: (</span>)</span>-&gt;<span class="hljs-keyword">Unit</span>)</span>
+}
+</code></pre>
+<p>It is better but still leaves some space for mistakes. The property name is often not visible when a function is used. Another problem is that indicating the type this way is harder when the type is returned. In the example below, time is returned from <code>decideAboutTime</code> and its unit of measure is not indicated at all. It might return time in minutes and time setting would not work correctly then. </p>
+<pre><code class="lang-kotlin">interface User {
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">decideAboutTime</span><span class="hljs-params">()</span>: <span class="hljs-keyword">Int</span></span>
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">wakeUp</span><span class="hljs-params">()</span></span>
+}
+
+interface Timer {
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">callAfter</span><span class="hljs-params">(timeMillis: <span class="hljs-type">Int, callback: (</span>)</span>-&gt;<span class="hljs-keyword">Unit</span>)</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">setUpUserWakeUpUser</span><span class="hljs-params">(user: <span class="hljs-type">User, timer: Timer</span>)</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> time</span>: <span class="hljs-keyword">Int</span> = user.decideAboutTime()
+   timer.callAfter(time) {
+       user.wakeUp()
+   }
+}
+</code></pre>
+<p>We might introduce the unit of measure of the returned value in the function name, for instance by naming it <code>decideAboutTimeMillis</code>, but such a solution is rather rare as it makes a function longer every time we use it, and it states this low-level information even when we don&#x2019;t need to know about it. </p>
+<p>A better way to solve this problem is to introduce stricter types that will protect us from misusing more generic types, and to make them efficient we can use inline classes:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">inline</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Minutes</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> minutes</span>: <span class="hljs-keyword">Int</span>) {
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">toMillis</span><span class="hljs-params">()</span>: Millis = <span class="hljs-title">Millis</span><span class="hljs-params">(minutes * 60 * 1000)</span></span>
+   <span class="hljs-comment">// ...</span>
+}
+
+<span class="hljs-keyword">inline</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Millis</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> milliseconds</span>: <span class="hljs-keyword">Int</span>) {
+   <span class="hljs-comment">// ...</span>
+}
+
+interface User {
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">decideAboutTime</span><span class="hljs-params">()</span>: Minutes</span>
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">wakeUp</span><span class="hljs-params">()</span></span>
+}
+
+interface Timer {
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">callAfter</span><span class="hljs-params">(timeMillis: <span class="hljs-type">Millis, callback: (</span>)</span>-&gt;<span class="hljs-keyword">Unit</span>)</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">setUpUserWakeUpUser</span><span class="hljs-params">(user: <span class="hljs-type">User, timer: Timer</span>)</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> time</span>: Minutes = user.decideAboutTime()
+   timer.callAfter(time) { <span class="hljs-comment">// ERROR: Type mismatch</span>
+       user.wakeUp()
+   }
+}
+</code></pre>
+<p>This would force us to use the correct type:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">setUpUserWakeUpUser</span><span class="hljs-params">(user: <span class="hljs-type">User, timer: Timer</span>)</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> time</span> = user.decideAboutTime()
+   timer.callAfter(time.toMillis()) {
+       user.wakeUp()
+   }
+}
+</code></pre>
+<p>It is especially useful for metric units, as in frontend, we often use a variety of units like pixels, millimeters, dp, etc. To support object creation, we can define DSL-like extension properties (and you can make them inline functions):</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">inline</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> Int.min 
+    get()</span> = Minutes(this)
+
+<span class="hljs-keyword">inline</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> Int.ms 
+    get()</span> = Millis(this)
+
+<span class="hljs-variable"><span class="hljs-keyword">val</span> timeMin</span>: Minutes = <span class="hljs-number">10.</span>min
+</code></pre>
+<h3 id="protect-us-from-type-misuse">Protect us from type misuse</h3>
+<p>In SQL databases, we often identify elements by their IDs, which are all just numbers. Therefore, let&#x2019;s say that you have a student grade in a system. It will probably need to reference the id of a student, teacher, school etc.:</p>
+<pre><code class="lang-kotlin">@Entity(tableName = <span class="hljs-string">&quot;grades&quot;</span>)
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Grades</span></span>(
+   @ColumnInfo(name = <span class="hljs-string">&quot;studentId&quot;</span>) 
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> studentId</span>: <span class="hljs-keyword">Int</span>,
+   @ColumnInfo(name = <span class="hljs-string">&quot;teacherId&quot;</span>) 
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> teacherId</span>: <span class="hljs-keyword">Int</span>,
+   @ColumnInfo(name = <span class="hljs-string">&quot;schoolId&quot;</span>) 
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> schoolId</span>: <span class="hljs-keyword">Int</span>,
+   <span class="hljs-comment">// ...</span>
+)
+</code></pre>
+<p>The problem is that it is really easy to later misuse all those ids, and the typing system does not protect us because they are all of type <code>Int</code>. The solution is to wrap all those integers into separate inline classes:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">inline</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">StudentId</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> studentId</span>: <span class="hljs-keyword">Int</span>)
+<span class="hljs-keyword">inline</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">TeacherId</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> teacherId</span>: <span class="hljs-keyword">Int</span>)
+<span class="hljs-keyword">inline</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SchoolId</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> studentId</span>: <span class="hljs-keyword">Int</span>)
+
+@Entity(tableName = <span class="hljs-string">&quot;grades&quot;</span>)
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Grades</span></span>(
+   @ColumnInfo(name = <span class="hljs-string">&quot;studentId&quot;</span>) 
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> studentId</span>: StudentId,
+   @ColumnInfo(name = <span class="hljs-string">&quot;teacherId&quot;</span>) 
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> teacherId</span>: TeacherId,
+   @ColumnInfo(name = <span class="hljs-string">&quot;schoolId&quot;</span>) 
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> schoolId</span>: SchoolId,
+   <span class="hljs-comment">// ...</span>
+)
+</code></pre>
+<p>Now those id uses will be safe, and at the same time, the database will be generated correctly because during compilation, all those types will be replaced with <code>Int</code> anyway. This way, inline classes allow us to introduce types where they were not allowed before, and thanks to that, we have safer code with no performance overhead. </p>
+<h3 id="inline-classes-and-interfaces">Inline classes and interfaces</h3>
+<p>Inline classes just like other classes can implement interfaces. Those interfaces could let us properly pass time in any unit of measure we want. </p>
+<pre><code class="lang-kotlin">interface TimeUnit {
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> millis</span>: <span class="hljs-keyword">Long</span>
+}
+
+<span class="hljs-keyword">inline</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Minutes</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> minutes</span>: <span class="hljs-keyword">Long</span>): TimeUnit {
+   <span class="hljs-keyword">override</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> millis</span>: <span class="hljs-keyword">Long</span> <span class="hljs-keyword">get</span>() = minutes * <span class="hljs-number">60</span> * <span class="hljs-number">1000</span>
+   <span class="hljs-comment">// ...</span>
+}
+
+<span class="hljs-keyword">inline</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Millis</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> milliseconds</span>: <span class="hljs-keyword">Long</span>): TimeUnit {
+   <span class="hljs-keyword">override</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> millis</span>: <span class="hljs-keyword">Long</span> <span class="hljs-keyword">get</span>() = milliseconds
+}
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">setUpTimer</span><span class="hljs-params">(time: <span class="hljs-type">TimeUnit</span>)</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> millis</span> = time.millis
+   <span class="hljs-comment">//...</span>
+}
+
+setUpTimer(Minutes(<span class="hljs-number">123</span>))
+setUpTimer(Millis(<span class="hljs-number">456789</span>))
+</code></pre>
+<p>The catch is that when an object is used through an interface, it cannot be inlined. Therefore in the above example there is no advantage to using inline classes, since wrapped objects need to be created to let us present a type through this interface. <strong>When we present inline classes through an interface, such classes are not inlined.</strong></p>
+<h3 id="typealias">Typealias</h3>
+<p>Kotlin typealias lets us create another name for a type:</p>
+<pre><code class="lang-kotlin">typealias NewName = <span class="hljs-keyword">Int</span>
+<span class="hljs-variable"><span class="hljs-keyword">val</span> n</span>: NewName = <span class="hljs-number">10</span>
+</code></pre>
+<p>Naming types is a useful capability used especially when we deal with long and repeatable types. For instance, it is popular practice to name repeatable function types:</p>
+<pre><code class="lang-kotlin">typealias ClickListener = 
+   (view: View, event: Event) -&gt; <span class="hljs-keyword">Unit</span>
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">View</span> </span>{
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">addClickListener</span><span class="hljs-params">(listener: <span class="hljs-type">ClickListener</span>)</span> {}</span>
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">removeClickListener</span><span class="hljs-params">(listener: <span class="hljs-type">ClickListener</span>)</span> {}</span>
+   <span class="hljs-comment">//...</span>
+}
+</code></pre>
+<p>What needs to be understood though is that <strong>typealiases do not protect us in any way from type misuse</strong>. They are just adding a new name for a type. If we would name <code>Int</code> as both <code>Millis</code> and <code>Seconds</code>, we would make an illusion that the typing system protects us while it does not:</p>
+<pre><code class="lang-kotlin">typealias Seconds = <span class="hljs-keyword">Int</span>
+typealias Millis = <span class="hljs-keyword">Int</span>
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">getTime</span><span class="hljs-params">()</span>: Millis = 10</span>
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">setUpTimer</span><span class="hljs-params">(time: <span class="hljs-type">Seconds</span>)</span> {}</span>
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> seconds</span>: Seconds = <span class="hljs-number">10</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> millis</span>: Millis = seconds <span class="hljs-comment">// No compiler error</span>
+
+   setUpTimer(getTime())
+}
+</code></pre>
+<p>In the above example it would be easier to find what is wrong without type aliases. This is why they should not be used this way. To indicate a unit of measure, use a parameter name or classes. A name is cheaper, but classes give better safety. When we use inline classes, we take the best from both options - it is both cheap and safe. </p>
+<h3 id="summary">Summary</h3>
+<p>Inline classes let us wrap a type without performance overhead. Thanks to that, we improve safety by making our typing system protect us from value misuse. If you use a type with unclear meaning, especially a type that might have different units of measure, consider wrapping it with inline classes.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1374,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 47 Consider Using Inline Classes","level":"1.4.1.4","depth":3,"next":{"title":"Item 48 Eliminate Obsolete Object References","level":"1.4.1.5","depth":3,"path":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 48 Eliminate obsolete object references.md","ref":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 48 Eliminate obsolete object references.md","articles":[]},"previous":{"title":"Item 46 Use Inline Modifier For Functions With Parameters Of Functional Types","level":"1.4.1.3","depth":3,"path":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 46 Use inline modifier for functions with parameters of functional types.md","ref":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 46 Use inline modifier for functions with parameters of functional types.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 47 Consider using inline classes.md","mtime":"2021-11-28T04:06:01.899Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-28T04:06:34.037Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 47 Consider Using Inline Classes","level":"1.4.1.4","depth":3,"next":{"title":"Item 48 Eliminate Obsolete Object References","level":"1.4.1.5","depth":3,"path":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 48 Eliminate obsolete object references.md","ref":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 48 Eliminate obsolete object references.md","articles":[]},"previous":{"title":"Item 46 Use Inline Modifier For Functions With Parameters Of Functional Types","level":"1.4.1.3","depth":3,"path":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 46 Use inline modifier for functions with parameters of functional types.md","ref":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 46 Use inline modifier for functions with parameters of functional types.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 47 Consider using inline classes.md","mtime":"2021-11-28T05:08:46.354Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-28T05:09:25.889Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
