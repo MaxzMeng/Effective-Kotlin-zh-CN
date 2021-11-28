@@ -68,9 +68,9 @@ Effective Kotlin 中文翻译
     - Chapter 7 Make It Cheap
         - [x] [Introduction](Part 3 Efficiency/Chapter 7 Make it cheap/Introduction.md)
         - [x] [Item 45 Avoid Unnecessary Object Creation](Part 3 Efficiency/Chapter 7 Make it cheap/Item 45 Avoid unnecessary object creation.md)
-        - [ ] [Item 46 Use Inline Modifier For Functions With Parameters Of Functional Types](Part 3 Efficiency/Chapter 7 Make it cheap/Item 46 Use inline modifier for functions with parameters of functional types.md)
-        - [ ] [Item 47 Consider Using Inline Classes](Part 3 Efficiency/Chapter 7 Make it cheap/Item 47 Consider using inline classes.md)
-        - [ ] [Item 48 Eliminate Obsolete Object References](Part 3 Efficiency/Chapter 7 Make it cheap/Item 48 Eliminate obsolete object references.md)
+        - [x] [Item 46 Use Inline Modifier For Functions With Parameters Of Functional Types](Part 3 Efficiency/Chapter 7 Make it cheap/Item 46 Use inline modifier for functions with parameters of functional types.md)
+        - [x] [Item 47 Consider Using Inline Classes](Part 3 Efficiency/Chapter 7 Make it cheap/Item 47 Consider using inline classes.md)
+        - [x] [Item 48 Eliminate Obsolete Object References](Part 3 Efficiency/Chapter 7 Make it cheap/Item 48 Eliminate obsolete object references.md)
     - Chapter 8 Efficient Collection Processing
         - [ ] [Introduction](Part 3 Efficiency/Chapter 8 Efficient collection processing/Introduction.md)
         - [ ] [Item 49 Prefer Sequence For Big Collections With More Than One Processing Step](Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 49 Prefer Sequence for big collections with more than one processing step.md)
