@@ -1134,7 +1134,216 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-48-eliminate-obsolete-object-references">Item 48: Eliminate obsolete object references</h2>
+<p>Programmers that are used to languages with automatic memory management rarely think about freeing objects. In Java, for example, the Garbage Collector (GC) does all the job. Although forgetting about memory management altogether leads to memory leaks - unnecessary memory consumption - and in some cases to <code>OutOfMemoryError</code>. The single most important rule is that we should not keep a reference to an object that is not useful anymore. Especially if such an object is big in terms of memory or if there might be a lot of instances of such objects. </p>
+<p>In Android, there is a common beginner&#x2019;s mistake, where a developer willing to freely access an <code>Activity</code> (a concept similar to a window in a desktop application) from any place, stores it in a static or companion object property (classically, in a static field):</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MainActivity</span> : <span class="hljs-type">Activity</span></span>() {
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onCreate</span><span class="hljs-params">(savedInstanceState: <span class="hljs-type">Bundle?</span>)</span> {</span>
+       super.onCreate(savedInstanceState)
+       <span class="hljs-comment">//...</span>
+       activity = this
+   }
+
+   <span class="hljs-comment">//...</span>
+
+   <span class="hljs-keyword">companion</span> <span class="hljs-keyword">object</span> {
+       <span class="hljs-comment">// DON&apos;T DO THIS! It is a huge memory leak</span>
+       <span class="hljs-variable"><span class="hljs-keyword">var</span> activity</span>: MainActivity? = <span class="hljs-literal">null</span>
+   }
+}
+</code></pre>
+<p>Holding a reference to an activity in a companion object does not let Garbage Collector release it as long as our application is running. Activities are heavy objects, and so it is a huge memory leak. There are some ways to improve it, but it is best not to hold such resources statically at all. <strong>Manage dependencies properly instead of storing them statically.</strong> Also, notice that we might deal with a memory leak when we hold an object storing a reference to another one. Like in the example below, we hold a lambda function that captures a reference to the <code>MainActivity</code>:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MainActivity</span> : <span class="hljs-type">Activity</span></span>() {
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">onCreate</span><span class="hljs-params">(savedInstanceState: <span class="hljs-type">Bundle?</span>)</span> {</span>
+       super.onCreate(savedInstanceState)
+       <span class="hljs-comment">//...</span>
+
+       <span class="hljs-comment">// Be careful, we leak a reference to `this`</span>
+       logError = { Log.e(this::<span class="hljs-class"><span class="hljs-keyword">class</span>.<span class="hljs-title">simpleName</span>, 
+<span class="hljs-type">it.message) }</span></span>
+   }
+
+   <span class="hljs-comment">//...</span>
+
+   <span class="hljs-keyword">companion</span> <span class="hljs-keyword">object</span> {
+       <span class="hljs-comment">// DON&apos;T DO THIS! A memory leak</span>
+       <span class="hljs-variable"><span class="hljs-keyword">var</span> logError</span>: ((Throwable)-&gt;<span class="hljs-keyword">Unit</span>)? = <span class="hljs-literal">null</span>
+   }
+}
+</code></pre>
+<p>Although problems with memory can be much more subtle. Take a look at the stack implementation below<a href="chap65.xhtml#fn-footnote_730_note">3</a>:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Stack</span> </span>{
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> elements</span>: Array<span class="hljs-type">&lt;Any?&gt;</span> =
+       arrayOfNulls(DEFAULT_INITIAL_CAPACITY)
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> size</span> = <span class="hljs-number">0</span>
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">push</span><span class="hljs-params">(e: <span class="hljs-type">Any</span>)</span> {</span>
+       ensureCapacity()
+       elements[size++] = e
+   }
+
+   <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">pop</span><span class="hljs-params">()</span>: Any? {</span>
+       <span class="hljs-keyword">if</span> (size == <span class="hljs-number">0</span>) {
+           <span class="hljs-keyword">throw</span> EmptyStackException()
+       }
+       <span class="hljs-keyword">return</span> elements[--size]
+   }
+
+   <span class="hljs-keyword">private</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">ensureCapacity</span><span class="hljs-params">()</span> {</span>
+       <span class="hljs-keyword">if</span> (elements.size == size) {
+           elements = elements.copyOf(<span class="hljs-number">2</span> * size + <span class="hljs-number">1</span>)
+       }
+   }
+
+   <span class="hljs-keyword">companion</span> <span class="hljs-keyword">object</span> {
+       <span class="hljs-keyword">private</span> const <span class="hljs-variable"><span class="hljs-keyword">val</span> DEFAULT_INITIAL_CAPACITY</span> = <span class="hljs-number">16</span>
+   }
+}
+</code></pre>
+<p>Can you spot a problem here? Take a minute to think about it.</p>
+<p>The problem is that when we pop, we just decrement size, but we don&#x2019;t free an element on the array. Let&#x2019;s say that we had 1000 elements on the stack, and we popped nearly all of them one after another and our size is now equal to 1. We should have only one element. We can access only one element. Although our stack still holds 1000 elements and doesn&#x2019;t allow GC to destroy them. All those objects are wasting our memory. This is why they are called memory leaks. If this leaks accumulate we might face an <code>OutOfMemoryError</code>. How can we fix this implementation? A very simple solution is to set <code>null</code> in the array when an object is not needed anymore:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">pop</span><span class="hljs-params">()</span>: Any? {</span>
+   <span class="hljs-keyword">if</span> (size == <span class="hljs-number">0</span>)
+       <span class="hljs-keyword">throw</span> EmptyStackException()
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> elem</span> = elements[--size]
+   elements[size] = <span class="hljs-literal">null</span>
+   <span class="hljs-keyword">return</span> elem
+}
+</code></pre>
+<p>This is a rare example and a costly mistake, but there are everyday objects we use that profit, or can profit, from this rule as well. Let&#x2019;s say that we need a <code>mutableLazy</code> property delegate. It should work just like <code>lazy</code>, but it should also allow property state mutation. I can define it using the following implementation:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T&gt;</span> <span class="hljs-title">mutableLazy</span><span class="hljs-params">(initializer: <span class="hljs-type">(</span>)</span> -&gt; T): </span>
+ReadWriteProperty<span class="hljs-type">&lt;Any?, T&gt;</span> = MutableLazy(initializer)
+
+<span class="hljs-keyword">private</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MutableLazy</span>&lt;<span class="hljs-type">T</span>&gt;</span>(
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> initializer</span>: () -&gt; T
+) : ReadWriteProperty<span class="hljs-type">&lt;Any?, T&gt;</span> {
+
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> value</span>: T? = <span class="hljs-literal">null</span>
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> initialized</span> = <span class="hljs-literal">false</span>
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">getValue</span><span class="hljs-params">(
+       thisRef: <span class="hljs-type">Any?,
+       property: KProperty&lt;*&gt;</span>
+   )</span>: T {</span>
+       synchronized(this) {
+           <span class="hljs-keyword">if</span> (!initialized) {
+               value = initializer()
+               initialized = <span class="hljs-literal">true</span>
+           }
+           <span class="hljs-keyword">return</span> value <span class="hljs-keyword">as</span> T
+       }
+   }
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">setValue</span><span class="hljs-params">(
+       thisRef: <span class="hljs-type">Any?,
+       property: KProperty&lt;*&gt;,
+       value: T</span>
+   )</span> {</span>
+       synchronized(this) {
+           this.value = value
+           initialized = <span class="hljs-literal">true</span>
+       }
+   }
+}
+</code></pre>
+<p>Usage:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">var</span> game</span>: Game? by mutableLazy { readGameFromSave() }
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">setUpActions</span><span class="hljs-params">()</span> {</span>
+   startNewGameButton.setOnClickListener {
+       game = makeNewGame()
+       startGame()
+   }
+   resumeGameButton.setOnClickListener {
+       startGame()
+   }
+}
+</code></pre>
+<p>The above implementation of <code>mutableLazy</code> is correct, but has one flaw: <code>initializer</code> is not cleaned after usage. It means that it is held as long as the reference to an instance of <code>MutableLazy</code> exist even though it is not useful anymore. This is how <code>MutableLazy</code> implementation can be improved:</p>
+<pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-type">&lt;T&gt;</span> <span class="hljs-title">mutableLazy</span><span class="hljs-params">(initializer: <span class="hljs-type">(</span>)</span> -&gt; T): </span>
+ReadWriteProperty<span class="hljs-type">&lt;Any?, T&gt;</span> = MutableLazy(initializer)
+
+<span class="hljs-keyword">private</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MutableLazy</span>&lt;<span class="hljs-type">T</span>&gt;</span>(
+   <span class="hljs-variable"><span class="hljs-keyword">var</span> initializer</span>: (() -&gt; T)?
+) : ReadWriteProperty<span class="hljs-type">&lt;Any?, T&gt;</span> {
+
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> value</span>: T? = <span class="hljs-literal">null</span>
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">getValue</span><span class="hljs-params">(
+       thisRef: <span class="hljs-type">Any?,
+       property: KProperty&lt;*&gt;</span>
+   )</span>: T {</span>
+       synchronized(this) {
+           <span class="hljs-variable"><span class="hljs-keyword">val</span> initializer</span> = initializer
+           <span class="hljs-keyword">if</span> (initializer != <span class="hljs-literal">null</span>) {
+               value = initializer()
+               this.initializer = <span class="hljs-literal">null</span>
+           }
+           <span class="hljs-keyword">return</span> value <span class="hljs-keyword">as</span> T
+       }
+   }
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">setValue</span><span class="hljs-params">(
+       thisRef: <span class="hljs-type">Any?,
+       property: KProperty&lt;*&gt;,
+       value: T</span>
+   )</span> {</span>
+       synchronized(this) {
+           this.value = value
+           this.initializer = <span class="hljs-literal">null</span>
+       }
+   }
+}
+</code></pre>
+<p>When we set initializer to <code>null</code>, the previous value can be recycled by the GC.</p>
+<p>How important is this optimization? Not so important to bother for rarely used objects. There is a saying that premature optimization is the root of all evil. Although, it is good to set <code>null</code> to unused objects when it doesn&#x2019;t cost you much to do it. Especially when it is a function type which can capture many variables, or when it is an unknown class like <code>Any</code> or a generic type. For example, <code>Stack</code> from the above example might be used by someone to hold heavy objects. This is a general purpose tool and we don&#x2019;t know how it will be used. For such tools, we should care more about optimizations. This is especially true when we are creating a library. For instance, in all 3 implementations of a lazy delegate from Kotlin stdlib, we can see that initializers are set to <code>null</code> after usage:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">private</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SynchronizedLazyImpl</span>&lt;<span class="hljs-type">out T</span>&gt;</span>(
+   initializer: () -&gt; T, lock: Any? = <span class="hljs-literal">null</span>
+) : Lazy<span class="hljs-type">&lt;T&gt;</span>, Serializable {
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> initializer</span>: (() -&gt; T)? = initializer
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> _value</span>: Any? = UNINITIALIZED_VALUE
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> lock</span> = lock ?: this
+
+   <span class="hljs-keyword">override</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> value</span>: T
+       <span class="hljs-keyword">get</span>() {
+           <span class="hljs-variable"><span class="hljs-keyword">val</span> _v1</span> = _value
+           <span class="hljs-keyword">if</span> (_v1 !== UNINITIALIZED_VALUE) {
+               @Suppress(<span class="hljs-string">&quot;UNCHECKED_CAST&quot;</span>)
+               <span class="hljs-keyword">return</span> _v1 <span class="hljs-keyword">as</span> T
+           }
+
+           <span class="hljs-keyword">return</span> synchronized(lock) {
+               <span class="hljs-variable"><span class="hljs-keyword">val</span> _v2</span> = _value
+               <span class="hljs-keyword">if</span> (_v2 !== UNINITIALIZED_VALUE) {
+                   @Suppress(<span class="hljs-string">&quot;UNCHECKED_CAST&quot;</span>) (_v2 <span class="hljs-keyword">as</span> T)
+               } <span class="hljs-keyword">else</span> {
+                   <span class="hljs-variable"><span class="hljs-keyword">val</span> typedValue</span> = initializer!!()
+                   _value = typedValue
+                   initializer = <span class="hljs-literal">null</span>
+                   typedValue
+               }
+           }
+       }
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">isInitialized</span><span class="hljs-params">()</span>: <span class="hljs-keyword">Boolean</span> = </span>
+      _value !== UNINITIALIZED_VALUE
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">toString</span><span class="hljs-params">()</span>: String = </span>
+      <span class="hljs-keyword">if</span> (isInitialized()) value.toString() 
+      <span class="hljs-keyword">else</span> <span class="hljs-string">&quot;Lazy value not initialized yet.&quot;</span>
+
+   <span class="hljs-keyword">private</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">writeReplace</span><span class="hljs-params">()</span>: Any = </span>
+      InitializedLazyImpl(value)
+}
+</code></pre>
+<p>The general rule is that <strong>when we hold state, we should have memory management in our minds</strong>. Before changing implementation, we should always think of the best trade-off for our project, having in mind not only memory and performance, but also the readability and scalability of our solution. Generally, readable code will also be doing fairly well in terms of performance or memory. Unreadable code is more likely to hide memory leaks or wasted CPU power. Though sometimes those two values stand in opposition and then, in most cases, readability is more important. When we develop a library, performance and memory are often more important.</p>
+<p>There are a few common sources of memory leaks we need to discuss. First of all, caches hold objects that might never be used. This is the idea behind caches, but it won&#x2019;t help us when we suffer from out-of-memory-error. The solution is to use soft references. Objects can still be collected by the GC if memory is needed, but often they will exist and will be used.</p>
+<p>Some objects can be referenced using weak reference. For instance a Dialog on a screen. As long as it is displayed, it won&#x2019;t be Garbage Collected anyway. Once it vanishes we do not need to reference it anyway. It is a perfect candidate for an object being referenced using a weak reference. </p>
+<p>The big problem is that memory leaks are sometimes hard to predict and do not manifest themselves until some point when the application crashes. Which is especially true for Android apps, as there are stricter limits on memory usage than for other kinds of clients, like desktop. This is why we should search for them using special tools. The most basic tool is the heap profiler. We also have some libraries that help in the search for data leaks. For instance, a popular library for Android is LeakCanary which shows a notification whenever a memory leak is detected.</p>
+<p>It is important to remember that a need to free objects manually is pretty rare. In most cases, those objects are freed anyway thanks to the scope, or when objects holding them are cleaned. The most important way to avoid cluttering our memory is having variables defined in a local scope (<em>Item 2: Minimize the scope of variables</em>) and not storing possibly heavy data in top-level properties or object declarations (including companion objects).</p>
+
                                 
                                 </section>
                             
@@ -1173,7 +1382,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 48 Eliminate Obsolete Object References","level":"1.4.1.5","depth":3,"next":{"title":"Chapter 8 Efficient Collection Processing","level":"1.4.2","depth":2,"ref":"","articles":[{"title":"Introduction","level":"1.4.2.1","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Introduction.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Introduction.md","articles":[]},{"title":"Item 49 Prefer Sequence For Big Collections With More Than One Processing Step","level":"1.4.2.2","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 49 Prefer Sequence for big collections with more than one processing step.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 49 Prefer Sequence for big collections with more than one processing step.md","articles":[]},{"title":"Item 50 Limit The Number Of Operations","level":"1.4.2.3","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.md","articles":[]},{"title":"Item 51 Consider Arrays With Primitives For Performance Critical Processing","level":"1.4.2.4","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 51 Consider Arrays with primitives for performance-critical processing.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 51 Consider Arrays with primitives for performance-critical processing.md","articles":[]},{"title":"Item 52 Consider Using Mutable Collections","level":"1.4.2.5","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 52 Consider using mutable collections.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 52 Consider using mutable collections.md","articles":[]}]},"previous":{"title":"Item 47 Consider Using Inline Classes","level":"1.4.1.4","depth":3,"path":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 47 Consider using inline classes.md","ref":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 47 Consider using inline classes.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 48 Eliminate obsolete object references.md","mtime":"2021-11-28T05:08:46.354Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-28T05:09:25.889Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 48 Eliminate Obsolete Object References","level":"1.4.1.5","depth":3,"next":{"title":"Chapter 8 Efficient Collection Processing","level":"1.4.2","depth":2,"ref":"","articles":[{"title":"Introduction","level":"1.4.2.1","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Introduction.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Introduction.md","articles":[]},{"title":"Item 49 Prefer Sequence For Big Collections With More Than One Processing Step","level":"1.4.2.2","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 49 Prefer Sequence for big collections with more than one processing step.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 49 Prefer Sequence for big collections with more than one processing step.md","articles":[]},{"title":"Item 50 Limit The Number Of Operations","level":"1.4.2.3","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.md","articles":[]},{"title":"Item 51 Consider Arrays With Primitives For Performance Critical Processing","level":"1.4.2.4","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 51 Consider Arrays with primitives for performance-critical processing.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 51 Consider Arrays with primitives for performance-critical processing.md","articles":[]},{"title":"Item 52 Consider Using Mutable Collections","level":"1.4.2.5","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 52 Consider using mutable collections.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 52 Consider using mutable collections.md","articles":[]}]},"previous":{"title":"Item 47 Consider Using Inline Classes","level":"1.4.1.4","depth":3,"path":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 47 Consider using inline classes.md","ref":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 47 Consider using inline classes.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 3 Efficiency/Chapter 7 Make it cheap/Item 48 Eliminate obsolete object references.md","mtime":"2021-11-28T05:12:03.216Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-28T05:12:37.058Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
