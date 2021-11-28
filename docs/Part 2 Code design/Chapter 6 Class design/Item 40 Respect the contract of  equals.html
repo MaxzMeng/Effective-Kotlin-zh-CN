@@ -1136,7 +1136,288 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-40-respect-the-contract-of-equals">Item 40: Respect the contract of <code>equals</code></h2>
+<p>In Kotlin, every object extends <code>Any</code>, which has a few methods with well-established contracts. These methods are:</p>
+<ul>
+<li><code>equals</code></li>
+<li><code>hashCode</code></li>
+<li><code>toString</code></li>
+</ul>
+<p>Their contract is described in their comments and elaborated in the official documentation, and as I described in <em>Item 32: Respect abstraction contracts</em>, every subtype of a type with a set contract should respect this contract. These methods have an important position in Kotlin, as they have been defined since the beginning of Java, and therefore many objects and functions depend on their contract. Breaking their contract will often lead to some objects or functions not working properly. This is why in the current and next items we will talk about overriding these functions and about their contracts. Let&#x2019;s start with <code>equals</code>. </p>
+<h3 id="equality">Equality</h3>
+<p>In Kotlin, there are two types of equality:</p>
+<ul>
+<li>Structural equality - checked by the <code>equals</code> method or <code>==</code> operator (and its negated counterpart <code>!=</code>) which is based on the <code>equals</code> method. <code>a == b</code> translates to <code>a.equals(b)</code> when <code>a</code> is not nullable, or otherwise to <code>a?.equals(b) ?: (b === null)</code>.</li>
+<li>Referential equality - checked by the <code>===</code> operator (and its negated counterpart <code>!==</code>), returns <code>true</code> when both sides point to the same object. </li>
+</ul>
+<p>Since <code>equals</code> is implemented in <code>Any</code>, which is the superclass of every class, we can check the equality of any two objects. Although using operators to check equality is not allowed when objects are not of the same type:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">open</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Animal</span></span>
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Book</span></span>
+Animal() == Book()  <span class="hljs-comment">// Error: Operator == cannot be </span>
+<span class="hljs-comment">// applied to Animal and Book</span>
+Animal() === Book() <span class="hljs-comment">// Error: Operator === cannot be </span>
+<span class="hljs-comment">// applied to Animal and Book</span>
+</code></pre>
+<p>Objects either need to have the same type or one needs to be a subtype of another:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Cat</span>: <span class="hljs-type">Animal</span></span>()
+Animal() == Cat()  <span class="hljs-comment">// OK, because Cat is a subclass of </span>
+<span class="hljs-comment">// Animal</span>
+Animal() === Cat() <span class="hljs-comment">// OK, because Cat is a subclass of </span>
+<span class="hljs-comment">// Animal</span>
+</code></pre>
+<p>It is because it does not make sense to check equality of two objects of a different type. It will get clear when we will explain the contract of equals. </p>
+<h3 id="why-do-we-need-equals">Why do we need equals?</h3>
+<p>The default implementation of <code>equals</code> coming from <code>Any</code> checks if another object is exactly the same instance. Just like referential equality (<code>===</code>). It means that every object by default is unique:</p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Name</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: String)
+<span class="hljs-variable"><span class="hljs-keyword">val</span> name1</span> = Name(<span class="hljs-string">&quot;Marcin&quot;</span>)
+<span class="hljs-variable"><span class="hljs-keyword">val</span> name2</span> = Name(<span class="hljs-string">&quot;Marcin&quot;</span>)
+<span class="hljs-variable"><span class="hljs-keyword">val</span> name1Ref</span> = name1
+
+name1 == name1 <span class="hljs-comment">// true</span>
+name1 == name2 <span class="hljs-comment">// false</span>
+name1 == name1Ref <span class="hljs-comment">// true</span>
+
+name1 === name1 <span class="hljs-comment">// true</span>
+name1 === name2 <span class="hljs-comment">// false</span>
+name1 === name1Ref <span class="hljs-comment">// true</span>
+</code></pre>
+<p>Such behavior is useful for many objects. It is perfect for active elements, like a database connection, a repository, or a thread. However, there are objects where we need to represent equality differently. A popular alternative is a data class equality that checks if all primary constructor properties are equal:</p>
+<pre><code class="lang-kotlin">data <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">FullName</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: String, <span class="hljs-variable"><span class="hljs-keyword">val</span> surname</span>: String)
+<span class="hljs-variable"><span class="hljs-keyword">val</span> name1</span> = FullName(<span class="hljs-string">&quot;Marcin&quot;</span>, <span class="hljs-string">&quot;Moska&#x142;a&quot;</span>)
+<span class="hljs-variable"><span class="hljs-keyword">val</span> name2</span> = FullName(<span class="hljs-string">&quot;Marcin&quot;</span>, <span class="hljs-string">&quot;Moska&#x142;a&quot;</span>)
+<span class="hljs-variable"><span class="hljs-keyword">val</span> name3</span> = FullName(<span class="hljs-string">&quot;Maja&quot;</span>, <span class="hljs-string">&quot;Moska&#x142;a&quot;</span>)
+
+name1 == name1 <span class="hljs-comment">// true</span>
+name1 == name2 <span class="hljs-comment">// true, because data are the same</span>
+name1 == name3 <span class="hljs-comment">// false</span>
+
+name1 === name1 <span class="hljs-comment">// true</span>
+name1 === name2 <span class="hljs-comment">// false</span>
+name1 === name3 <span class="hljs-comment">// false</span>
+</code></pre>
+<p>Such behavior is perfect for classes that are represented by the data they hold, and so we often use the data modifier in data model classes or in other data holders. </p>
+<p>Notice that data class equality also helps when we need to compare some but not all properties. For instance when we want to skip cache or other redundant properties. Here is an example of an object representing date and time having properties <code>asStringCache</code> and <code>changed</code> that should not be compared by equality check: </p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DateTime</span></span>(
+   <span class="hljs-comment">/** The millis from 1970-01-01T00:00:00Z */</span>
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> millis</span>: <span class="hljs-keyword">Long</span> = <span class="hljs-number">0</span>L,
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> timeZone</span>: TimeZone? = <span class="hljs-literal">null</span>
+) {
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> asStringCache</span> = <span class="hljs-string">&quot;&quot;</span>
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> changed</span> = <span class="hljs-literal">false</span>
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">equals</span><span class="hljs-params">(other: <span class="hljs-type">Any?</span>)</span>: <span class="hljs-keyword">Boolean</span> =</span>
+       other <span class="hljs-keyword">is</span> DateTime &amp;&amp;
+               other.millis == millis &amp;&amp;
+               other.timeZone == timeZone
+
+   <span class="hljs-comment">//...</span>
+}
+</code></pre>
+<p>The same can be achieved by using data modifier:</p>
+<pre><code class="lang-kotlin">data <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DateTime</span></span>(
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> millis</span>: <span class="hljs-keyword">Long</span> = <span class="hljs-number">0</span>L,
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> timeZone</span>: TimeZone? = <span class="hljs-literal">null</span>
+) {
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> asStringCache</span> = <span class="hljs-string">&quot;&quot;</span>
+   <span class="hljs-keyword">private</span> <span class="hljs-variable"><span class="hljs-keyword">var</span> changed</span> = <span class="hljs-literal">false</span>
+
+   <span class="hljs-comment">//...</span>
+}
+</code></pre>
+<p>Just notice that <code>copy</code> in such case will not copy those properties that are not declared in the primary constructor. Such behavior is correct only when those additional properties are truly redundant (the object will behave correctly when they will be lost).</p>
+<p>Thanks to those two alternatives, default and data class equality, <strong>we rarely need to implement equality ourselves in Kotlin</strong>. Although there are cases where we need to implement equals ourselves. </p>
+<p>Another example is when just concrete property decides if two objects are equal. For instance, a <code>User</code> class might have an assumption that two users are equal when their <code>id</code> is equal. </p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">User</span></span>(
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> id</span>: <span class="hljs-keyword">Int</span>,
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: String,
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> surname</span>: String
+) {
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">equals</span><span class="hljs-params">(other: <span class="hljs-type">Any?</span>)</span>: <span class="hljs-keyword">Boolean</span> =</span>
+       other <span class="hljs-keyword">is</span> User &amp;&amp; other.id == id
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">hashCode</span><span class="hljs-params">()</span>: <span class="hljs-keyword">Int</span> = id</span>
+}
+</code></pre>
+<p>As you can see, we implement <code>equals</code> ourselves when:</p>
+<ul>
+<li>We need its logic to differ from the default one</li>
+<li>We need to compare only a subset of properties</li>
+<li>We do not want our object to be a data class or properties we need to compare are not in the primary constructor</li>
+</ul>
+<h3 id="the-contract-of-equals">The contract of equals</h3>
+<p>This is how <code>equals</code> is described in its comments (Kotlin 1.3.11, formatted):</p>
+<p>Indicates whether some other object is &#x201C;equal to&#x201D; this one. Implementations must fulfill the following requirements:</p>
+<ul>
+<li>Reflexive: for any non-null value <code>x</code>, <code>x.equals(x)</code> should return <code>true</code>.</li>
+<li>Symmetric: for any non-null values <code>x</code> and <code>y</code>, <code>x.equals(y)</code> should return <code>true</code> if and only if <code>y.equals(x)</code> returns true.</li>
+<li>Transitive: for any non-null values <code>x</code>, <code>y</code>, and <code>z</code>, if <code>x.equals(y)</code> returns <code>true</code> and <code>y.equals(z)</code> returns <code>true</code>, then <code>x.equals(z)</code> should return <code>true</code>.</li>
+<li>Consistent: for any non-null values <code>x</code> and <code>y</code>, multiple invocations of <code>x.equals(y)</code> consistently return <code>true</code> or consistently return <code>false</code>, provided no information used in <code>equals</code> comparisons on the objects is modified.</li>
+<li>Never equal to null: for any non-null value <code>x</code>, <code>x.equals(null)</code> should return <code>false</code>.</li>
+</ul>
+<p>Additionally, we expect <code>equals</code>, <code>toString</code> and <code>hashCode</code> to be fast. It is not a part of the official contract, but it would be highly unexpected to wait a few seconds to check if two elements are equal.</p>
+<p>All those requirements are important. They are assumed from the beginning, also in Java, and so now many objects depend on those assumptions. Don&#x2019;t worry if they sound confusing right now, we&#x2019;ll describe them in detail.</p>
+<ul>
+<li>Object equality should be <strong>reflexive</strong>, meaning that <code>x.equals(x)</code> returns <code>true</code>. Sounds obvious, but this can be violated. For instance, someone might want to make a <code>Time</code> object that represents the current time, and compares milliseconds:</li>
+</ul>
+<pre><code class="lang-kotlin"><span class="hljs-comment">// DO NOT DO THIS!</span>
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Time</span></span>(
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> millisArg</span>: <span class="hljs-keyword">Long</span> = <span class="hljs-number">-1</span>,
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> isNow</span>: <span class="hljs-keyword">Boolean</span> = <span class="hljs-literal">false</span>
+) {
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> millis</span>: <span class="hljs-keyword">Long</span> <span class="hljs-keyword">get</span>() =
+       <span class="hljs-keyword">if</span> (isNow) System.currentTimeMillis() 
+       <span class="hljs-keyword">else</span> millisArg
+
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">equals</span><span class="hljs-params">(other: <span class="hljs-type">Any?</span>)</span>: <span class="hljs-keyword">Boolean</span> =</span>
+       other <span class="hljs-keyword">is</span> Time &amp;&amp; millis == other.millis
+}
+
+<span class="hljs-variable"><span class="hljs-keyword">val</span> now</span> = Time(isNow = <span class="hljs-literal">true</span>)
+now == now <span class="hljs-comment">// Sometimes true, sometimes false   </span>
+List(<span class="hljs-number">100000</span>) { now }.all { it == now }
+<span class="hljs-comment">// Most likely false</span>
+</code></pre>
+<p>Notice that here the result is inconsistent, so it also violates the last principle. </p>
+<p>When an object is not equal to itself, it might not be found in most collections even if it is there when we check using the <code>contains</code> method. It will not work correctly in most unit tests assertions either. </p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> now1</span> = Time(isNow = <span class="hljs-literal">true</span>)
+<span class="hljs-variable"><span class="hljs-keyword">val</span> now2</span> = Time(isNow = <span class="hljs-literal">true</span>)
+assertEquals(now1, now2) 
+<span class="hljs-comment">// Sometimes passes, sometimes not</span>
+</code></pre>
+<p><strong>When the result is not constant, we cannot trust it.</strong> We can never be sure if the result is correct or is it just a result of inconsistency. </p>
+<p>How should we improve it? A simple solution is checking separately if the object represents the current time and if not, then whether it has the same timestamp. Though it is a typical example of tagged class, and as described in <em>Item 39: Prefer class hierarchies to tagged classes</em>, it would be even better to use class hierarchy instead:</p>
+<pre><code class="lang-kotlin">sealed <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Time</span></span>
+data <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">TimePoint</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> millis</span>: <span class="hljs-keyword">Long</span>): Time()
+<span class="hljs-keyword">object</span> Now: Time()
+</code></pre>
+<ul>
+<li>Object equality should be <strong>symmetric</strong>, meaning that the result of <code>x == y</code> and <code>y == x</code> should always be the same. It can be easily violated when in our equality we accept objects of a different type. For instance, let&#x2019;s say that we implemented a class to represent complex numbers and made its equality accept <code>Double</code>:</li>
+</ul>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Complex</span></span>(
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> real</span>: <span class="hljs-keyword">Double</span>,
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> imaginary</span>: <span class="hljs-keyword">Double</span>
+) {
+   <span class="hljs-comment">// DO NOT DO THIS, violates symmetry</span>
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">equals</span><span class="hljs-params">(other: <span class="hljs-type">Any?</span>)</span>: <span class="hljs-keyword">Boolean</span> {</span>
+       <span class="hljs-keyword">if</span> (other <span class="hljs-keyword">is</span> <span class="hljs-keyword">Double</span>) { 
+          <span class="hljs-keyword">return</span> imaginary == <span class="hljs-number">0.0</span> &amp;&amp; real == other
+       }
+       <span class="hljs-keyword">return</span> other <span class="hljs-keyword">is</span> Complex &amp;&amp;
+               real == other.real &amp;&amp;
+               imaginary == other.imaginary
+   }
+}
+</code></pre>
+<p>The problem is that <code>Double</code> does not accept equality with <code>Complex</code>. Therefore the result depends on the order of the elements:</p>
+<pre><code class="lang-kotlin">Complex(<span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>).equals(<span class="hljs-number">1.0</span>) <span class="hljs-comment">// true</span>
+<span class="hljs-number">1.0</span>.equals(Complex(<span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>)) <span class="hljs-comment">// false</span>
+</code></pre>
+<p>Lack of symmetry means, for instance, unexpected results on collections <code>contains</code> or on unit tests assertions.</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> list</span> = listOf<span class="hljs-type">&lt;Any&gt;</span>(Complex(<span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>))
+list.contains(<span class="hljs-number">1.0</span>) <span class="hljs-comment">// Currently on the JVM this is false,</span>
+<span class="hljs-comment">// but it depends on the collection&#x2019;s implementation </span>
+<span class="hljs-comment">// and should not be trusted to stay the same</span>
+</code></pre>
+<p><strong>When equality is not symmetric and it is used by another object, we cannot trust the result because it depends on whether this object compares <code>x</code> to <code>y</code> or <code>y</code> to <code>x</code>.</strong> This fact is not documented and it is not a part of the contract as object creators assume that both should work the same (they assume symmetry). It can also change at any moment - creators during some refactorization might change the order. If your object is not symmetric, it might lead to unexpected and really hard to debug errors in your implementation. This is why when we implement <code>equals</code> we should always consider equality. </p>
+<p>The general solution is that we should not accept equality between different classes. I&#x2019;ve never seen a case where it would be reasonable. Notice that in Kotlin similar classes are not equal to each other. 1 is not equal to 1.0, and 1.0 is not equal to 1.0F. Those are different types and they are not even comparable. Also, in Kotlin we cannot use the <code>==</code> operator between two different types that do not have a common superclass other than <code>Any</code>:</p>
+<pre><code class="lang-kotlin">Complex(<span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>) == <span class="hljs-number">1.0</span> <span class="hljs-comment">// ERROR</span>
+</code></pre>
+<ul>
+<li>Object equality should be <strong>transitive</strong>, meaning that for any non-null reference values <code>x</code>, <code>y</code>, and <code>z</code>, if <code>x.equals(y)</code> returns <code>true</code> and <code>y.equals(z)</code> returns <code>true</code>, then <code>x.equals(z)</code> should return <code>true</code>. The biggest problem with transitivity is when we implement different kinds of equality that check a different subtype of properties. For instance, let&#x2019;s say that we have <code>Date</code> and <code>DateTime</code> defined this way:</li>
+</ul>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">open</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Date</span></span>(
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> year</span>: <span class="hljs-keyword">Int</span>,
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> month</span>: <span class="hljs-keyword">Int</span>,
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> day</span>: <span class="hljs-keyword">Int</span>
+) {
+   <span class="hljs-comment">// DO NOT DO THIS, symmetric but not transitive</span>
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">equals</span><span class="hljs-params">(o: <span class="hljs-type">Any?</span>)</span>: <span class="hljs-keyword">Boolean</span> = <span class="hljs-title">when</span> <span class="hljs-params">(o)</span> {</span>
+       <span class="hljs-keyword">is</span> DateTime -&gt; this == o.date
+       <span class="hljs-keyword">is</span> Date -&gt; o.day == day &amp;&amp; o.month == month &amp;&amp; 
+o.year == year
+       <span class="hljs-keyword">else</span> -&gt; <span class="hljs-literal">false</span>
+   }
+
+   <span class="hljs-comment">// ...</span>
+}
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DateTime</span></span>(
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> date</span>: Date,
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> hour</span>: <span class="hljs-keyword">Int</span>,
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> minute</span>: <span class="hljs-keyword">Int</span>,
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> second</span>: <span class="hljs-keyword">Int</span>
+): Date(date.year, date.month, date.day) {
+   <span class="hljs-comment">// DO NOT DO THIS, symmetric but not transitive</span>
+   <span class="hljs-keyword">override</span> <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">equals</span><span class="hljs-params">(o: <span class="hljs-type">Any?</span>)</span>: <span class="hljs-keyword">Boolean</span> = <span class="hljs-title">when</span> <span class="hljs-params">(o)</span> {</span>
+       <span class="hljs-keyword">is</span> DateTime -&gt; o.date == date &amp;&amp; o.hour == hour &amp;&amp; 
+o.minute == minute &amp;&amp; o.second == second
+       <span class="hljs-keyword">is</span> Date -&gt; date == o
+       <span class="hljs-keyword">else</span> -&gt; <span class="hljs-literal">false</span>
+   }
+
+   <span class="hljs-comment">// ...</span>
+}
+</code></pre>
+<p>The problem with the above implementation is that when we compare two <code>DateTime</code>, we check more properties than when we compare <code>DateTime</code> and <code>Date</code>. Therefore two <code>DateTime</code> with the same day but a different time will not be equal to each other, but they&#x2019;ll both be equal to the same <code>Date</code>. As a result, their relation is not transitive:</p>
+<pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> o1</span> = DateTime(Date(<span class="hljs-number">1992</span>, <span class="hljs-number">10</span>, <span class="hljs-number">20</span>), <span class="hljs-number">12</span>, <span class="hljs-number">30</span>, <span class="hljs-number">0</span>)
+<span class="hljs-variable"><span class="hljs-keyword">val</span> o2</span> = Date(<span class="hljs-number">1992</span>, <span class="hljs-number">10</span>, <span class="hljs-number">20</span>)
+<span class="hljs-variable"><span class="hljs-keyword">val</span> o3</span> = DateTime(Date(<span class="hljs-number">1992</span>, <span class="hljs-number">10</span>, <span class="hljs-number">20</span>), <span class="hljs-number">14</span>, <span class="hljs-number">45</span>, <span class="hljs-number">30</span>)
+
+o1 == o2 <span class="hljs-comment">// true</span>
+o2 == o3 <span class="hljs-comment">// true</span>
+o1 == o3 <span class="hljs-comment">// false &lt;- So equality is not transitive</span>
+</code></pre>
+<p>Notice that here the restriction to compare only objects of the same type didn&#x2019;t help because we&#x2019;ve used inheritance. Such inheritance violates the <em>Liskov substitution principle</em> and should not be used. In this case, use composition instead of inheritance (<em>Item 36: Prefer composition over inheritance</em>). When you do, do not compare two objects of different types. These classes are perfect examples of objects holding data and representing them this way is a good choice:</p>
+<pre><code class="lang-kotlin">data <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Date</span></span>(
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> year</span>: <span class="hljs-keyword">Int</span>,
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> month</span>: <span class="hljs-keyword">Int</span>,
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> day</span>: <span class="hljs-keyword">Int</span>
+)
+
+data <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DateTime</span></span>(
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> date</span>: Date,
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> hour</span>: <span class="hljs-keyword">Int</span>,
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> minute</span>: <span class="hljs-keyword">Int</span>,
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> second</span>: <span class="hljs-keyword">Int</span>
+)
+
+<span class="hljs-variable"><span class="hljs-keyword">val</span> o1</span> = DateTime(Date(<span class="hljs-number">1992</span>, <span class="hljs-number">10</span>, <span class="hljs-number">20</span>), <span class="hljs-number">12</span>, <span class="hljs-number">30</span>, <span class="hljs-number">0</span>)
+<span class="hljs-variable"><span class="hljs-keyword">val</span> o2</span> = Date(<span class="hljs-number">1992</span>, <span class="hljs-number">10</span>, <span class="hljs-number">20</span>)
+<span class="hljs-variable"><span class="hljs-keyword">val</span> o3</span> = DateTime(Date(<span class="hljs-number">1992</span>, <span class="hljs-number">10</span>, <span class="hljs-number">20</span>), <span class="hljs-number">14</span>, <span class="hljs-number">45</span>, <span class="hljs-number">30</span>)
+
+o1.equals(o2) <span class="hljs-comment">// false</span>
+o2.equals(o3) <span class="hljs-comment">// false</span>
+o1 == o3 <span class="hljs-comment">// false</span>
+
+o1.date.equals(o2) <span class="hljs-comment">// true</span>
+o2.equals(o3.date) <span class="hljs-comment">// true</span>
+o1.date == o3.date <span class="hljs-comment">// true</span>
+</code></pre>
+<ul>
+<li>Equality should be <strong>consistent</strong>, meaning that the method invoked on two objects should always return the same result unless one of those objects was modified. For immutable objects, the result should be always the same. In other words, we expect <code>equals</code> to be a pure function (do not modify the state of an object) for which result always depends only on input and state of its receiver. We&#x2019;ve seen the <code>Time</code> class that violated this principle. This rule was also famously violated in <code>java.net.URL.equals()</code>.</li>
+<li>Never equal to null: for any non-null value <code>x</code>, <code>x.equals(null)</code> must return <code>false</code>. It is important because <code>null</code> should be unique and no object should be equal to it. </li>
+</ul>
+<h3 id="problem-with-equals-in-url">Problem with equals in URL</h3>
+<p>One example of a really poorly designed <code>equals</code> is the one from <code>java.net.URL</code>. Equality of two <code>java.net.URL</code> objects depends on a network operation as two hosts are considered equivalent if both hostnames can be resolved into the same IP addresses. Take a look at the following example:</p>
+<pre><code class="lang-kotlin"><span class="hljs-keyword">import</span> java.net.URL
+
+<span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> {</span>
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> enWiki</span> = URL(<span class="hljs-string">&quot;https://en.wikipedia.org/&quot;</span>)
+   <span class="hljs-variable"><span class="hljs-keyword">val</span> wiki</span> = URL(<span class="hljs-string">&quot;https://wikipedia.org/&quot;</span>)
+   println(enWiki == wiki)
+}
+</code></pre>
+<p>The result is not consistent. In normal conditions, it should print <code>true</code> because those two addresses are considered equal according to <code>equals</code> implementation, although if you have your internet turned off, it will print <code>false</code>. You can check it yourself. This is a big mistake! Equality should not be network dependent. </p>
+<p>Here are the most important problems with this solution:</p>
+<ul>
+<li><strong>This behavior is inconsistent.</strong> For instance, two URLs could be equal when a network is available and unequal when it is not. Also, the network may change. The IP address for a given hostname varies over time and by the network. Two URLs could be equal on some networks and unequal on others.</li>
+<li><strong>The network may be slow and</strong> <strong>we expect</strong> <code>equals</code> <strong>and</strong> <code>hashCode</code> <strong>to be fast.</strong> A typical problem is when we check if a URL is present in a list. Such an operation would require a network call for each element on the list. Also on some platforms, like Android, network operations are prohibited on the main thread. As a result, even adding to a set of URLs needs to be started on a separate thread. </li>
+<li><strong>The defined behavior is known to be inconsistent with virtual hosting in HTTP.</strong> Equal IP addresses do not imply equal content. Virtual hosting permits unrelated sites to share an IP address. This method could report two otherwise unrelated URLs to be equal because they&#x2019;re hosted on the same server.</li>
+</ul>
+<p>In Android, this problem was fixed in Android 4.0 (Ice Cream Sandwich). Since that release, URLs are only equal if their hostnames are equal. When we use Kotlin/JVM on other platforms, it is recommended to use <code>java.net.URI</code> instead of <code>java.net.URL</code>.</p>
+<h3 id="implementing-equals">Implementing equals</h3>
+<p>I recommend against implementing equals yourself unless you have a good reason. Instead, use default or data class equality. If you do need custom equality, always consider if your implementation is reflexive, symmetric, transitive, and consistent. Make such class final, or beware that subclasses should not change how equality behaves. It is hard to make custom equality and support inheritance at the same time. Some even say it is impossible<a href="chap65.xhtml#fn-equals_and_contract">3</a>. Data classes are final.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1460,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 40 Respect The Contract Of Equals","level":"1.3.4.6","depth":3,"next":{"title":"Item 41 Respect The Contract Of Hash Code","level":"1.3.4.7","depth":3,"path":"Part 2 Code design/Chapter 6 Class design/Item 41 Respect the contract of  hashCode.md","ref":"Part 2 Code design/Chapter 6 Class design/Item 41 Respect the contract of  hashCode.md","articles":[]},"previous":{"title":"Item 39 Prefer Class Hierarchies To Tagged Classes","level":"1.3.4.5","depth":3,"path":"Part 2 Code design/Chapter 6 Class design/Item 39 Prefer class hierarchies to tagged classes.md","ref":"Part 2 Code design/Chapter 6 Class design/Item 39 Prefer class hierarchies to tagged classes.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 6 Class design/Item 40 Respect the contract of  equals.md","mtime":"2021-11-28T03:20:44.445Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-28T03:21:28.642Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 40 Respect The Contract Of Equals","level":"1.3.4.6","depth":3,"next":{"title":"Item 41 Respect The Contract Of Hash Code","level":"1.3.4.7","depth":3,"path":"Part 2 Code design/Chapter 6 Class design/Item 41 Respect the contract of  hashCode.md","ref":"Part 2 Code design/Chapter 6 Class design/Item 41 Respect the contract of  hashCode.md","articles":[]},"previous":{"title":"Item 39 Prefer Class Hierarchies To Tagged Classes","level":"1.3.4.5","depth":3,"path":"Part 2 Code design/Chapter 6 Class design/Item 39 Prefer class hierarchies to tagged classes.md","ref":"Part 2 Code design/Chapter 6 Class design/Item 39 Prefer class hierarchies to tagged classes.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 2 Code design/Chapter 6 Class design/Item 40 Respect the contract of  equals.md","mtime":"2021-11-28T03:24:52.242Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-28T03:25:32.440Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
