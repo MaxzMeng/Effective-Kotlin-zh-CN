@@ -1136,7 +1136,32 @@
     
                                 <section class="normal markdown-section">
                                 
-                                
+                                <h2 id="item-50-limit-the-number-of-operations">Item 50: Limit the number of operations</h2>
+<p>Every collection processing method is a cost. For standard collection processing, it is most often another iteration over elements and additional collection created under the hood. For sequence processing, it is another object wrapping the whole sequence, and another object to keep operation<a href="chap65.xhtml#fn-seqinline">6</a>. Both are costly especially when the number of processed elements is big. Therefore we limit the number of collection processing steps and we mainly do that by using operations that are composites. For instance, instead of filtering for not null and then casting to non-nullable types, we use <code>filterNotNull</code>. Or instead of mapping and then filtering out nulls, we can just do <code>mapNotNull</code>. </p>
+<pre><code class="lang-kotlin"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Student</span></span>(<span class="hljs-variable"><span class="hljs-keyword">val</span> name</span>: String?)
+
+<span class="hljs-comment">// Works</span>
+<span class="hljs-function"><span class="hljs-keyword">fun</span> List<span class="hljs-type">&lt;Student&gt;</span>.<span class="hljs-title">getNames</span><span class="hljs-params">()</span>: List<span class="hljs-type">&lt;String&gt;</span> = this</span>
+   .map { it.name }
+   .filter { it != <span class="hljs-literal">null</span> }
+   .map { it!! }
+
+<span class="hljs-comment">// Better</span>
+<span class="hljs-function"><span class="hljs-keyword">fun</span> List<span class="hljs-type">&lt;Student&gt;</span>.<span class="hljs-title">getNames</span><span class="hljs-params">()</span>: List<span class="hljs-type">&lt;String&gt;</span> = this</span>
+   .map { it.name }
+   .filterNotNull()
+
+<span class="hljs-comment">// Best</span>
+<span class="hljs-function"><span class="hljs-keyword">fun</span> List<span class="hljs-type">&lt;Student&gt;</span>.<span class="hljs-title">getNames</span><span class="hljs-params">()</span>: List<span class="hljs-type">&lt;String&gt;</span> = this</span>
+   .mapNotNull { it.name }
+</code></pre>
+<p>The biggest problem is not the misunderstanding of the importance of such changes, but rather the lack of knowledge about what collection processing functions we should use. This is another reason why it is good to learn them. Also, help comes from warnings which often suggest us to introduce a better alternative.</p>
+<p><img src="../../assets/chapter8/chapter8-6.png" alt=""></p>
+<p>Still, it is good to know alternative composite operations. Here is a list of a few common function calls and alternative ways that limit the number of operations:</p>
+<p><img src="../../assets/chapter8/chapter8-7.png" alt=""></p>
+<h3 id="summary">Summary</h3>
+<p>Most collection processing steps require iteration over the whole collection and intermediate collection creation. This cost can be limited by using more suitable collection processing functions.</p>
+
                                 
                                 </section>
                             
@@ -1179,7 +1204,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 50 Limit The Number Of Operations","level":"1.4.2.3","depth":3,"next":{"title":"Item 51 Consider Arrays With Primitives For Performance Critical Processing","level":"1.4.2.4","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 51 Consider Arrays with primitives for performance-critical processing.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 51 Consider Arrays with primitives for performance-critical processing.md","articles":[]},"previous":{"title":"Item 49 Prefer Sequence For Big Collections With More Than One Processing Step","level":"1.4.2.2","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 49 Prefer Sequence for big collections with more than one processing step.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 49 Prefer Sequence for big collections with more than one processing step.md","articles":[]},"dir":"neutral"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.md","mtime":"2021-11-28T05:51:34.055Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-28T05:52:08.347Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Item 50 Limit The Number Of Operations","level":"1.4.2.3","depth":3,"next":{"title":"Item 51 Consider Arrays With Primitives For Performance Critical Processing","level":"1.4.2.4","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 51 Consider Arrays with primitives for performance-critical processing.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 51 Consider Arrays with primitives for performance-critical processing.md","articles":[]},"previous":{"title":"Item 49 Prefer Sequence For Big Collections With More Than One Processing Step","level":"1.4.2.2","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 49 Prefer Sequence for big collections with more than one processing step.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 49 Prefer Sequence for big collections with more than one processing step.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.md","mtime":"2021-11-28T05:54:17.768Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-11-28T05:55:05.203Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
