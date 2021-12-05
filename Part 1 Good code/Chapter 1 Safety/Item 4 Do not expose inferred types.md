@@ -29,29 +29,29 @@ fun main() {
 假设你有以下接口用来代表汽车工厂:
 
 ``` kotlin
-1 interface CarFactory {
-2    fun produce(): Car
-3 }
+interface CarFactory {
+   fun produce(): Car
+}
 ```
 
 如果没有指定其他参数，也会使用默认的类型`Fiat126P`：
 
 ``` kotlin
-1 val DEFAULT_CAR: Car = Fiat126P()
+val DEFAULT_CAR: Car = Fiat126P()
 ```
 
 因为绝大多数汽车工厂都可以生产它，所以你把它设为默认值。你没有给它声明返回值类型，因为你认为`DEFAULT_CAR `无论如何都是`Car`的实例：
 
 ``` kotlin
-1 interface CarFactory {
-2    fun produce() = DEFAULT_CAR
-3 } 
+interface CarFactory {
+   fun produce() = DEFAULT_CAR
+} 
 ```
 
 类似地, 后来有其他人看到 `DEFAULT_CAR`的声明并且认为它的类型能够被推断出来：
 
 ``` kotlin
-1 val DEFAULT_CAR = Fiat126P()
+val DEFAULT_CAR = Fiat126P()
 ```
 
 现在你会发现所有的工厂都只能生产`Fiat126P`。这显然是有问题的。如果这个接口是你自己定义的，那么这个问题可能很快就会被发现并且很容易修复。但是，如果它作为外部API被提供给用户使用，你可能会从愤怒的用户那里得知这个问题。
