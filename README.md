@@ -16,7 +16,7 @@ Effective Kotlin 中文翻译
     - Chapter 1 Safety
         - [x] 引言
         - [ ] Item 1 Limit Mutability
-        - [ ] Item 2 Minimize The Scope Of Variables
+        - [ ] 第2条: 变量作用域最小化
         - [ ] Item 3 Eliminate Platform Types As Soon As Possible
         - [ ] Item 4 Do Not Expose Inferred Types
         - [ ] Item 5 Specify Your Expectations On Arguments And State

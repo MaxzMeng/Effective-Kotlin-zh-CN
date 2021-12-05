@@ -1,11 +1,13 @@
-When we define a state, we prefer to tighten the scope of variables and properties by:
+## 第2条: 变量作用域最小化
 
-- Using local variables instead of properties
-- Using variables in the narrowest scope possible, so for instance, if a variable is used only inside a loop, defining it inside this loop
+当我们定义一个状态时，我们倾向于通过以下方式收紧变量和属性的范围:
 
-The scope of an element is the region of a computer program where the element is visible. In Kotlin, the scope is nearly always created by curly braces, and we can generally access elements from the outer scope. Take a look at this example:
+- 使用局部变量代替属性
+- 在尽可能小的范围内使用变量，例如，如果一个变量只在循环中使用，那么就在这个循环中定义它
 
-```kotlin
+元素的作用域是指计算机程序中该元素可见的区域。在Kotlin中，作用域几乎总是由花括号创建的，我们通常可以从外部作用域访问元素。看看这个例子:
+
+``` kotlin
 val a = 1
 fun fizz() {
    val b = 2
@@ -15,45 +17,45 @@ val buzz = {
    val c = 3
    print(a + c)
 }
-// Here we can see a, but not b nor c
+// 这里可以访问到 a ,但是无法访问 b 或 c
 ```
 
-In the above example, in the scope of the functions fizz and buzz, we can access variables from the outer scope. However, in the outer scope, we cannot access variables defined in those functions. Here is an example of how limiting variable scope might look like:
+在上面的例子中，在函数` fizz `和` buzz `的作用域中，我们可以从函数作用域中访问外部作用域的变量。但是，在外部作用域中，我们不能访问这些函数中定义的变量。下面是一个限制变量作用域的示例:
 
-```kotlin
-// Bad
+``` kotlin
+// 不好的写法
 var user: User
 for (i in users.indices) {
    user = users[i]
    print("User at $i is $user")
 }
 
-// Better
+// 较好的写法
 for (i in users.indices) {
    val user = users[i]
    print("User at $i is $user")
 }
 
-// Same variables scope, nicer syntax
+// 相同的变量作用域，更好的语法
 for ((i, user) in users.withIndex()) {
    print("User at $i is $user")
 }
 ```
 
-In the first example, the user variable is accessible not only in the scope of the for-loop, but also outside of it. In the second and third examples, we limit the scope of the user variable concretely to the scope of the for-loop.
+在第一个例子中，` user ` 变量不仅在for循环的范围内可以访问，而且在for循环之外也可以访问。在第二个和第三个例子中，我们将变量` user ` 的作用域具体限制为for循环的作用域。
 
-Similarly, we might have many scopes inside scopes (most likely created by lambda expressions inside lambda expressions), and it is better to define variables in as narrow scope as possible.
+类似地，在作用域中可能还有许多作用域(最有可能的是嵌套在lambda表达式中的lambda表达式创建的)，最好在尽可能小的范围内定义变量。
 
-There are many reasons why we prefer it this way, but the most important one is: When we tighten a variable’s scope, it is easier to keep our programs simple to track and manage. When we analyze code, we need to think about what elements are there at this point. The more elements there are to deal with, the harder it is to do programming. The simpler your application is, the less likely it will be to break. This is a similar reason to why we prefer immutable properties or objects over their mutable counterparts.
+我们这么做原因有很多，但最重要的是:**当我们收紧变量的作用域时，就会使我们的程序易于调试和管理。**当我们分析代码时，我们需要考虑此时存在哪些元素。需要处理的元素越多，编程就越困难。应用程序越简单，它崩溃的可能性就越小。这也是为什么我们更喜欢不可变属性或对象。
 
-Thinking about mutable properties, it is easier to track how they change when they can only be modified in a smaller scope. It is easier to reason about them and change their behavior.
+**考虑可变属性，当它们只能在较小的范围内修改时，更容易跟踪它们如何更改。**更容易对他们进行推理并改变他们的行为。
 
-Another problem is that variables with a wider scope might be overused by another developer. For instance, one could reason that if a variable is used to assign the next elements in an iteration, the last element in the list should remain in that variable once the loop is complete. Such reasoning could lead to terrible abuse, like using this variable after the iteration to do something with the last element. It would be really bad because another developer trying to understand what value is there would need to understand the whole reasoning. This would be a needless complication.
+另一个问题是，**具有更大范围的变量可能会被其他开发人员过度使用**。例如，有人可能认为，如果使用一个变量来为迭代中的下一个元素赋值，那么在循环完成后，列表中的最后一个元素应该保留在该变量中。这样的推理可能导致严重的滥用，比如在迭代之后使用这个变量对最后一个元素做一些事情。这将是非常糟糕的，因为当另一个开发人员试图理解这个值的含义时，就需要理解整个执行过程。这将是一个不必要的麻烦。
 
-Whether a variable is read-only or read-write, we always prefer a variable to be initialized when it is defined. Do not force a developer to look where it was defined. This can be supported with control structures such as if, when, try-catch or the Elvis operator used as expressions:
+**无论变量是只读的还是可读写的，我们总是倾向于在定义变量时就对其进行初始化。**不要强迫开发人员查看它的定义位置。这可以通过控制结构语句来实现，例如if, when, try-catch或Elvis操作符用作表达式：
 
-```kotlin
- // Bad
+``` kotlin
+ // 不好的写法
 val user: User
 if (hasValue) {
    user = getValue()
@@ -61,7 +63,7 @@ if (hasValue) {
    user = User()
 }
 
-// Better
+// 较好的写法
 val user: User = if(hasValue) {
    getValue()
 } else {
@@ -69,10 +71,10 @@ val user: User = if(hasValue) {
 }
 ```
 
-If we need to set-up multiple properties, destructuring declarations can help us:
+如果我们需要设置多个属性，解构声明可以帮助我们更好的实现:
 
-```kotlin
-// Bad
+``` kotlin
+// 不好的写法
 fun updateWeather(degrees: Int) {
    val description: String
    val color: Int
@@ -89,7 +91,7 @@ fun updateWeather(degrees: Int) {
    // ...
 }
 
-// Better
+// 较好的写法
 fun updateWeather(degrees: Int) {
    val (description, color) = when {
        degrees < 5 -> "cold" to Color.BLUE
@@ -100,21 +102,19 @@ fun updateWeather(degrees: Int) {
 }
 ```
 
-Finally, too wide variable scope can be dangerous. Let’s describe one common danger.
+最后，太大的变量范围可能是危险的。让我们来看一个例子。
 
-#### Capturing
+### Capturing
 
-When I teach about Kotlin coroutines, one of my exercises is to implement the Sieve of Eratosthenes to find prime numbers using a sequence builder. The algorithm is conceptually simple:
+当我在教授 Kotlin 协程时，我布置的练习之一是使用序列构建器实现 Eratosthenes 算法以查找素数。 该算法在概念上很简单：
 
-1. We take a list of numbers starting from 2.
+1. 创建一个从 2 开始的数字列表。
+2. 取第一个数，它是一个素数。
+3. 从其余的数字中，我们删除第一个数字，并过滤掉所有可以被这个素数整除的数字。
 
-2. We take the first one. It is a prime number.
+该算法的一个简单实现如下所示：
 
-3. From the rest of the numbers, we remove the first one and we filter out all the numbers that are divisible by this prime number.
-
-A very simple implementation of this algorithm looks like this:
-
-```kotlin
+``` kotlin
 var numbers = (2..100).toList()
 val primes = mutableListOf<Int>()
 while (numbers.isNotEmpty()) {
@@ -126,11 +126,11 @@ print(primes) // [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31,
 // 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]
 ```
 
-The challenge is to let it produce a potentially infinite sequence of prime numbers. If you want to challenge yourself, stop now and try to implement it.
+这个问题的挑战在于如何让它产生一个可能无限的质数序列。 如果您想挑战自己，请立即停止阅读并尝试实现它。
 
-This is what the solution could look like:
+这是一种解决方法：
 
-```kotlin
+``` kotlin
 val primes: Sequence<Int> = sequence {
    var numbers = generateSequence(2) { it + 1 }
 
@@ -146,9 +146,9 @@ print(primes.take(10).toList())
 // [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
 ```
 
-Although in nearly every group there is a person who tries to “optimize” it, and to not create the variable in every loop he or she extracts prime as a mutable variable:
+在几乎每一组中都有一个人试图“优化”它。他们提取```prime```作为可变变量，而不是在每个循环中都创建变量：
 
-```kotlin
+``` kotlin
 val primes: Sequence<Int> = sequence {
    var numbers = generateSequence(2) { it + 1 }
 
@@ -162,20 +162,19 @@ val primes: Sequence<Int> = sequence {
 }
 ```
 
-The problem is that this implementation does not work correctly anymore. These are the first 10 yielded numbers:
+但是这会导致这个实现不再能得到正确的结果。以下是前10个数字:
 
-```kotlin
+``` kotlin
 print(primes.take(10).toList()) 
 // [2, 3, 5, 6, 7, 8, 9, 10, 11, 12]
 ```
 
-Stop now and try to explain this result.
+现在你可以停下来去尝试解释为什么会出现这样的结果。
 
-The reason why we have such a result is that we captured the variable prime. Filtering is done lazily because we’re using a sequence. In every step, we add more and more filters. In the “optimized” one we always add the filter which references the mutable property prime. Therefore we always filter the last value of prime. This is why this filtering does not work properly. Only dropping works and so we end up with consecutive numbers (except for 4 which was filtered out when prime was still set to 2).
+我们得到这样结果的原因是我们捕获了变量`prime`。因为我们使用的是序列，所以过滤是惰性完成的。在每一步中，我们不断地在添加过滤器。而在“优化”版本的代码中，我们总是只添加引用可变属性`prime`的过滤器。 因此，我们总是过滤` prime`的最后一个值用来过滤。 这就是为什么我们不能过滤出正确的结果。只有drop函数生效了，所以我们得到的是一个连续的数字序列 (除了`prime `被设置为2时被过滤掉的4). 
 
-We should be aware of problems with unintentional capturing because such situations happen. To prevent them we should avoid mutability and prefer narrower scope for variables.
+我们应该意识到这种无意捕获的问题，因为这种情况时有发生。为了防止这种情况，我们应该避免可变性，并使变量的作用域更小。
 
-#### Summary
+### Summary
 
-For many reasons, we should prefer to define variables for the closest possible scope. Also, we prefer val over var also for local variables. We should always be aware of the fact that variables are captured in lambdas. These simple rules can save us a lot of trouble.
-
+出于许多原因，我们应该更倾向于在最小的范围内定义变量。同样，对于局部变量，我们更喜欢` val` 而不是`var `。我们应该始终意识到变量是在lambdas表达式中被捕获的。这些简单的规则可以为我们省去许多麻烦。
