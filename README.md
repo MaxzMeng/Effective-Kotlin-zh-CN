@@ -20,7 +20,7 @@ Effective Kotlin 中文翻译
         - [ ] Item 3 Eliminate Platform Types As Soon As Possible
         - [x] 第4条：不要把推断类型暴露给外部
         - [ ] Item 5 Specify Your Expectations On Arguments And State
-        - [ ] Item 6 Prefer Standard Errors To Custom Ones
+        - [x] 第6条：尽可能使用标准库中提供的异常
         - [ ] Item 7 Prefer Null Or Failure Result When The Lack Of Result Is Possible
         - [ ] Item 8 Handle Nulls Properly
         - [ ] Item 9 Close Resources With Use
