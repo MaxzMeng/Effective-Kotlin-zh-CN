@@ -1,6 +1,6 @@
 ## 第6条：尽可能使用标准库中提供的异常
 
-`require`, `check` 和`assert`函数涵盖了Kotlin中最常见的异常情况， 但还是有很多其他情况需要我们去主动声明。例如，当你实现一个库来解析JSON时，当提供的JSON文件格式不正确时时，抛出一个`JsonParsingException`是合理的：
+`require`， `check` 和`assert`函数涵盖了Kotlin中最常见的异常情况， 但还是有很多其他情况需要我们去主动抛出异常。例如，当你实现一个库来解析JSON时，当提供的JSON文件格式不正确时时，抛出一个`JsonParsingException`是合理的：
 
 ``` kotlin
 inline fun <reified T> String.readObject(): T {
