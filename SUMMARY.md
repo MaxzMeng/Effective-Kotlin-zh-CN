@@ -6,7 +6,7 @@
     * [Item 1 Limit Mutability](Part 1 Good code/Chapter 1 Safety/Item 1 Limit mutability.md)
     * [第2条: 变量作用域最小化](Part 1 Good code/Chapter 1 Safety/Item 2 Minimize the scope of variables.md)
     * [Item 3 Eliminate Platform Types As Soon As Possible](Part 1 Good code/Chapter 1 Safety/Item 3 Eliminate platform types as soon as possible.md)
-    * [第4条：不要暴露推断类型](Part 1 Good code/Chapter 1 Safety/Item 4 Do not expose inferred types.md)
+    * [第4条：不要把推断类型暴露给外部](Part 1 Good code/Chapter 1 Safety/Item 4 Do not expose inferred types.md)
     * [Item 5 Specify Your Expectations On Arguments And State](Part 1 Good code/Chapter 1 Safety/Item 5 Specify your expectations on arguments and state.md)
     * [Item 6 Prefer Standard Errors To Custom Ones](Part 1 Good code/Chapter 1 Safety/Item 6 Prefer standard errors to custom ones.md)
     * [Item 7 Prefer Null Or Failure Result When The Lack Of Result Is Possible](Part 1 Good code/Chapter 1 Safety/Item 7 Prefer null or Failure result when the lack of result is possible.md)
