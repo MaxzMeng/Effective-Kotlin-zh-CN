@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <title>Item 4 Do Not Expose Inferred Types · GitBook</title>
+        <title>第4条：不要暴露推断类型 · GitBook</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="GitBook 3.2.3">
@@ -187,7 +187,7 @@
                 <a href="Item 4 Do not expose inferred types.html">
             
                     
-                    Item 4 Do Not Expose Inferred Types
+                    第4条：不要暴露推断类型
             
                 </a>
             
@@ -1121,7 +1121,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href="../.." >Item 4 Do Not Expose Inferred Types</a>
+        <a href="../.." >第4条：不要暴露推断类型</a>
     </h1>
 </div>
 
@@ -1136,7 +1136,8 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <p>Kotlin&#x2019;s type inference is one of the most popular Kotlin features in the JVM world. So popular that Java 10 introduced type inference as well (limited comparing to Kotlin). Though, there are some dangers in using this feature. Above all, we need to remember that the inferred type of an assignment is the exact type of the right side, and not a superclass or interface:</p>
+                                <h2 id="&#x7B2C;4&#x6761;&#xFF1A;&#x4E0D;&#x8981;&#x66B4;&#x9732;&#x63A8;&#x65AD;&#x7C7B;&#x578B;">&#x7B2C;4&#x6761;&#xFF1A;&#x4E0D;&#x8981;&#x66B4;&#x9732;&#x63A8;&#x65AD;&#x7C7B;&#x578B;</h2>
+<p>Kotlin&#x7684;&#x7C7B;&#x578B;&#x63A8;&#x65AD;&#x662F;JVM&#x4E2D;&#x6700;&#x6D41;&#x884C;&#x7684;Kotlin&#x7279;&#x6027;&#x4E4B;&#x4E00;&#x3002;&#x4EE5;&#x81F3;&#x4E8E;Java 10&#x4E5F;&#x5F15;&#x5165;&#x4E86;&#x7C7B;&#x578B;&#x63A8;&#x65AD;(&#x4E0E;Kotlin&#x76F8;&#x6BD4;&#x6709;&#x9650;)&#x3002; &#x4E0D;&#x8FC7;&#xFF0C;&#x4F7F;&#x7528;&#x8BE5;&#x7279;&#x6027;&#x4E5F;&#x6709;&#x4E00;&#x4E9B;&#x5371;&#x9669;&#x6027;&#x3002;&#x6700;&#x91CD;&#x8981;&#x7684;&#x662F;&#xFF0C;&#x6211;&#x4EEC;&#x9700;&#x8981;&#x8BB0;&#x4F4F;&#xFF0C;&#x8D4B;&#x503C;&#x7684;&#x63A8;&#x65AD;&#x7C7B;&#x578B;&#x662F;&#x53F3;&#x8FB9;&#x7684;&#x786E;&#x5207;&#x7C7B;&#x578B;&#xFF0C;&#x800C;&#x4E0D;&#x662F;&#x8D85;&#x7C7B;&#x6216;&#x63A5;&#x53E3;&#x7C7B;&#x578B;:</p>
 <pre><code class="lang-kotlin"><span class="hljs-keyword">open</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Animal</span></span>
 <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Zebra</span>: <span class="hljs-type">Animal</span></span>()
 
@@ -1145,7 +1146,7 @@
    animal = Animal() <span class="hljs-comment">// Error: Type mismatch</span>
 }
 </code></pre>
-<p>In most cases, this is not a problem. When we have too restrictive type inferred, we just need to specify it and our problem is solved:</p>
+<p>&#x5728;&#x5927;&#x591A;&#x6570;&#x60C5;&#x51B5;&#x4E0B;&#xFF0C;&#x8FD9;&#x90FD;&#x4E0D;&#x662F;&#x4E00;&#x4E2A;&#x96BE;&#x9898;&#x3002;&#x5F53;&#x6211;&#x4EEC;&#x9700;&#x8981;&#x9650;&#x5B9A;&#x63A8;&#x65AD;&#x51FA;&#x7684;&#x7C7B;&#x578B;&#x65F6;&#xFF0C;&#x6211;&#x4EEC;&#x53EA;&#x9700;&#x8981;&#x6307;&#x5B9A;&#x5B83;&#xFF0C;&#x95EE;&#x9898;&#x5C31;&#x89E3;&#x51B3;&#x4E86;:</p>
 <pre><code class="lang-kotlin"><span class="hljs-keyword">open</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Animal</span></span>
 <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Zebra</span>: <span class="hljs-type">Animal</span></span>()
 
@@ -1154,27 +1155,27 @@
    animal = Animal()
 }
 </code></pre>
-<p>Though, there is no such comfort when we don&#x2019;t control a library or another module. In such cases, inferred type exposition can be really dangerous. Let&#x2019;s see an example. </p>
-<p>Let&#x2019;s say that you have the following interface used to represent car factories:</p>
+<p>&#x7136;&#x800C;&#xFF0C;&#x5F53;&#x6211;&#x4EEC;&#x4F7F;&#x7528;&#x4E09;&#x65B9;&#x7F16;&#x5199;&#x7684;&#x4E00;&#x4E2A;&#x5E93;&#x6216;&#x53E6;&#x4E00;&#x4E2A;&#x6A21;&#x5757;&#x65F6;&#xFF0C;&#x5C31;&#x6CA1;&#x6709;&#x8FD9;&#x4E48;&#x5BB9;&#x6613;&#x4E86;&#x3002;&#x5728;&#x8FD9;&#x79CD;&#x60C5;&#x51B5;&#x4E0B;&#xFF0C;&#x63A8;&#x65AD;&#x7C7B;&#x578B;&#x8BF4;&#x660E;&#x53EF;&#x80FD;&#x975E;&#x5E38;&#x5371;&#x9669;&#x3002;&#x8BA9;&#x6211;&#x4EEC;&#x770B;&#x4E00;&#x4E2A;&#x4F8B;&#x5B50;&#x3002;</p>
+<p>&#x5047;&#x8BBE;&#x4F60;&#x6709;&#x4EE5;&#x4E0B;&#x63A5;&#x53E3;&#x7528;&#x6765;&#x4EE3;&#x8868;&#x6C7D;&#x8F66;&#x5DE5;&#x5382;:</p>
 <pre><code class="lang-kotlin"><span class="hljs-number">1</span> interface CarFactory {
 <span class="hljs-number">2</span>    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">produce</span><span class="hljs-params">()</span>: Car</span>
 <span class="hljs-number">3</span> }
 </code></pre>
-<p>There is also a default car used if nothing else was specified:</p>
+<p>&#x5982;&#x679C;&#x6CA1;&#x6709;&#x6307;&#x5B9A;&#x5176;&#x4ED6;&#x53C2;&#x6570;&#xFF0C;&#x4E5F;&#x4F1A;&#x4F7F;&#x7528;&#x9ED8;&#x8BA4;&#x7684;&#x7C7B;&#x578B;<code>Fiat126P</code>&#xFF1A;</p>
 <pre><code class="lang-kotlin"><span class="hljs-number">1</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> DEFAULT_CAR</span>: Car = Fiat126P()
 </code></pre>
-<p>It is produced in most factories, so you made it default. You omitted the type because you decided that <code>DEFAULT_CAR</code> is a <code>Car</code> anyway:</p>
+<p>&#x56E0;&#x4E3A;&#x7EDD;&#x5927;&#x591A;&#x6570;&#x6C7D;&#x8F66;&#x5DE5;&#x5382;&#x90FD;&#x53EF;&#x4EE5;&#x751F;&#x4EA7;&#x5B83;&#xFF0C;&#x6240;&#x4EE5;&#x4F60;&#x628A;&#x5B83;&#x8BBE;&#x4E3A;&#x9ED8;&#x8BA4;&#x503C;&#x3002;&#x4F60;&#x6CA1;&#x6709;&#x7ED9;&#x5B83;&#x58F0;&#x660E;&#x8FD4;&#x56DE;&#x503C;&#x7C7B;&#x578B;&#xFF0C;&#x56E0;&#x4E3A;&#x4F60;&#x8BA4;&#x4E3A;<code>DEFAULT_CAR</code>&#x65E0;&#x8BBA;&#x5982;&#x4F55;&#x90FD;&#x662F;<code>Car</code>&#x7684;&#x5B9E;&#x4F8B;&#xFF1A;</p>
 <pre><code class="lang-kotlin"><span class="hljs-number">1</span> interface CarFactory {
 <span class="hljs-number">2</span>    <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">produce</span><span class="hljs-params">()</span> = DEFAULT_CAR</span>
 <span class="hljs-number">3</span> }
 </code></pre>
-<p>Similarly, someone later looked at <code>DEFAULT_CAR</code> and decided that its type can be inferred:</p>
+<p>&#x7C7B;&#x4F3C;&#x5730;, &#x540E;&#x6765;&#x6709;&#x5176;&#x4ED6;&#x4EBA;&#x770B;&#x5230; <code>DEFAULT_CAR</code>&#x7684;&#x58F0;&#x660E;&#x5E76;&#x4E14;&#x8BA4;&#x4E3A;&#x5B83;&#x7684;&#x7C7B;&#x578B;&#x80FD;&#x591F;&#x88AB;&#x63A8;&#x65AD;&#x51FA;&#x6765;&#xFF1A;</p>
 <pre><code class="lang-kotlin"><span class="hljs-number">1</span> <span class="hljs-variable"><span class="hljs-keyword">val</span> DEFAULT_CAR</span> = Fiat126P()
 </code></pre>
-<p>Now, all your factories can only produce <code>Fiat126P</code>. Not good. If you defined this interface yourself, this problem will be probably caught soon and easily fixed. Though, if it is a part of the external API, you might be informed first by angry users.</p>
-<p>Except that, the return type is important information when someone does not know API well, and so for the sake of readability, we should make it explicit especially in parts of our API visible from outside (so exposed API). </p>
+<p>&#x73B0;&#x5728;&#x4F60;&#x4F1A;&#x53D1;&#x73B0;&#x6240;&#x6709;&#x7684;&#x5DE5;&#x5382;&#x90FD;&#x53EA;&#x80FD;&#x751F;&#x4EA7;<code>Fiat126P</code>&#x3002;&#x8FD9;&#x663E;&#x7136;&#x662F;&#x6709;&#x95EE;&#x9898;&#x7684;&#x3002;&#x5982;&#x679C;&#x8FD9;&#x4E2A;&#x63A5;&#x53E3;&#x662F;&#x4F60;&#x81EA;&#x5DF1;&#x5B9A;&#x4E49;&#x7684;&#xFF0C;&#x90A3;&#x4E48;&#x8FD9;&#x4E2A;&#x95EE;&#x9898;&#x53EF;&#x80FD;&#x5F88;&#x5FEB;&#x5C31;&#x4F1A;&#x88AB;&#x53D1;&#x73B0;&#x5E76;&#x4E14;&#x5F88;&#x5BB9;&#x6613;&#x4FEE;&#x590D;&#x3002;&#x4F46;&#x662F;&#xFF0C;&#x5982;&#x679C;&#x5B83;&#x4F5C;&#x4E3A;&#x5916;&#x90E8;API&#x88AB;&#x63D0;&#x4F9B;&#x7ED9;&#x7528;&#x6237;&#x4F7F;&#x7528;&#xFF0C;&#x4F60;&#x53EF;&#x80FD;&#x4F1A;&#x4ECE;&#x6124;&#x6012;&#x7684;&#x7528;&#x6237;&#x90A3;&#x91CC;&#x5F97;&#x77E5;&#x8FD9;&#x4E2A;&#x95EE;&#x9898;&#x3002;</p>
+<p>&#x9664;&#x6B64;&#x4E4B;&#x5916;&#xFF0C;&#x5F53;&#x67D0;&#x4EBA;&#x4E0D;&#x592A;&#x4E86;&#x89E3;API&#x65F6;&#xFF0C;&#x8FD4;&#x56DE;&#x7C7B;&#x578B;&#x662F;&#x5F88;&#x91CD;&#x8981;&#x7684;&#x4FE1;&#x606F;&#x3002;&#x56E0;&#x6B64;&#x4E3A;&#x4E86;&#x53EF;&#x8BFB;&#x6027;&#xFF0C;&#x6211;&#x4EEC;&#x5E94;&#x8BE5;&#x663E;&#x5F0F;&#x58F0;&#x660E;&#x8FD4;&#x56DE;&#x7C7B;&#x578B;&#xFF0C;&#x7279;&#x522B;&#x662F;&#x5728;&#x6211;&#x4EEC;&#x7684;API&#x7684;&#x5916;&#x90E8;&#x53EF;&#x89C1;&#x90E8;&#x5206;(&#x5373;&#x516C;&#x5F00;&#x7684;API)&#x4E2D;&#x3002;</p>
 <h4 id="summary">Summary</h4>
-<p>The general rule is that if we are not sure about the type, we should specify it. It is important information and we should not hide it (<em>Item 14: Specify the variable type when it is not clear</em>). Additionally for the sake of safety, in an external API, we should always specify types. We cannot let them be changed by accident. Inferred types can be too restrictive or can too easily change when our project evolves.</p>
+<p>&#x4E00;&#x822C;&#x7684;&#x89C4;&#x5219;&#x662F;&#xFF0C;&#x5982;&#x679C;&#x6211;&#x4EEC;&#x4E0D;&#x786E;&#x5B9A;&#x8FD4;&#x56DE;&#x503C;&#x7C7B;&#x578B;&#xFF0C;&#x6211;&#x4EEC;&#x5E94;&#x8BE5;&#x663E;&#x793A;&#x58F0;&#x660E;&#x5B83;&#x3002;&#x8FD9;&#x662F;&#x5F88;&#x91CD;&#x8981;&#x7684;&#x4FE1;&#x606F;&#xFF0C;&#x6211;&#x4EEC;&#x4E0D;&#x5E94;&#x8BE5;&#x628A;&#x5B83;&#x9690;&#x85CF;&#x8D77;&#x6765; (<em>Item 14: Specify the variable type when it is not clear</em>)&#x3002;&#x6B64;&#x5916;&#xFF0C;&#x4E3A;&#x4E86;&#x5B89;&#x5168;&#x8D77;&#x89C1;&#xFF0C;&#x5728;&#x5916;&#x90E8;API&#x4E2D;&#xFF0C;&#x6211;&#x4EEC;&#x5E94;&#x8BE5;&#x59CB;&#x7EC8;&#x6307;&#x5B9A;&#x7C7B;&#x578B;&#x3002;&#x4E0D;&#x80FD;&#x8BA9;&#x5B83;&#x4EEC;&#x968F;&#x610F;&#x6539;&#x53D8;&#x3002;&#x5F53;&#x6211;&#x4EEC;&#x7684;&#x9879;&#x76EE;&#x8FED;&#x4EE3;&#x65F6;&#xFF0C;&#x63A8;&#x65AD;&#x7C7B;&#x578B;&#x53EF;&#x80FD;&#x4F1A;&#x6709;&#x5F88;&#x591A;&#x9650;&#x5236;&#x6216;&#x8005;&#x5F88;&#x5BB9;&#x6613;&#x88AB;&#x66F4;&#x6539;&#x3002;</p>
 
                                 
                                 </section>
@@ -1218,7 +1219,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 4 Do Not Expose Inferred Types","level":"1.2.1.5","depth":3,"next":{"title":"Item 5 Specify Your Expectations On Arguments And State","level":"1.2.1.6","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 5 Specify your expectations on arguments and state.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 5 Specify your expectations on arguments and state.md","articles":[]},"previous":{"title":"Item 3 Eliminate Platform Types As Soon As Possible","level":"1.2.1.4","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 3 Eliminate platform types as soon as possible.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 3 Eliminate platform types as soon as possible.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 1 Good code/Chapter 1 Safety/Item 4 Do not expose inferred types.md","mtime":"2021-12-05T16:44:00.379Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-12-05T16:44:31.306Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"第4条：不要暴露推断类型","level":"1.2.1.5","depth":3,"next":{"title":"Item 5 Specify Your Expectations On Arguments And State","level":"1.2.1.6","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 5 Specify your expectations on arguments and state.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 5 Specify your expectations on arguments and state.md","articles":[]},"previous":{"title":"Item 3 Eliminate Platform Types As Soon As Possible","level":"1.2.1.4","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 3 Eliminate platform types as soon as possible.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 3 Eliminate platform types as soon as possible.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 1 Good code/Chapter 1 Safety/Item 4 Do not expose inferred types.md","mtime":"2021-12-05T17:06:25.646Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-12-05T17:06:59.968Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
