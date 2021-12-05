@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <title>第4条：不要暴露推断类型 · GitBook</title>
+        <title>第4条：不要把推断类型暴露给外部 · GitBook</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="GitBook 3.2.3">
@@ -161,7 +161,7 @@
                 <a href="Item 2 Minimize the scope of variables.html">
             
                     
-                    第2条: 变量作用域最小化
+                    第2条: 最小化变量作用域
             
                 </a>
             
@@ -187,7 +187,7 @@
                 <a href="Item 4 Do not expose inferred types.html">
             
                     
-                    第4条：不要暴露推断类型
+                    第4条：不要把推断类型暴露给外部
             
                 </a>
             
@@ -1121,7 +1121,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href="../.." >第4条：不要暴露推断类型</a>
+        <a href="../.." >第4条：不要把推断类型暴露给外部</a>
     </h1>
 </div>
 
@@ -1136,7 +1136,7 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <h2 id="&#x7B2C;4&#x6761;&#xFF1A;&#x4E0D;&#x8981;&#x66B4;&#x9732;&#x63A8;&#x65AD;&#x7C7B;&#x578B;">&#x7B2C;4&#x6761;&#xFF1A;&#x4E0D;&#x8981;&#x66B4;&#x9732;&#x63A8;&#x65AD;&#x7C7B;&#x578B;</h2>
+                                <h2 id="&#x7B2C;4&#x6761;&#xFF1A;&#x4E0D;&#x8981;&#x628A;&#x63A8;&#x65AD;&#x7C7B;&#x578B;&#x66B4;&#x9732;&#x7ED9;&#x5916;&#x90E8;">&#x7B2C;4&#x6761;&#xFF1A;&#x4E0D;&#x8981;&#x628A;&#x63A8;&#x65AD;&#x7C7B;&#x578B;&#x66B4;&#x9732;&#x7ED9;&#x5916;&#x90E8;</h2>
 <p>Kotlin&#x7684;&#x7C7B;&#x578B;&#x63A8;&#x65AD;&#x662F;JVM&#x4E2D;&#x6700;&#x6D41;&#x884C;&#x7684;Kotlin&#x7279;&#x6027;&#x4E4B;&#x4E00;&#x3002;&#x4EE5;&#x81F3;&#x4E8E;Java 10&#x4E5F;&#x5F15;&#x5165;&#x4E86;&#x7C7B;&#x578B;&#x63A8;&#x65AD;(&#x4E0E;Kotlin&#x76F8;&#x6BD4;&#x6709;&#x9650;)&#x3002; &#x4E0D;&#x8FC7;&#xFF0C;&#x4F7F;&#x7528;&#x8BE5;&#x7279;&#x6027;&#x4E5F;&#x6709;&#x4E00;&#x4E9B;&#x5371;&#x9669;&#x6027;&#x3002;&#x6700;&#x91CD;&#x8981;&#x7684;&#x662F;&#xFF0C;&#x6211;&#x4EEC;&#x9700;&#x8981;&#x8BB0;&#x4F4F;&#xFF0C;&#x8D4B;&#x503C;&#x7684;&#x63A8;&#x65AD;&#x7C7B;&#x578B;&#x662F;&#x53F3;&#x8FB9;&#x7684;&#x786E;&#x5207;&#x7C7B;&#x578B;&#xFF0C;&#x800C;&#x4E0D;&#x662F;&#x8D85;&#x7C7B;&#x6216;&#x63A5;&#x53E3;&#x7C7B;&#x578B;:</p>
 <pre><code class="lang-kotlin"><span class="hljs-keyword">open</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Animal</span></span>
 <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Zebra</span>: <span class="hljs-type">Animal</span></span>()
@@ -1219,7 +1219,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"第4条：不要暴露推断类型","level":"1.2.1.5","depth":3,"next":{"title":"Item 5 Specify Your Expectations On Arguments And State","level":"1.2.1.6","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 5 Specify your expectations on arguments and state.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 5 Specify your expectations on arguments and state.md","articles":[]},"previous":{"title":"Item 3 Eliminate Platform Types As Soon As Possible","level":"1.2.1.4","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 3 Eliminate platform types as soon as possible.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 3 Eliminate platform types as soon as possible.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 1 Good code/Chapter 1 Safety/Item 4 Do not expose inferred types.md","mtime":"2021-12-05T17:17:24.458Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-12-05T17:18:09.048Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"第4条：不要把推断类型暴露给外部","level":"1.2.1.5","depth":3,"next":{"title":"Item 5 Specify Your Expectations On Arguments And State","level":"1.2.1.6","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 5 Specify your expectations on arguments and state.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 5 Specify your expectations on arguments and state.md","articles":[]},"previous":{"title":"Item 3 Eliminate Platform Types As Soon As Possible","level":"1.2.1.4","depth":3,"path":"Part 1 Good code/Chapter 1 Safety/Item 3 Eliminate platform types as soon as possible.md","ref":"Part 1 Good code/Chapter 1 Safety/Item 3 Eliminate platform types as soon as possible.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 1 Good code/Chapter 1 Safety/Item 4 Do not expose inferred types.md","mtime":"2021-12-05T17:22:26.189Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-12-05T17:23:13.110Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
