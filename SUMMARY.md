@@ -9,7 +9,7 @@
     * [第4条：不要把推断类型暴露给外部](Part 1 Good code/Chapter 1 Safety/Item 4 Do not expose inferred types.md)
     * [Item 5 Specify Your Expectations On Arguments And State](Part 1 Good code/Chapter 1 Safety/Item 5 Specify your expectations on arguments and state.md)
     * [第6条：尽可能使用标准库中提供的异常](Part 1 Good code/Chapter 1 Safety/Item 6 Prefer standard errors to custom ones.md)
-    * [Item 7 Prefer Null Or Failure Result When The Lack Of Result Is Possible](Part 1 Good code/Chapter 1 Safety/Item 7 Prefer null or Failure result when the lack of result is possible.md)
+    * [第7条：当不能返回预期结果时，优先使用`null` o或`Failure` 作为返回值](Part 1 Good code/Chapter 1 Safety/Item 7 Prefer null or Failure result when the lack of result is possible.md)
     * [Item 8 Handle Nulls Properly](Part 1 Good code/Chapter 1 Safety/Item 8 Handle nulls properly.md)
     * [Item 9 Close Resources With Use](Part 1 Good code/Chapter 1 Safety/Item 9 Close resources with use.md)
     * [Item 10 Write Unit Tests](Part 1 Good code/Chapter 1 Safety/Item 10 Write unit tests.md)

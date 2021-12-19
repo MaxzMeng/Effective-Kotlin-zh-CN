@@ -21,7 +21,7 @@ Effective Kotlin 中文翻译
         - [x] 第4条：不要把推断类型暴露给外部
         - [ ] Item 5 Specify Your Expectations On Arguments And State
         - [x] 第6条：尽可能使用标准库中提供的异常
-        - [ ] Item 7 Prefer Null Or Failure Result When The Lack Of Result Is Possible
+        - [x] 第7条：当不能返回预期结果时，优先使用`null` o或`Failure` 作为返回值
         - [ ] Item 8 Handle Nulls Properly
         - [ ] Item 9 Close Resources With Use
         - [ ] Item 10 Write Unit Tests
