@@ -1,15 +1,15 @@
-## Item 9: Close resources with `use`
+## 第9条：使用 `use`关闭资源
 
-There are resources that cannot be closed automatically, and we need to invoke the `close` method once we do not need them anymore. The Java standard library, that we use in Kotlin/JVM, contains a lot of these resources, such as:
+有些资源不能自动关闭，当我们不再使用它们时，我们需要调用`close`方法来手动关闭。我们在Kotlin/JVM中使用的Java标准库包含了很多这样的资源，例如
 
-- `InputStream` and `OutputStream`,
+- `InputStream` 和`OutputStream`
 - `java.sql.Connection`,
-- `java.io.Reader` (`FileReader`, `BufferedReader`, `CSSParser`),
-- `java.new.Socket` and `java.util.Scanner`.
+- `java.io.Reader` （`FileReader`, `BufferedReader`, `CSSParser`）
+- `java.new.Socket` 和`java.util.Scanner`
 
-All these resources implement the `Closeable` interface, which extends `AutoCloseable`. 
+所有这些资源都实现了`Closeable `接口，它继承自`AutoCloseable `。
 
-The problem is that in all these cases, we need to be sure that we invoke the `close` method when we no longer need the resource because these resources are rather expensive and they aren’t easily closed by themselves (the Garbage Collector will eventually handle it if we do not keep any reference to this resource, but it will take some time). Therefore, to be sure that we will not miss closing them, we traditionally wrapped such resources in a `try-finally` block and called `close` there:
+对于上面列举的这些例子，当我们确认不再需要该资源的时候，我们需要调用`close`方法，因为这些资源的调用开销比较大并且它们被自动关闭的成本也较高（如果没有任何对该资源的引用，垃圾收集器最终会将它关闭，但这一过程所需的时间会比较久）。 因此，为了确保我们不会漏掉关闭它们，我们通常将这些资源调用放在在一个`try-finally`块中，并在`finally`中调用`close`方法：
 
 ``` kotlin
 fun countCharactersInFile(path: String): Int {
@@ -22,7 +22,7 @@ fun countCharactersInFile(path: String): Int {
 }
 ```
 
-Such a structure is complicated and incorrect. It is incorrect because close can throw an error, and such an error will not be caught. Also, if we had errors from both the body of the `try` and from `finally` blocks, only one would be properly propagated. The behavior we should expect is for the information about the new error to be added to the previous one. The proper implementation of this is long and complicated, but it is also common and so it has been extracted into the `use`function from the standard library. It should be used to properly close resources and handle exceptions. This function can be used on any `Closeable` object:
+这样的结构是复杂且不正确的。它的不正确体现在`close`可能会抛出异常且这个异常不会被捕获。此外，如果我们同时从`try`和`finally`块中抛出异常，那么只有一个异常会被正确地传递。 我们所期望的表现应该是后抛出的异常信息应该被添加到之前已经抛出的异常信息中。正确的实现很长并且很复杂，但这种处理很常见，因此Kotlin标准库中提供了`use`函数。应该使用它来正确关闭资源和处理异常，此函数可用于任何`Closeable `对象：
 
 ``` kotlin
 fun countCharactersInFile(path: String): Int {
@@ -33,7 +33,7 @@ fun countCharactersInFile(path: String): Int {
 }
 ```
 
-Receiver (`reader` in this case) is also passed as an argument to the lambda, so the syntax can be shortened:
+调用`use`的对象(本例中为`reader`)也会作为参数传递给lambda表达式，因此语法可以缩短:
 
 ``` kotlin
 fun countCharactersInFile(path: String): Int {
@@ -43,7 +43,7 @@ fun countCharactersInFile(path: String): Int {
 }
 ```
 
-As this support is often needed for files, and as it is common to read files line-by-line, there is also a `useLines` function in the Kotlin Standard Library that gives us a sequence of lines (`String`) and closes the underlying reader once the processing is complete:
+因为`use`函数经常被用来操作文件，同时逐行读取文件也是一种很常见的操作，所以Kotlin标准库中提供了一个` useLines`函数，它会返回给我们一个包含了文件中每一行内容（`String`类型）的序列，并且在读取完毕之后会自动关闭文件资源：
 
 ``` kotlin
 fun countCharactersInFile(path: String): Int {
@@ -53,7 +53,7 @@ fun countCharactersInFile(path: String): Int {
 }
 ```
 
-This is a proper way to process even large files as this sequence will read lines on-demand and does not hold more than one line at a time in memory. The cost is that this sequence can be used only once. If you need to iterate over the lines of the file more than once, you need to open it more than once. The `useLines` function can be also used as an expression:
+这是一种适合用来处理大文件的方法，因为序列会按需读取每一行，因此每次调用对于内存的占用不会超过一行的内容所对应的内存大小。 但代价是这个序列只能使用一次，如果你需要多次遍历文件，则需要多次调用它。 `useLines` 函数同样也能作为一个表达式来调用。
 
 ``` kotlin
 fun countCharactersInFile(path: String): Int =
@@ -62,8 +62,8 @@ fun countCharactersInFile(path: String): Int =
    }
 ```
 
-All the above implementations use sequences to operate on the file and it is the correct way to do it. Thanks to that we can always read only one line instead of loading the content of the whole file. More about it in the item *Item 49: Prefer Sequence for big collections with more than one processing step*.
+以上所有使用序列对文件进行操作的例子，都是比较合理的处理方法。因为这样我们可以每次只加载一行的内容，避免直接加载整个文件。更多相关内容请参考 *Item 49: Prefer Sequence for big collections with more than one processing step*.
 
 ### Summary
 
-Operate on objects implementing `Closeable` or `AutoCloseable` using `use`. It is a safe and easy option. When you need to operate on a file, consider `useLines` that produces a sequence to iterate over the next lines.
+使用`use`对实现了`Closeable`或`AutoCloseable`的对象进行操作，是一个安全且简单的选择。当你需要操作一个文件时，考虑使用`useLines`，它会生成一个序列来帮助你遍历每一行。

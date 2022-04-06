@@ -23,7 +23,7 @@ Effective Kotlin 中文翻译
         - [x] 第6条：尽可能使用标准库中提供的异常
         - [x] 第7条：当不能返回预期结果时，优先使用`null` o或`Failure` 作为返回值
         - [ ] Item 8 Handle Nulls Properly
-        - [ ] Item 9 Close Resources With Use
+        - [x] 第9条：使用`use`关闭资源
         - [ ] Item 10 Write Unit Tests
     - Chapter 2 Readability
         - [ ] Introduction
