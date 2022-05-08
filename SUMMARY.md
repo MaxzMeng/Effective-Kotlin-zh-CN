@@ -3,9 +3,9 @@
 - Part 1 Good Code
   - Chapter 1 Safety
     * [引言](Part 1 Good code/Chapter 1 Safety/Introduction.md)
-    * [Item 1 Limit Mutability](Part 1 Good code/Chapter 1 Safety/Item 1 Limit mutability.md)
+    * [第1条：限制可变性](Part 1 Good code/Chapter 1 Safety/Item 1 Limit mutability.md)
     * [第2条：最小化变量作用域](Part 1 Good code/Chapter 1 Safety/Item 2 Minimize the scope of variables.md)
-    * [Item 3 Eliminate Platform Types As Soon As Possible](Part 1 Good code/Chapter 1 Safety/Item 3 Eliminate platform types as soon as possible.md)
+    * [第3条：尽快消除平台类型](Part 1 Good code/Chapter 1 Safety/Item 3 Eliminate platform types as soon as possible.md)
     * [第4条：不要把推断类型暴露给外部](Part 1 Good code/Chapter 1 Safety/Item 4 Do not expose inferred types.md)
     * [Item 5 Specify Your Expectations On Arguments And State](Part 1 Good code/Chapter 1 Safety/Item 5 Specify your expectations on arguments and state.md)
     * [第6条：尽可能使用标准库中提供的异常](Part 1 Good code/Chapter 1 Safety/Item 6 Prefer standard errors to custom ones.md)

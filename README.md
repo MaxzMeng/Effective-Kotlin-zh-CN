@@ -15,9 +15,9 @@ Effective Kotlin 中文翻译
 - Part 1 Good Code
     - Chapter 1 Safety
         - [x] 引言
-        - [ ] 第1条：限制可变性
+        - [x] 第1条：限制可变性
         - [x] 第2条：最小化变量作用域
-        - [ ] Item 3 Eliminate Platform Types As Soon As Possible
+        - [x] 第3条：尽快消除平台类型
         - [x] 第4条：不要把推断类型暴露给外部
         - [ ] Item 5 Specify Your Expectations On Arguments And State
         - [x] 第6条：尽可能使用标准库中提供的异常
