@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <title>Item 51 Consider Arrays With Primitives For Performance Critical Processing · GitBook</title>
+        <title>第51条：在“性能优先”的场景，考虑使用基础类型数组 · GitBook</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="GitBook 3.2.3">
@@ -1060,7 +1060,7 @@
                 <a href="Item 51 Consider Arrays with primitives for performance-critical processing.html">
             
                     
-                    Item 51 Consider Arrays With Primitives For Performance Critical Processing
+                    第51条：在“性能优先”的场景，考虑使用基础类型数组
             
                 </a>
             
@@ -1121,7 +1121,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href="../.." >Item 51 Consider Arrays With Primitives For Performance Critical Processing</a>
+        <a href="../.." >第51条：在“性能优先”的场景，考虑使用基础类型数组</a>
     </h1>
 </div>
 
@@ -1136,13 +1136,13 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <h2 id="item-51-consider-arrays-with-primitives-for-performance-critical-processing">Item 51: Consider Arrays with primitives for performance-critical processing</h2>
-<p>We cannot declare primitives in Kotlin, but as an optimization, they are used under the hood. This is a significant optimization, described already in <em>Item 45: Avoid unnecessary object creation</em>. Primitives are:</p>
+                                <h2 id="&#x7B2C;51&#x6761;&#xFF1A;&#x5728;&#x6027;&#x80FD;&#x4F18;&#x5148;&#x7684;&#x573A;&#x666F;&#xFF0C;&#x4F7F;&#x7528;&#x57FA;&#x7840;&#x7C7B;&#x578B;&#x6570;&#x7EC4;">&#x7B2C;51&#x6761;&#xFF1A;&#x5728;&#x201C;&#x6027;&#x80FD;&#x4F18;&#x5148;&#x201D;&#x7684;&#x573A;&#x666F;&#xFF0C;&#x4F7F;&#x7528;&#x57FA;&#x7840;&#x7C7B;&#x578B;&#x6570;&#x7EC4;</h2>
+<p>&#x6211;&#x4EEC;&#x4E0D;&#x80FD;&#x5728;Kotlin&#x4E2D;&#x58F0;&#x660E;&#x57FA;&#x7840;&#x7C7B;&#x578B;&#xFF0C;&#x4F46;&#x662F;&#x4F5C;&#x4E3A;&#x4E00;&#x79CD;&#x4F18;&#x5316;&#x624B;&#x6BB5;&#xFF0C;&#x5728;&#x5E95;&#x5C42;&#x7ECF;&#x5E38;&#x4F1A;&#x4F7F;&#x7528;&#x5B83;&#x3002;&#x8FD9;&#x662F;&#x4E00;&#x4E2A;&#x91CD;&#x8981;&#x7684;&#x4F18;&#x5316;&#xFF0C;&#x5728;<em>&#x7B2C;45&#x9879;&#xFF1A;&#x907F;&#x514D;&#x4E0D;&#x5FC5;&#x8981;&#x7684;&#x5BF9;&#x8C61;&#x521B;&#x5EFA;</em>&#x4E2D;&#x5DF2;&#x7ECF;&#x8BB2;&#x8FF0;&#x8FC7;&#x3002;&#x57FA;&#x7840;&#x7C7B;&#x578B;&#x662F;&#xFF1A;</p>
 <ul>
-<li>Lighter, as every object adds additional weight,</li>
-<li>Faster, as accessing the value through accessors is an additional cost.</li>
+<li>&#x66F4;&#x8F7B;&#x91CF;&#x7EA7;&#x7684;&#xFF0C;&#x56E0;&#x4E3A;&#x6BCF;&#x4E2A;&#x5BF9;&#x8C61;&#x90FD;&#x4F1A;&#x589E;&#x52A0;&#x989D;&#x5916;&#x7684;&#x5185;&#x5B58;&#x5F00;&#x9500;</li>
+<li>&#x66F4;&#x5FEB;&#xFF0C;&#x56E0;&#x4E3A;&#x901A;&#x8FC7;getter&#x65B9;&#x6CD5;&#x8BBF;&#x95EE;&#x503C;&#x6709;&#x989D;&#x5916;&#x7684;&#x6027;&#x80FD;&#x5F00;&#x9500;</li>
 </ul>
-<p>Therefore using primitives for a huge amount of data might be a significant optimization. One problem is that in Kotlin typical collections, like <code>List</code> or <code>Set</code>, are generic types. Primitives cannot be used as generic types, and so we end up using wrapped types instead. This is a convenient solution that suits most cases, as it is easier to do processing over standard collections. Having said that, in the performance-critical parts of our code we should instead consider using arrays with primitives, like <code>IntArray</code> or <code>LongArray</code>, as they are lighter in terms of memory and their processing is more efficient. </p>
+<p>&#x56E0;&#x6B64;&#xFF0C;&#x5BF9;&#x91CF;&#x8F83;&#x5927;&#x7684;&#x6570;&#x636E;&#x4F7F;&#x7528;&#x57FA;&#x7840;&#x7C7B;&#x578B;&#x53EF;&#x80FD;&#x662F;&#x4E00;&#x4E2A;&#x91CD;&#x8981;&#x7684;&#x4F18;&#x5316;&#x3002;&#x4F46;&#x6709;&#x4E00;&#x4E2A;&#x95EE;&#x9898;&#x662F;&#xFF0C;&#x5728;Kotlin&#x4E2D;&#xFF0C;&#x5178;&#x578B;&#x7684;&#x96C6;&#x5408;&#xFF0C;&#x5982;<code>List</code>&#x6216;<code>Set</code>&#xFF0C;&#x4F7F;&#x7528;&#x7684;&#x662F;&#x6CDB;&#x578B;&#x7C7B;&#x578B;&#x3002;&#x57FA;&#x7840;&#x7C7B;&#x578B;&#x4E0D;&#x80FD;&#x4F5C;&#x4E3A;&#x6CDB;&#x578B;&#x53C2;&#x6570;&#x4F7F;&#x7528;&#xFF0C;&#x56E0;&#x6B64;&#x6211;&#x4EEC;&#x6700;&#x7EC8;&#x4F7F;&#x7528;&#x7684;&#x662F;&#x5305;&#x88C5;&#x7C7B;&#x578B;&#x3002;&#x8FD9;&#x662F;&#x4E00;&#x4E2A;&#x65B9;&#x4FBF;&#x7684;&#x89E3;&#x51B3;&#x65B9;&#x6848;&#xFF0C;&#x9002;&#x5408;&#x5927;&#x591A;&#x6570;&#x60C5;&#x51B5;&#xFF0C;&#x56E0;&#x4E3A;&#x5728;&#x6807;&#x51C6;&#x96C6;&#x5408;&#x4E0A;&#x66F4;&#x5BB9;&#x6613;&#x505A;&#x5904;&#x7406;&#x64CD;&#x4F5C;&#x3002;&#x5C3D;&#x7BA1;&#x5982;&#x6B64;&#xFF0C;&#x5728;&#x4EE3;&#x7801;&#x4E2D;&#x5BF9;&#x6027;&#x80FD;&#x6709;&#x91CD;&#x8981;&#x8981;&#x6C42;&#x7684;&#x90E8;&#x5206;&#xFF0C;&#x6211;&#x4EEC;&#x5E94;&#x8BE5;&#x8003;&#x8651;&#x4F7F;&#x7528;&#x57FA;&#x7840;&#x7C7B;&#x578B;&#x6570;&#x7EC4;&#xFF0C;&#x6BD4;&#x5982;<code>IntArray</code>&#x6216;<code>LongArray</code>&#xFF0C;&#x56E0;&#x4E3A;&#x5B83;&#x4EEC;&#x7684;&#x5185;&#x5B58;&#x5360;&#x7528;&#x66F4;&#x5C11;&#xFF0C;&#x5904;&#x7406;&#x6548;&#x7387;&#x66F4;&#x9AD8;&#x3002;</p>
 <table>
 <thead>
 <tr>
@@ -1169,7 +1169,7 @@
 </tr>
 </tbody>
 </table>
-<p>How much lighter arrays with primitives are? Let&#x2019;s say that in Kotlin/JVM we need to hold 1 000 000 integers, and we can either choose to keep them in <code>IntArray</code> or in <code>List&lt;Int&gt;</code>. When you make measurements, you will find out that the <code>IntArray</code> allocates 4 000 016 bytes, while <code>List&lt;Int&gt;</code> allocates 20 000 040 bytes. It is 5 times more. If you optimize for memory use and you keep collections of types with primitive analogs, like <code>Int</code>, choose arrays with primitives. </p>
+<p>&#x57FA;&#x7840;&#x7C7B;&#x578B;&#x6570;&#x7EC4;&#x6709;&#x591A;&#x8F7B;&#x91CF;&#x7EA7;&#x5462;&#xFF1F;  &#x5047;&#x8BBE;&#x5728;Kotlin/JVM&#x4E2D;&#xFF0C;&#x6211;&#x4EEC;&#x9700;&#x8981;&#x4FDD;&#x5B58;1 000 000&#x4E2A;&#x6574;&#x6570;&#xFF0C;&#x6211;&#x4EEC;&#x53EF;&#x4EE5;&#x9009;&#x62E9;&#x5C06;&#x5B83;&#x4EEC;&#x4FDD;&#x5B58;&#x5728;<code>IntArray</code>&#x6216;<code>List&lt;Int&gt;</code>&#x4E2D;&#x3002;&#x5F53;&#x4F60;&#x5BF9;&#x4ED6;&#x4EEC;&#x7684;&#x5185;&#x5B58;&#x60C5;&#x51B5;&#x8FDB;&#x884C;&#x8BA1;&#x7B97;&#x65F6;&#xFF0C;&#x4F60;&#x4F1A;&#x53D1;&#x73B0;<code>IntArray</code>&#x5206;&#x914D;&#x4E86;4 000 016&#x5B57;&#x8282;&#x7684;&#x5185;&#x5B58;&#xFF0C;&#x800C;<code>List&lt;Int&gt;</code>&#x5206;&#x914D;&#x4E86;20 000 040&#x5B57;&#x8282;&#xFF0C;&#x8DB3;&#x8DB3;5&#x500D;&#x7684;&#x5DEE;&#x8DDD;&#x3002; &#x5982;&#x679C;&#x4F60;&#x9700;&#x8981;&#x505A;&#x5185;&#x5B58;&#x4F18;&#x5316;&#xFF0C;&#x5E76;&#x4E14;&#x4F60;&#x7684;&#x96C6;&#x5408;&#x6301;&#x6709;&#x7684;&#x6570;&#x636E;&#x7C7B;&#x578B;&#x662F;&#x57FA;&#x7840;&#x7C7B;&#x578B;&#xFF0C; &#x5982;<code>Int</code>&#xFF0C;&#x90A3;&#x4E48;&#x4F60;&#x53EF;&#x4EE5;&#x5C1D;&#x8BD5;&#x4F7F;&#x7528;&#x57FA;&#x7840;&#x7C7B;&#x578B;&#x6570;&#x7EC4;&#x6765;&#x4F18;&#x5316;&#x3002;</p>
 <pre><code class="lang-kotlin"><span class="hljs-keyword">import</span> jdk.nashorn.internal.ir.debug.ObjectSizeCalculator.getObjectSize
 
 <span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> {</span>
@@ -1181,7 +1181,7 @@
    println(getObjectSize(intArray)) <span class="hljs-comment">//  4 000 016</span>
 }
 </code></pre>
-<p>There is also a difference in performance. For the same collection of 1 000 000 numbers, when calculating an average, the processing over primitives is around 25% faster.</p>
+<p>&#x5728;&#x6027;&#x80FD;&#x4E0A;&#x540C;&#x6837;&#x4E5F;&#x6709;&#x5DEE;&#x522B;&#xFF0C;&#x5BF9;&#x4E8E;&#x540C;&#x6837;&#x7684;1 000 000&#x4E2A;&#x6570;&#x5B57;&#x7684;&#x96C6;&#x5408;&#xFF0C;&#x5728;&#x8BA1;&#x7B97;&#x5E73;&#x5747;&#x503C;&#x65F6;&#xFF0C;&#x5BF9;&#x57FA;&#x7840;&#x7C7B;&#x578B;&#x6570;&#x7EC4;&#x7684;&#x5904;&#x7406;&#x8981;&#x5FEB;25%&#x5DE6;&#x53F3;&#x3002;</p>
 <pre><code class="lang-kotlin"><span class="hljs-keyword">open</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">InlineFilterBenchmark</span> </span>{
 
     lateinit <span class="hljs-variable"><span class="hljs-keyword">var</span> list</span>: List<span class="hljs-type">&lt;Int&gt;</span>
@@ -1206,9 +1206,9 @@
     }
 }
 </code></pre>
-<p>As you can see, primitives and arrays with primitives can be used as an optimization in performance-critical parts of your code. They allocate less memory and their processing is faster. Although improvement in most cases is not significant enough to use arrays with primitives by default instead of lists. Lists are more intuitive and much more often in use, so in most cases we should use them instead. Just keep in mind this optimization in case you need to optimize some performance-critical parts.</p>
-<h3 id="summary">Summary</h3>
-<p>In a typical case, <code>List</code> or <code>Set</code> should be preferred over <code>Array</code>. Though if you hold big collections of primitives, using <code>Array</code> might significantly improve your performance and memory use. This item is especially for library creators or developers writing games or advanced graphic processing.</p>
+<p>&#x6B63;&#x5982;&#x4F60;&#x6240;&#x770B;&#x5230;&#x7684;&#xFF0C;&#x4F7F;&#x7528;&#x57FA;&#x7840;&#x7C7B;&#x578B;&#x548C;&#x57FA;&#x7840;&#x7C7B;&#x578B;&#x6570;&#x7EC4;&#x53EF;&#x4EE5;&#x4F5C;&#x4E3A;&#x4EE3;&#x7801;&#x4E2D;&#x4F18;&#x5316;&#x6027;&#x80FD;&#x7684;&#x4E00;&#x79CD;&#x624B;&#x6BB5;&#x3002;&#x5B83;&#x4EEC;&#x5360;&#x7528;&#x7684;&#x5185;&#x5B58;&#x66F4;&#x5C11;&#xFF0C;&#x5904;&#x7406;&#x901F;&#x5EA6;&#x4E5F;&#x66F4;&#x5FEB;&#x3002;&#x867D;&#x7136;&#x5728;&#x5927;&#x591A;&#x6570;&#x60C5;&#x51B5;&#x4E0B;&#xFF0C;&#x8FD9;&#x79CD;&#x4F18;&#x5316;&#x5E26;&#x6765;&#x7684;&#x6548;&#x679C;&#x5E76;&#x4E0D;&#x660E;&#x663E;&#xFF0C;&#x4E0D;&#x8DB3;&#x4EE5;&#x8BA9;&#x6211;&#x4EEC;&#x9ED8;&#x8BA4;&#x4F7F;&#x7528;&#x57FA;&#x7840;&#x7C7B;&#x578B;&#x6570;&#x7EC4;&#x800C;&#x4E0D;&#x662F;<code>List</code>&#x3002;<code>List</code>&#x66F4;&#x76F4;&#x89C2;&#xFF0C;&#x4F7F;&#x7528;&#x9891;&#x7387;&#x66F4;&#x9AD8;&#xFF0C;&#x6240;&#x4EE5;&#x5728;&#x5927;&#x591A;&#x6570;&#x60C5;&#x51B5;&#x4E0B;&#xFF0C;&#x6211;&#x4EEC;&#x5E94;&#x8BE5;&#x4F7F;&#x7528;&#x5B83;&#x3002;&#x4F46;&#x4F60;&#x4ECD;&#x9700;&#x8BB0;&#x4F4F;&#x8FD9;&#x79CD;&#x4F18;&#x5316;&#xFF0C;&#x4EE5;&#x9632;&#x4F60;&#x9700;&#x8981;&#x4F18;&#x5316;&#x4E00;&#x4E9B;&#x201D;&#x6027;&#x80FD;&#x4F18;&#x5148;&#x201C;&#x7684;&#x90E8;&#x5206;&#x3002;</p>
+<h3 id="&#x603B;&#x7ED3;">&#x603B;&#x7ED3;</h3>
+<p>&#x5728;&#x4E00;&#x822C;&#x60C5;&#x51B5;&#x4E0B;&#xFF0C;&#x5E94;&#x8BE5;&#x4F18;&#x5148;&#x4F7F;&#x7528;<code>List</code>&#x6216;<code>Set</code>&#x800C;&#x4E0D;&#x662F;<code>Array</code>&#x3002;&#x4F46;&#x5982;&#x679C;&#x4F60;&#x9700;&#x8981;&#x4FDD;&#x5B58;&#x5927;&#x91CF;&#x7684;&#x57FA;&#x7840;&#x7C7B;&#x578B;&#x7684;&#x6570;&#x636E;&#xFF0C;&#x4F7F;&#x7528;<code>Array</code>&#x53EF;&#x80FD;&#x4F1A;&#x663E;&#x8457;&#x63D0;&#x9AD8;&#x4F60;&#x7684;&#x6027;&#x80FD;&#x548C;&#x5185;&#x5B58;&#x4F7F;&#x7528;&#x60C5;&#x51B5;&#x3002;&#x8FD9;&#x4E00;&#x6761;&#x7279;&#x522B;&#x9002;&#x7528;&#x4E8E;&#x5F00;&#x53D1;&#x57FA;&#x7840;&#x5E93;&#x6216;&#x7F16;&#x5199;&#x6E38;&#x620F;&#x6216;&#x9AD8;&#x7EA7;&#x56FE;&#x5F62;&#x5904;&#x7406;&#x7684;&#x5F00;&#x53D1;&#x8005;&#x3002;</p>
 
                                 
                                 </section>
@@ -1252,7 +1252,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 51 Consider Arrays With Primitives For Performance Critical Processing","level":"1.4.2.4","depth":3,"next":{"title":"第52条：在处理局部变量时，考虑使用可变集合","level":"1.4.2.5","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 52 Consider using mutable collections.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 52 Consider using mutable collections.md","articles":[]},"previous":{"title":"Item 50 Limit The Number Of Operations","level":"1.4.2.3","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 51 Consider Arrays with primitives for performance-critical processing.md","mtime":"2022-05-28T05:09:59.771Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2022-05-28T05:10:33.005Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"第51条：在“性能优先”的场景，考虑使用基础类型数组","level":"1.4.2.4","depth":3,"next":{"title":"第52条：在处理局部变量时，考虑使用可变集合","level":"1.4.2.5","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 52 Consider using mutable collections.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 52 Consider using mutable collections.md","articles":[]},"previous":{"title":"Item 50 Limit The Number Of Operations","level":"1.4.2.3","depth":3,"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.md","ref":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 51 Consider Arrays with primitives for performance-critical processing.md","mtime":"2022-05-28T10:43:24.789Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2022-05-28T10:43:59.732Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
