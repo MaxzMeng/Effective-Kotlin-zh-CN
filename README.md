@@ -82,5 +82,5 @@ Effective Kotlin 中文翻译
         - [ ] Item 49 Prefer Sequence For Big Collections With More Than One Processing Step
         - [ ] Item 50 Limit The Number Of Operations
         - [ ] Item 51 Consider Arrays With Primitives For Performance Critical Processing
-        - [ ] Item 52 Consider Using Mutable Collections
+        - [x] 第52条：在处理局部变量时，考虑使用可变集合
 

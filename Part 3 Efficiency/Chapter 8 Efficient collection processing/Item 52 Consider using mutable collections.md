@@ -1,6 +1,6 @@
-## Item 52: Consider using mutable collections
+## 第52条：在处理局部变量时，考虑使用可变集合
 
-The biggest advantage of using mutable collections instead of immutable is that they are faster in terms of performance. When we add an element to an immutable collection, we need to create a new collection and add all elements to it. Here is how it is currently implemented in the Kotlin stdlib (Kotlin 1.2):
+使用可变集合而不是不可变集合的最大优势是，它们在性能上表现更好。当我们向一个不可变的集合添加一个元素时，我们需要创建一个新的集合并将所有的元素添加到其中。下面是目前在Kotlin stdlib（Kotlin 1.2）中的实现方式：
 
 ``` kotlin
 operator fun <T> Iterable<T>.plus(element: T): List<T> {
@@ -12,7 +12,7 @@ operator fun <T> Iterable<T>.plus(element: T): List<T> {
 }
 ```
 
-Adding all elements from a previous collection is a costly process when we deal with bigger collections. This is why using mutable collections, especially if we need to add elements, is a performance optimization. On the other hand *Item 1: Limit mutability* taught us the advantages of using immutable collections for safety. Although notice that those arguments rarely apply to local variables where synchronization or encapsulation is rarely needed. This is why for local processing, it generally makes more sense to use mutable collections. This fact can be reflected in the standard library where all collection processing functions are internally implemented using mutable collections:
+当我们处理数据量较大的集合时，添加前一个集合中的所有元素是一个巨大的性能开销。这就是为什么使用可变集合是一种性能优化，特别是当我们需要添加元素时。另一方面，*第1条：限制可变性*告诉我们使用不可变的集合来保证安全的好处。不过请注意，这些论点很少适用于局部变量，因为局部变量很少需要同步或封装。这就是为什么对于局部变量处理来说，通常使用可变集合更有意义。这一论点可以在标准库中得到证实，所有的集合处理函数在内部都是使用可变集合实现的：
 
 ``` kotlin
 inline fun <T, R> Iterable<T>.map(
@@ -26,7 +26,7 @@ inline fun <T, R> Iterable<T>.map(
 }
 ```
 
-Instead of using immutable collections:
+而不是使用不可变的集合：
 
 ``` kotlin
 // This is not how map is implemented
@@ -40,6 +40,6 @@ inline fun <T, R> Iterable<T>.map(
 }
 ```
 
-### Summary
+### 总结
 
-Adding to mutable collections is generally faster, but immutable collections give us more control over how they are changed. Though in local scope we generally do not need that control, so mutable collections should be preferred. Especially in utils, where element insertion might happen many times.
+使用可变集合来添加元素通常有更好的性能表现，但是不可变集合给了我们更多的控制权来控制它们如何被更改。但是在局部变量范围内，我们通常不需要这种控制，所以应首选可变集合。特别是在工具类中，元素的插入可能会发生很多次。

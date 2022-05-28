@@ -70,4 +70,4 @@
     * [Item 49 Prefer Sequence For Big Collections With More Than One Processing Step](Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 49 Prefer Sequence for big collections with more than one processing step.md)
     * [Item 50 Limit The Number Of Operations](Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.md)
     * [Item 51 Consider Arrays With Primitives For Performance Critical Processing](Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 51 Consider Arrays with primitives for performance-critical processing.md)
-    * [Item 52 Consider Using Mutable Collections](Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 52 Consider using mutable collections.md)
+    * [第52条：在处理局部变量时，考虑使用可变集合](Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 52 Consider using mutable collections.md)
