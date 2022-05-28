@@ -81,6 +81,6 @@ Effective Kotlin 中文翻译
         - [ ] Introduction
         - [ ] Item 49 Prefer Sequence For Big Collections With More Than One Processing Step
         - [ ] Item 50 Limit The Number Of Operations
-        - [ ] Item 51 Consider Arrays With Primitives For Performance Critical Processing
+        - [x] 第51条：在“性能优先”的场景，使用基础类型数组
         - [x] 第52条：在处理局部变量时，考虑使用可变集合
 
