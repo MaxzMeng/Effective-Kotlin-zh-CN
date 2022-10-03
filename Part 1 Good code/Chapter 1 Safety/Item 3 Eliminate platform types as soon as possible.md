@@ -15,7 +15,7 @@ public class JavaTest {
 
 我们可能会说，那么我们应该把这样的类型当作可空的。这将是一种安全的方法，因为在Java中所有的东西都是可空的。然而，我们经常知道某些东西不是空值，所以我们最终会在代码的许多地方使用not-null（```!!```）断言。
 
-真正的问题是当我们需要从Java中获取泛型对象时。想象一下，一个Java API返回一个完全没有注释的List<User>。如果Kotlin默认为nullable类型，并且我们知道这个列表和那些用户都不是null，那么我们不仅需要判断整个列表，还需要过滤列表中的null值：
+真正的问题是当我们需要从Java中获取泛型对象时。想象一下，一个Java API返回一个完全没有注释的List\<User>。如果Kotlin默认为nullable类型，并且我们知道Java的这个列表和那些用户都不是null，那么在Kotlin中我们不仅需要判断整个列表，还需要过滤列表中的null值：
 
 ```java
 // Java 
@@ -29,7 +29,7 @@ public class UserRepo {
 val users: List<User> = UserRepo().users!!.filterNotNull()
 ```
 
-如果一个函数返回一个List<List<User>>，会怎么样？
+如果一个函数返回一个List\<List\<User>>，会怎么样？
 
 变得复杂了：
 
@@ -37,7 +37,7 @@ val users: List<User> = UserRepo().users!!.filterNotNull()
 val users: List<List<User>> = UserRepo().groupedUsers!!.map { it!!.filterNotNull() }
 ```
 
-List至少有`map`和`filterNotNull`等函数。在其他类型中，无效性将是一个更大的问题。这就是为什么在Kotlin中，来自Java的、具有未知可空性的类型不是被默认为可空的，而是一种特殊的类型。它被称为平台类型。
+List至少有`map`和`filterNotNull`等函数。在其他类型中，可空性将是一个更大的问题。这就是为什么在Kotlin中，来自Java的、具有未知可空性的类型不是被默认为可空的，而是一种特殊的类型。它被称为平台类型。
 
 平台类型——一种来自另一种语言的类型，具有未知的可空性。
 
