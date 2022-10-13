@@ -1,6 +1,6 @@
-## Item 50: Limit the number of operations
+## 第50条: 减少操作的次数
 
-Every collection processing method is a cost. For standard collection processing, it is most often another iteration over elements and additional collection created under the hood. For sequence processing, it is another object wrapping the whole sequence, and another object to keep operation[6](chap65.xhtml#fn-seqinline). Both are costly especially when the number of processed elements is big. Therefore we limit the number of collection processing steps and we mainly do that by using operations that are composites. For instance, instead of filtering for not null and then casting to non-nullable types, we use `filterNotNull`. Or instead of mapping and then filtering out nulls, we can just do `mapNotNull`. 
+每个集合处理的方法都伴随着性能开销。对于标准库中提供的集合处理方法，在底层实现上，通常是对集合元素的一次迭代和新集合的创建。而对于序列处理，它会创建一个新的对象来持有和操作整个序列。尤其是当处理的元素数量很多的时候，这两者的性能开销都会变的很大。因此，我们应该减少处理步骤的数量，主要可以通过使用复合操作来做到这一点。例如，我们使用 `filterNotNull`，而不是先过滤非空类型然后再转换为不可空类型。或者我们可以只使用`mapNotNull`而不是先进行映射之后再进行过滤操作。
 
 ``` kotlin
 class Student(val name: String?)
@@ -21,14 +21,14 @@ fun List<Student>.getNames(): List<String> = this
    .mapNotNull { it.name }
 ```
 
-The biggest problem is not the misunderstanding of the importance of such changes, but rather the lack of knowledge about what collection processing functions we should use. This is another reason why it is good to learn them. Also, help comes from warnings which often suggest us to introduce a better alternative.
+通常来说，最大的问题不是缺乏对这一问题的认知，而是缺乏对应该使用哪些集合处理函数的了解。 这是学习它们很好的另一个原因。 此外，IDE也会提供有用的警告，这些警告经常给我们更好的替代方案的建议。
 
 ![](../../assets/chapter8/chapter8-6.png)
 
-Still, it is good to know alternative composite operations. Here is a list of a few common function calls and alternative ways that limit the number of operations:
+尽管如此，了解如何替代复合操作还是很有必要的。 下面列出了一些常见的函数调用和限制操作数量的替代方法：
 
 ![](../../assets/chapter8/chapter8-7.png)
 
-### Summary
+### 总结
 
-Most collection processing steps require iteration over the whole collection and intermediate collection creation. This cost can be limited by using more suitable collection processing functions.
+大多数集合处理步骤需要迭代整个集合和额外的集合创建。 这个成本可以通过使用更合适的函数来限制。

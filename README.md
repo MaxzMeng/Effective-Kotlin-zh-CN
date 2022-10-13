@@ -80,7 +80,7 @@ Effective Kotlin 中文翻译
     - Chapter 8 Efficient Collection Processing
         - [ ] Introduction
         - [ ] Item 49 Prefer Sequence For Big Collections With More Than One Processing Step
-        - [ ] Item 50 Limit The Number Of Operations
+        - [x] 第50条: 减少操作的次数
         - [x] 第51条：在“性能优先”的场景，使用基础类型数组
         - [x] 第52条：在处理局部变量时，考虑使用可变集合
 
