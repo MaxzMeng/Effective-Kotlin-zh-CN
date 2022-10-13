@@ -7,7 +7,7 @@
     * [第2条：最小化变量作用域](Part 1 Good code/Chapter 1 Safety/Item 2 Minimize the scope of variables.md)
     * [第3条：尽快消除平台类型](Part 1 Good code/Chapter 1 Safety/Item 3 Eliminate platform types as soon as possible.md)
     * [第4条：不要把推断类型暴露给外部](Part 1 Good code/Chapter 1 Safety/Item 4 Do not expose inferred types.md)
-    * [Item 5 Specify Your Expectations On Arguments And State](Part 1 Good code/Chapter 1 Safety/Item 5 Specify your expectations on arguments and state.md)
+    * [第5条：在参数与状态上指定你的期望](Part 1 Good code/Chapter 1 Safety/Item 5 Specify your expectations on arguments and state.md)
     * [第6条：尽可能使用标准库中提供的异常](Part 1 Good code/Chapter 1 Safety/Item 6 Prefer standard errors to custom ones.md)
     * [第7条：当不能返回预期结果时，优先使用`null` o或`Failure` 作为返回值](Part 1 Good code/Chapter 1 Safety/Item 7 Prefer null or Failure result when the lack of result is possible.md)
     * [Item 8 Handle Nulls Properly](Part 1 Good code/Chapter 1 Safety/Item 8 Handle nulls properly.md)
