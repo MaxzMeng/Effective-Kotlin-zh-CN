@@ -1,23 +1,23 @@
-## Item 14: Specify the variable type when it is not clear
+## 第14条：在类型不明确的情况下，请显式声明变量的类型
 
-Kotlin has a great type inference system that allows us to omit types when those are obvious for developers:
+Kotlin拥有一个很好的类型推断系统，使我们能够在类型对开发者来说是显而易见的情况下省略类型声明：
 
-``` kotlin
+```kotlin
 val num = 10
 val name = "Marcin"
 val ids = listOf(12, 112, 554, 997)
 ```
 
-It improves not only development time, but also readability when a type is clear from the context and additional specification is redundant and messy. However, it should not be overused in cases when a type is not clear:
+这不仅提高了开发时间，而且在类型从上下文中明确时，额外的指定会显得冗余和混乱。然而，在类型不清楚的情况下，不应滥用这种方式：
 
-``` kotlin
+```kotlin
 val data = getSomeData()
 ```
 
-We design our code for readability, and we should not hide important information that might be important for a reader. It is not valid to argue that return types can be omitted because the reader can always jump into the function specification to check it there. Type might be inferred there as well and a user can end up going deeper and deeper. Also, a user might read this code on GitHub or some other environment that does not support jumping into implementation. Even if they can, we all have very limited working memory and wasting it like this is not a good idea. Type is important information and if it is not clear, it should be specified. 
+我们为了可读性而设计我们的代码，不应隐藏对读者可能很重要的重要信息。不能以返回类型可以省略为理由，因为读者始终可以跳转到函数的规范中查看。类型也可能在那里被推断，用户可能会陷入越来越深的细节。此外，用户可能在GitHub或其他不支持跳转到实现的环境中阅读此代码。即使他们可以，我们都有非常有限的工作记忆，像这样浪费它并不是一个好主意。类型是重要的信息，如果不清楚，应该明确指定。
 
-``` kotlin
+```kotlin
 val data: UserData = getSomeData()
 ```
 
-Improving readability is not the only case for type specification. It is also for safety as shown in the *Chapter: Safety* on *Item 3: Eliminate platform types as soon as possible* and *Item 4: Do not expose inferred types*. **Type might be important information both for a developer and for the compiler. Whenever it is, do not hesitate to specify the type. It costs little and can help a lot.**
+提高可读性并不是类型规定的唯一场景。它还涉及到安全性，就像在 *Chapter: Safety* 的 *Item 3: Eliminate platform types as soon as possible* 和 *Item 4: Do not expose inferred types* 中所示。**类型对开发者和编译器都是重要的信息。每当它是重要的信息时，请毫不犹豫地指定类型。它的代价很小，但可以帮助很多。**

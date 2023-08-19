@@ -18,7 +18,7 @@
     * [第11条：可读性设计](Part 1 Good code/Chapter 2 Readability/Item 11 Design for readability.md)
     * [第12条：操作符的含义应与其函数名一致](Part 1 Good code/Chapter 2 Readability/Item 12 Operator meaning should be consistent with its function name.md)
     * [第13条：避免返回或操作 `Unit?` ](Part 1 Good code/Chapter 2 Readability/Item%2013%20Avoid%20returning%20or%20operating%20on%20Unit%3F.md)
-    * [Item 14 Specify The Variable Type When It Is Not Clear](Part 1 Good code/Chapter 2 Readability/Item 14 Specify the variable type when it is not clear.md)
+    * [第14条：在类型不明确的情况下，请显式指定变量的类型](Part 1 Good code/Chapter 2 Readability/Item 14 Specify the variable type when it is not clear.md)
     * [Item 15 Consider Referencing Receivers Explicitly](Part 1 Good code/Chapter 2 Readability/Item 15 Consider referencing receivers explicitly.md)
     * [Item 16 Properties Should Represent State Not Behavior](Part 1 Good code/Chapter 2 Readability/Item 16 Properties should represent state not behavior.md)
     * [Item 17 Consider Naming Arguments](Part 1 Good code/Chapter 2 Readability/Item 17 Consider naming arguments.md)
