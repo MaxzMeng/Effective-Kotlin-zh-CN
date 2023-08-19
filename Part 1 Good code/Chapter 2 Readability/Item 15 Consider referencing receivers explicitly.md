@@ -1,6 +1,6 @@
-## Item 15: Consider referencing receivers explicitly
+## 第15条：考虑明确指定接收者
 
-One common place where we might choose a longer structure to make something explicit is when we want to highlight that a function or a property is taken from the receiver instead of being a local or top-level variable. In the most basic situation it means a reference to the class to which the method is associated:
+有一个常见的情况，我们可能会选择使用更长的结构来使某些内容明确，即当我们想要强调函数或属性是来自接收者而不是局部或顶层变量时。在最基本的情况下，这意味着引用与方法关联的类：
 
 ``` kotlin
 class User: Person() {
@@ -14,7 +14,7 @@ class User: Person() {
 }
 ```
 
-Similarly, we may explicitly reference an extension receiver (`this` in an extension method) to make its use more explicit. Just compare the following Quicksort implementation written without explicit receivers:
+类似地，我们可以明确引用扩展接收者（扩展方法中的`this`）以使其使用更明确。比较以下两种不使用明确接收者编写的快速排序实现：
 
 ``` kotlin
 fun <T : Comparable<T>> List<T>.quickSort(): List<T> {
@@ -26,7 +26,7 @@ fun <T : Comparable<T>> List<T>.quickSort(): List<T> {
 }
 ```
 
-With this one written using them:
+与使用明确接收者编写的实现相比：
 
 ``` kotlin
 fun <T : Comparable<T>> List<T>.quickSort(): List<T> {
@@ -38,16 +38,16 @@ fun <T : Comparable<T>> List<T>.quickSort(): List<T> {
 }
 ```
 
-The usage is the same for both functions:
+两个函数的使用方式是相同的：
 
 ``` kotlin
 listOf(3, 2, 5, 1, 6).quickSort() // [1, 2, 3, 5, 6]
 listOf("C", "D", "A", "B").quickSort() // [A, B, C, D]
 ```
 
-### Many receivers
+### 多个接收者
 
-Using explicit receivers can be especially helpful when we are in the scope of more than one receiver. We are often in such a situation when we use the `apply`, `with` or `run` functions. Such situations are dangerous and we should avoid them. It is safer to use an object using explicit receiver. To understand this problem, see the following code[2](chap65.xhtml#fn-footnote_20_note):
+在涉及多个接收者的范围内，明确指定接收者特别有帮助。我们在使用`apply`、`with`或`run`函数时经常会遇到这种情况。这种情况很危险，我们应该避免使用它们。使用显式接收者使用对象更安全。为了理解这个问题，看看下面的代码：
 
 ``` kotlin
 class Node(val name: String) {
@@ -65,9 +65,9 @@ fun main() {
 }
 ```
 
-What is the result? Stop now and spend some time trying to answer yourself before reading the answer. 
+结果是什么？在阅读答案之前，请停下来花点时间自己思考一下。
 
-It is probably expected that the result should be “Created parent.child”, but the actual result is “Created parent”. Why? To investigate, we can use explicit receiver before `name`:
+预计的结果可能是"Created parent.child"，但实际结果是"Created parent"。为什么？为了调查，我们可以在`name`之前使用明确的接收者：
 
 ``` kotlin
 class Node(val name: String) {
@@ -81,7 +81,7 @@ class Node(val name: String) {
 }         
 ```
 
-The problem is that the type `this` inside `apply` is `Node?` and so methods cannot be used directly. We would need to unpack it first, for instance by using a safe call. If we do so, result will be finally correct:
+问题在于`apply`内部的`this`类型是`Node?`，所以不能直接使用方法。我们需要首先解包它，例如通过使用安全调用。如果我们这样做，结果最终将是正确的：
 
 ``` kotlin
 class Node(val name: String) {
@@ -100,7 +100,7 @@ fun main() {
 }
 ```
 
-This is an example of bad usage of `apply`. We wouldn’t have such a problem if we used `also` instead, and call `name` on the argument. Using `also` forces us to reference the function’s receiver explicitly the same way as an explicit receiver. In general `also` and `let` are much better choice for additional operations or when we operate on a nullable value. 
+这是`apply`的错误使用示例。如果我们使用`also`代替，并在参数上调用`name`，就不会遇到这样的问题。使用`also`强制我们以明确的方式引用函数的接收者，就像使用明确接收者一样。通常情况下，`also`和`let`在执行额外操作或操作可为空的值时是更好的选择。
 
 ``` kotlin
 class Node(val name: String) {
@@ -113,7 +113,7 @@ class Node(val name: String) {
 }
 ```
 
-When receiver is not clear, we either prefer to avoid it or we clarify it using explicit receiver. When we use receiver without label, we mean the closest one. When we want to use outer receiver we need to use a label. In such case it is especially useful to use it explicitly. Here is an example showing them both in use:
+当接收者不明确时，我们要么避免使用它，要么使用明确的接收者来澄清。当我们在没有标签的情况下使用接收者时，我们指的是最接近的接收者。当我们想要使用外部接收者时，需要使用标签。在这种情况下，明确使用它特别有用。以下是一个同时使用它们的示例：
 
 ``` kotlin
 class Node(val name: String) {
@@ -134,11 +134,11 @@ fun main() {
 }
 ```
 
-This way direct receiver clarifies what receiver do we mean. This might be an important information that might not only protect us from errors but also improve readability. 
+这样，直接接收者澄清了我们指的是哪个接收者。这可能是一个重要的信息，不仅可以保护我们免受错误的影响，还可以提高可读性。
 
-### DSL marker
+### DSL标记
 
-There is a context in which we often operate on very nested scopes with different receivers, and we don’t need to use explicit receivers at all. I am talking about Kotlin DSLs. We don’t need to use receivers explicitly because DSLs are designed in such a way. However, in DSLs, it is especially dangerous to accidentally use functions from an outer scope. Think of a simple HTML DSL we use to make an HTML table:
+在某些情况下，我们经常在具有不同接收者的嵌套范围内操作，并且根本不需要使用显式接收者。我指的是Kotlin的DSL。我们不需要显式使用接收者，因为DSL是以这种方式设计的。然而，在DSL中，意外使用外部作用域的函数尤其危险。想象一下我们用于制作HTML表格的简单HTML DSL：
 
 ``` kotlin
 table {
@@ -153,7 +153,7 @@ table {
 }
 ```
 
-Notice that by default in every scope we can also use methods from receivers from the outer scope. We might use this fact to mess with DSL:
+请注意，每个作用域默认情况下我们还可以使用外部作用域的接收者的方法。我们可以利用这一点来混淆DSL：
 
 ``` kotlin
 table {
@@ -168,7 +168,7 @@ table {
 }
 ```
 
-To restrict such usage, we have a special meta-annotation (an annotation for annotations) that restricts implicit usage of outer receivers. This is the `DslMarker`. When we use it on an annotation, and later use this annotation on a class that serves as a builder, inside this builder implicit receiver use won’t be possible. Here is an example of how `DslMarker` might be used:
+为了限制这种用法，我们有一个特殊的元注解（注解的注解），用于限制对外部接收者的隐式使用。这就是`DslMarker`。当我们在注解上使用它，并在稍后将此注解用于作为构建器的类时，在此构建器内部将无法隐式使用接收者。以下是`DslMarker`的用法示例：
 
 ``` kotlin
 @DslMarker
@@ -180,7 +180,7 @@ fun table(f: TableDsl.() -> Unit) { /*...*/ }
 class TableDsl { /*...*/ }
 ```
 
-With that, it is prohibited to use outer receiver implicitly:
+通过这样做，禁止了对外部接收者的隐式使用：
 
 ``` kotlin
 table {
@@ -195,7 +195,7 @@ table {
 }
 ```
 
-Using functions from an outer receiver requires explicit receiver usage:
+使用外部接收者的函数需要显式接收者的使用：
 
 ``` kotlin
 table {
@@ -210,8 +210,8 @@ table {
 }
 ```
 
-The DSL marker is a very important mechanism that we use to force usage of either the closest receiver or explicit receiver usage. However, it is generally better to not use explicit receivers in DSLs anyway. Respect DSL design and use it accordingly. 
+DSL标记是一种非常重要的机制，我们可以使用它来强制使用最近的接收者或显式接收者。然而，在DSL中，通常最好不要使用显式接收者。尊重DSL的设计，并相应地使用它。
 
-### Summary
+### 总结
 
-Do not change scope receiver just because you can. It might be confusing to have too many receivers all giving us methods we can use. Explicit argument or reference is generally better. When we do change receiver, using explicit receivers improves readability because it clarifies where does the function come from. We can even use a label when there are many receivers to clarify from which one the function comes from. If you want to force using explicit receivers from the outer scope, you can use `DslMarker` meta-annotation.
+不要仅仅因为可以而更改作用域接收者。拥有太多的接收者并提供可以使用的方法可能会引起混淆。显式参数或引用通常更好。当我们确实更改接收者时，使用显式接收者可以提高可读性，因为它澄清了函数来自哪里。如果有多个接收者，甚至可以使用标签来澄清函数来自哪个接收者。如果您想要强制从外部作用域使用显式接收者，可以使用`DslMarker`元注解。

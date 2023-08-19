@@ -31,7 +31,7 @@ Effective Kotlin 中文翻译
         - [x] 第12条：操作符的含义应与其函数名一致
         - [x] 第13条：避免返回或操作 `Unit?`
         - [x] 第14条：在类型不明确的情况下，请显式指定变量的类型
-        - [ ] Item 15 Consider Referencing Receivers Explicitly
+        - [x] 第15条：考虑明确指定接收者
         - [ ] Item 16 Properties Should Represent State Not Behavior
         - [ ] Item 17 Consider Naming Arguments
         - [ ] Item 18 Respect Coding Conventions
