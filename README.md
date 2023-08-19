@@ -29,7 +29,7 @@ Effective Kotlin 中文翻译
         - [x] 引言
         - [x] 第11条：可读性设计
         - [x] 第12条：操作符的含义应与其函数名一致
-        - [ ] Item 13 Avoid Returning Or Operating On Unit
+        - [ ] 第13条：避免返回或操作 `Unit?`
         - [ ] Item 14 Specify The Variable Type When It Is Not Clear
         - [ ] Item 15 Consider Referencing Receivers Explicitly
         - [ ] Item 16 Properties Should Represent State Not Behavior
