@@ -10,7 +10,7 @@
     * [第5条：在参数与状态上指定你的期望](Part 1 Good code/Chapter 1 Safety/Item 5 Specify your expectations on arguments and state.md)
     * [第6条：尽可能使用标准库中提供的异常](Part 1 Good code/Chapter 1 Safety/Item 6 Prefer standard errors to custom ones.md)
     * [第7条：当不能返回预期结果时，优先使用`null` o或`Failure` 作为返回值](Part 1 Good code/Chapter 1 Safety/Item 7 Prefer null or Failure result when the lack of result is possible.md)
-    * [Item 8 Handle Nulls Properly](Part 1 Good code/Chapter 1 Safety/Item 8 Handle nulls properly.md)
+    * [第8条：正确地处理`null`值](Part 1 Good code/Chapter 1 Safety/Item 8 Handle nulls properly.md)
     * [第9条：使用`use`关闭资源](Part 1 Good code/Chapter 1 Safety/Item 9 Close resources with use.md)
     * [Item 10 Write Unit Tests](Part 1 Good code/Chapter 1 Safety/Item 10 Write unit tests.md)
   - Chapter 2 Readability
@@ -68,6 +68,6 @@
   - Chapter 8 Efficient Collection Processing
     * [Introduction](Part 3 Efficiency/Chapter 8 Efficient collection processing/Introduction.md)
     * [Item 49 Prefer Sequence For Big Collections With More Than One Processing Step](Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 49 Prefer Sequence for big collections with more than one processing step.md)
-    * [第50条: 减少操作的次数](Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.md)
+    * [第50条：减少操作的次数](Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.md)
     * [第51条：在“性能优先”的场景，考虑使用基础类型数组](Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 51 Consider Arrays with primitives for performance-critical processing.md)
     * [第52条：在处理局部变量时，考虑使用可变集合](Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 52 Consider using mutable collections.md)

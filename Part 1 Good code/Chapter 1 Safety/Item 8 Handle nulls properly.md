@@ -1,11 +1,11 @@
-## Item 8: Handle nulls properly
+## 第8条：正确地处理`null`值
 
-`null` means a lack of value. For property, it might mean that the value was not set or that it was removed. When a function returns `null` it might have a different meaning depending on the function:
+`null` 表示缺少值。对于属性，这可能意味着该值没有设置或已被删除。当函数返回 `null` 时，其含义可能因函数而异：
 
-- `String.toIntOrNull()` returns `null` when `String` cannot be correctly parsed to `Int`
-- `Iterable<T>.firstOrNull(() -> Boolean)` returns `null` when there are no elements matching predicate from the argument. 
+- `String.toIntOrNull()` 当 `String` 无法正确解析为 `Int` 时返回 `null`
+- `Iterable<T>.firstOrNull(() -> Boolean)` 当没有元素符合参数传递的条件时返回 `null`
 
-**In these and all other cases the meaning of `null` should be as clear as possible.** This is because nullable values must be handled, and it is the API user (programmer using API element) who needs to decide how it is to be handled. 
+**在这些和所有其他情况下，`null` 的含义应尽可能清晰明确。** 这是因为可空值必须得到处理，而需要决定如何处理的是使用 API 元素的 API 用户（即程序员）。
 
 ``` kotlin
 val printer: Printer? = getPrinter()
@@ -16,26 +16,26 @@ if (printer != null) printer.print() // Smart casting
 printer!!.print() // Not-null assertion
 ```
 
-In general, there are 3 ways of how nullable types can be handled. We can:
+一般来说，处理可空类型有三种方法。我们可以：
 
-- Handling nullability safely using safe call `?.`, smart casting, Elvis operator, etc.
-- Throw an error
-- Refactor this function or property so that it won’t be nullable
+- 使用安全调用 `?.`、智能转换、Elvis 运算符等安全地处理空值。
+- 抛出错误。
+- 重构函数或属性，使其不可为空。
 
-Let’s describe them one by one.
+我们逐一介绍它们。
 
-### Handling nulls safely
+### 安全地处理`null`值
 
-As mentioned before, the two safest and most popular ways to handle nulls is by using safe call and smart casting:
+如前所述，处理空值最安全、最常见的方式是使用安全调用和智能转换：
 
 ``` kotlin
 printer?.print() // Safe call
 if (printer != null) printer.print() // Smart casting
 ```
 
-In both those cases, the function `print` will be called only when `printer` is not `null`. This is the safest option from the application user point of view. It is also really comfortable for programmers. No wonder why this is generally the most popular way how we handle nullable values. 
+在这两种情况下，只有在 `printer` 不为 `null` 时才会调用 `print` 函数。从应用程序用户的角度来看，这是最安全的选择。对于程序员来说，这也非常方便。难怪这通常是我们处理可空值的最常用方式。
 
-Support for handling nullable variables in Kotlin is much wider than in other languages. One popular practice is to use the Elvis operator which provides a default value for a nullable type. It allows any expression including `return` and `throw` on its right side:
+Kotlin 对处理可空变量的支持要比其他语言广泛得多。一种常见的做法是使用 Elvis 运算符，为可空类型提供默认值。它允许在其右侧使用任何表达式，包括 `return` 和 `throw`：
 
 ``` kotlin
 val printerName1 = printer?.name ?: "Unnamed"
@@ -44,9 +44,9 @@ val printerName3 = printer?.name ?:
     throw Error("Printer must be named")
 ```
 
-Many objects have additional support. For instance, as it is common to ask for an empty collection instead of `null`, there is `orEmpty` extension function on `Collection<T>?` returning not-nullable `List<T>`. There is also a similar function for `String?`.
+许多对象还提供了其他支持。例如，由于通常要求返回空集合而不是 `null`，因此在 `Collection<T>?` 上有一个 `orEmpty` 扩展函数，返回非空的 `List<T>`。对于 `String?`，也有类似的函数。
 
-Smart casting is also supported by Kotlin’s contracts feature that lets us smart cast in a function:
+智能转换也受到 Kotlin 合同（contracts）功能的支持，它允许我们在函数中进行智能转换：
 
 ``` kotlin
 println("What is your name?")
@@ -61,17 +61,18 @@ if (!news.isNullOrEmpty()) {
 }
 ```
 
-All those options should be known to Kotlin developers, and they all provide useful ways to handle nullability properly. 
+所有这些选项都应该为 Kotlin 开发人员所熟知，并且它们都提供了适当处理可空性的有用方法。
 
-### Defensive and offensive programming
+### 防御性编程和攻击性编程
 
-Handling all possibilities in a correct way - like here not using `printer` when it is `null` - is an implementation of *defensive programming*. *Defensive programming* is a blanket term for various practices increasing code stability once the code is in production, often by defending against the currently impossible. It is the best way when there is a correct way to handle all possible situations. It wouldn’t be correct if we would expect that `printer` is not `null` and should be used. In such a case it would be impossible to handle such a situation safely, and we should instead use a technique called *offensive programming*. The idea behind *offensive programming* is that in case of an unexpected situation we complain about it loudly to inform the developer who led to such situation, and to force him or her to correct it. A direct implementation of this idea is `require`, `check`and `assert` presented in Item 5: Specify your expectations on arguments and state. It is important to understand that even though those two modes seem like being in conflict, they are not at all. They are more like yin and yang. Those are different modes both needed in our programs for the sake of safety, and we need to understand them both and use them appropriately. 
+以正确的方式处理所有可能情况，比如在 `printer` 为 `null` 时不使用它，是实现*防御性编程*的一种方式。*防御性编程*是一个广义的术语，指的是通过防范当前不可能的情况，从而提高代码在生产环境中的稳定性的各种实践方法。当有一种正确的方式来处理所有可能的情况时，这是最好的方式。如果我们期望 `printer` 不为 `null` 并且应该使用它，那么这种情况下，就需要进行防御性编程。
+
+另一种处理空值的方式是使用*攻击性编程*的原则。攻击性编程是一种开发方法，旨在尽早发现和解决问题，以提高代码的可靠性和健壮性。在使用攻击性编程时，我们假设最坏的情况会发生，并采取相应的措施来处理它。
 
 
+### 抛出异常
 
-### Throw an error
-
-One problem with safe handling is that if `printer` could sometimes be `null`, we will not be informed about it but instead `print` won’t be called. This way we might have hidden important information. If we are expecting `printer` to never be `null`, we will be surprised when the `print` method isn’t called. This can lead to errors that are really hard to find. When we have a strong expectation about something that isn’t met, it is better to throw an error to inform the programmer about the unexpected situation. It can be done using `throw`, as well as by using the not-null assertion `!!`, `requireNotNull`, `checkNotNull`, or other error throwing functions:
+使用安全处理的一个问题是，如果`printer`有时可能为`null`，我们将不会收到任何通知，而是不会调用`print`方法。这样，我们可能会隐藏重要的信息。如果我们期望`printer`永远不会为`null`，当`print`方法没有被调用时，我们会感到惊讶。这可能导致非常难以找到的错误。当我们对某个未满足的强烈期望时，最好抛出错误以通知程序员发生了意外情况。可以使用`throw`关键字，以及使用非空断言`!!`、`requireNotNull`、`checkNotNull`或其他抛出错误的函数，如下所示：
 
 
 
@@ -88,18 +89,18 @@ fun process(user: User) {
 }
 ```
 
-### The problems with the not-null assertion `!!`
+### 非空断言 `!!` 的问题
 
-The simplest way to handle nullable is by using not-null assertion `!!`. It is conceptually similar to what happens in Java - we think something is not `null` and if we are wrong, an NPE is thrown. **Not-null assertion `!!` is a lazy option. It throws a generic exception that explains nothing. It is also short and simple, which also makes it easy to abuse or misuse.** Not-null assertion `!!` is often used in situations where type is nullable but `null` is not expected. The problem is that even if it currently is not expected, it almost always can be in the future, and this operator only quietly hides the nullability.
+处理可为空值的最简单方法是使用非空断言 `!!`。它在概念上类似于Java中的行为-我们认为某个值不为`null`，如果我们错了，就会抛出空指针异常（NPE）。**非空断言 `!!` 是一种懒惰的选择。它只会抛出一个一般性的异常，没有提供任何详细信息。它也非常简短和简单，这也使得滥用或误用它变得容易。**非空断言 `!!` 经常用于类型可为空但不期望为`null`的情况下。问题是，即使当前不期望为`null`，但在将来几乎总是可能发生，而这个操作符只会悄悄地隐藏了可为空性。
 
-A very simple example is a function looking for the largest among 4 arguments[9](chap65.xhtml#fn-maxOf). Let’s say that we decided to implement it by packing all those arguments into a list and then using `max` to find the biggest one. The problem is that it returns nullable because it returns `null`when the collection is empty. Though developer knowing that this list cannot be empty will likely use not-null assertion `!!`:
+一个非常简单的例子是一个函数查找4个参数中的最大值 9。假设我们决定通过将所有这些参数打包到列表中，然后使用 `max` 方法来找到最大值。问题是，它返回可为空值，因为当集合为空时返回`null`。尽管开发人员知道该列表不可能为空，但很可能会使用非空断言`!!`：
 
 ``` kotlin
 fun largestOf(a: Int, b: Int, c: Int, d: Int): Int =
    listOf(a, b, c, d).max()!!
 ```
 
-As it was shown to me by Márton Braun who is a reviewer of this book, even in such a simple function not-null assertion `!!` can lead to NPE. Someone might need to refactor this function to accept any number of arguments and miss the fact that collection cannot be empty:
+正如这本书的审阅者Márton Braun向我展示的，即使在这样一个简单的函数中，非空断言`!!`也可能导致空指针异常。有人可能需要重构此函数以接受任意数量的参数，并错过集合不能空的事实：
 
 
 
@@ -110,7 +111,7 @@ fun largestOf(vararg nums: Int): Int =
 largestOf() // NPE
 ```
 
-Information about nullability was silenced and it can be easily missed when it might be important. Similarly with variables. Let’s say that you have a variable that needs to be set later but it will surely be set before the first use. Setting it to `null` and using a not-null assertion `!!` is not a good option:
+可空性的信息被消除，它很容易被忽视，而这可能是重要的。类似的情况也适用于变量。假设你有一个变量，在第一次使用之前需要设置它，但它肯定会在第一次使用之前设置。将其设置为null并使用非空断言!!不是一个好的选择：
 
 ``` kotlin
 class UserControllerTest {
@@ -132,28 +133,28 @@ class UserControllerTest {
 }
 ```
 
-It is not only annoying that we need to unpack those properties every time, but we also block the possibility for those properties to actually have a meaningful `null` in the future. Later in this item, we will see that the correct way to handle such situations is to use `lateinit` or `Delegates.notNull`.
+不仅需要每次对这些属性进行解包，而且还阻止了这些属性在将来实际上可能具有有意义的`null`值的可能性。稍后在本节中，我们将看到处理这种情况的正确方法是使用`lateinit`或`Delegates.notNull()`。
 
-**Nobody can predict how code will evolve in the future, and if you use not-null assertion `!!` or explicit error throw, you should assume that it will throw an error one day.** Exceptions are thrown to indicate something unexpected and incorrect (Item 7: Prefer null or a sealed result class result when the lack of result is possible). However, **explicit errors say much more than generic NPE and they should be nearly always preferred**.
+没有人能够预测代码在未来会如何发展，如果使用非空断言`!!`或显式错误抛出，就应该假设它将来某一天会抛出错误。异常被抛出来表示出现了意外和不正确的情况（第7条：当不能返回预期结果时，优先使用`null` o或`Failure` 作为返回值）。然而，显式错误信息比一般性的空指针异常更能传达信息，几乎总是应该优先选择使用显式错误。
 
-Rare cases where not-null assertion `!!` does make sense are mainly a result of common interoperability with libraries in which nullability is not expressed correctly. When you interact with an API properly designed for Kotlin, this shouldn’t be a norm.
+非空断言`!!`确实有意义的罕见情况主要是由于与不正确地表达了可空性的库的常见互操作性。当与为Kotlin正确设计的API进行交互时，这不应该成为一种常态。
 
-In general **we should avoid using the not-null assertion `!!`**. This suggestion is rather widely approved by our community. Many teams have the policy to block it. Some set the Detekt static analyzer to throw an error whenever it is used. I think such an approach is too extreme, but I do agree that it often is a code smell. **Seems like the way this operator looks like is no coincidence. `!!` seems to be screaming “Be careful” or “There is something wrong here”.**
+总体而言，我们应该避免使用非空断言`!!`。这个建议在我们的社区中得到了广泛认可。许多团队都有阻止使用它的策略。有些团队将Detekt静态分析器设置为在使用时抛出错误。我认为这种方法过于极端，但我同意它通常是一种代码异味。似乎这个操作符的样子并非巧合。`!!`似乎在呼喊着“小心”或“这里有问题”。
 
-### Avoiding meaningless nullability
+### 避免无意义的可空性
 
-Nullability is a cost as it needs to be handled properly and we **prefer avoiding nullability when it is not needed.** `null` might pass an important message, but we should avoid situations where it would seem meaningless to other developers. They would then be tempted to use the unsafe not-null assertion `!!` or forced to repeat generic safe handling that only clutters the code. We should avoid nullability that does not make sense for a client. The most important ways for that are:
+可空性是一种成本，因为它需要被正确处理，我们**更倾向于在不需要时避免可空性**。`null`可能传递了重要的信息，但我们应该避免出现对其他开发人员来说看起来毫无意义的情况。否则，他们可能会诱惑使用不安全的非空断言`!!`，或被迫重复通用的安全处理，从而只会使代码变得混乱。我们应该避免对客户端来说没有意义的可空性。实现这一点的最重要方法有：
 
-- Classes can provide variants of functions where the result is expected and in which lack of value is considered and nullable result or a sealed result class is returned. Simple example is `get` and `getOrNull` on `List<T>`. Those are explained in detail in Item 7: Prefer `null` or a sealed result class result when the lack of result is possible.
-- Use `lateinit` property or `notNull` delegate when a value is surely set before use but later than during class creation.
-- **Do not return `null` instead of an empty collection.** When we deal with a collection, like `List<Int>?` or `Set<String>?`, `null` has a different meaning than an empty collection. It means that no collection is present. To indicate a lack of elements, use an empty collection. 
-- Nullable enum and `None` enum value are two different messages. `null` is a special message that needs to be handled separately, but it is not present in the enum definition and so it can be added to any use-side you want.
+- 类可以提供函数的变体，其中期望返回结果，并将缺少值视为可接受的情况，返回可为空的结果或一个密封结果类。`List<T>`上的`get`和`getOrNull`就是一个简单的例子。这些在“条款7：当可能缺少结果时，优先使用null或密封的结果类”中有详细解释。
+- 在确保在使用之前但在类创建期间之后将值设置的情况下，使用`lateinit`属性或`notNull`委托。
+- **不要返回`null`而不是空集合**。当我们处理集合时，例如`List<Int>?`或`Set<String>?`，`null`和空集合具有不同的含义。它表示没有集合存在。要表示缺少元素，请使用空集合。
+- 可为空的枚举和`None`枚举值是两个不同的消息。`null`是一个需要单独处理的特殊消息，但它在枚举定义中不存在，因此可以添加到任何您想要的使用方。
 
-Let’s talk about `lateinit` property and `notNull` delegate as they deserve a deeper explanation. 
+让我们谈谈`lateinit`属性和`notNull`委托，因为它们值得更深入的解释。
 
-### `lateinit` property and `notNull` delegate
+### `lateinit`属性和`notNull`委托
 
-It is not uncommon in projects to have properties that cannot be initialized during class creation, but that will surely be initialized before the first use. A typical example is when the property is set-up in a function called before all others, like in `@BeforeEach` in JUnit 5:
+在项目中，有些属性在类创建期间无法初始化，但在第一次使用之前肯定会被初始化。一个典型的例子是当属性在其他所有函数之前设置，比如在JUnit 5的`@BeforeEach`中：
 
 ``` kotlin
 class UserControllerTest {
@@ -175,7 +176,7 @@ class UserControllerTest {
 }
 ```
 
-Casting those properties from nullable to not null whenever we need to use them is highly undesirable. It is also meaningless as we expect that those values are set before tests. The correct solution to this problem is to use `lateinit` modifier that lets us initialize properties later:
+每次需要使用这些属性时，将其从可空类型转换为非空类型是非常不理想的。而且这样做是没有意义的，因为我们期望这些值在测试之前被设置。解决这个问题的正确方法是使用`lateinit`修饰符，它允许我们稍后初始化属性：
 
 ``` kotlin
 class UserControllerTest {
@@ -195,15 +196,15 @@ class UserControllerTest {
 }
 ```
 
-The cost of `lateinit` is that if we are wrong and we try to get value before it is initialized, then an exception will be thrown. Sounds scary but it is actually desired - we should use `lateinit` only when we are sure that it will be initialized before the first use. If we are wrong, we want to be informed about it. The main differences between `lateinit` and a nullable are:
+`lateinit`的代价是，如果我们错误地在未初始化之前尝试获取值，那么将抛出异常。听起来有些可怕，但这实际上是期望的行为 - 我们只应该在确保在第一次使用之前它会被初始化的情况下使用`lateinit`。如果我们错了，我们希望得到相应的提示。`lateinit`和可空类型之间的主要区别有：
 
-- We do not need to “unpack” property every time to not-nullable
-- We can easily make it nullable in the future if we need to use `null` to indicate something meaningful
-- Once property is initialized, it cannot get back to an uninitialized state
+- 我们不需要每次都将属性“解包”为非空类型
+- 如果将来需要使用`null`表示某个有意义的内容，我们可以轻松地将其设置为可空类型
+- 一旦属性被初始化，就不能返回到未初始化的状态
 
-**`lateinit` is a good practice when we are sure that a property will be initialized before the first use**. We deal with such a situation mainly when classes have their lifecycle and we set properties in one of the first invoked methods to use it on the later ones. For instance when we set objects in `onCreate` in an Android `Activity`, `viewDidAppear` in an iOS `UIViewController`, or `componentDidMount` in a React `React.Component`.
+**当我们确信一个属性在第一次使用之前会被初始化时，使用`lateinit`是一个良好的做法**。我们通常在类有其生命周期的情况下处理这种情况，我们在最早调用的方法之一中设置属性，以便在后续的方法中使用。例如，在Android的`Activity`的`onCreate`中设置对象，在iOS的`UIViewController`的`viewDidAppear`中设置对象，或者在React的`React.Component`的`componentDidMount`中设置对象。
 
-One case in which `lateinit` cannot be used is when we need to initialize a property with a type that, on JVM, associates to a primitive, like `Int`, `Long`, `Double` or `Boolean`. For such cases we have to use `Delegates.notNull` which is slightly slower, but supports those types:
+`lateinit`无法使用的一种情况是当我们需要将属性初始化为JVM上与原语关联的类型，例如`Int`、`Long`、`Double`或`Boolean`。对于这种情况，我们必须使用`Delegates.notNull`，它的速度略慢，但支持这些类型：
 
 ``` kotlin
 class DoctorActivity: Activity() {
@@ -220,7 +221,7 @@ class DoctorActivity: Activity() {
 }
 ```
 
-These kinds of cases are often replaced with property delegates, like in the above example where we read the argument in `onCreate`, we could instead use a delegate that initializes those properties lazily:
+这种情况经常使用属性委托来替代，就像上面的例子中，我们在`onCreate`中读取参数时，可以使用一个委托来延迟初始化这些属性：
 
 ``` kotlin
 class DoctorActivity: Activity() {
@@ -230,4 +231,4 @@ class DoctorActivity: Activity() {
 }
 ```
 
-The property delegation pattern is described in detail in Item 21: Use property delegation to extract common property patterns. One reason why they are so popular is that they help us safely avoid nullability.
+属性委托模式在“Item 21: Use property delegation to extract common property patterns”中有详细描述。它们之所以如此受欢迎的一个原因是，它们帮助我们安全地避免了可空性。

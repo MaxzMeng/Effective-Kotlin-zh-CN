@@ -22,7 +22,7 @@ Effective Kotlin 中文翻译
         - [x] 第5条：在参数与状态上指定你的期望
         - [x] 第6条：尽可能使用标准库中提供的异常
         - [x] 第7条：当不能返回预期结果时，优先使用`null` o或`Failure` 作为返回值
-        - [ ] Item 8 Handle Nulls Properly
+        - [x] 第8条：正确地处理`null`值
         - [x] 第9条：使用`use`关闭资源
         - [ ] Item 10 Write Unit Tests
     - Chapter 2 Readability
@@ -80,7 +80,7 @@ Effective Kotlin 中文翻译
     - Chapter 8 Efficient Collection Processing
         - [ ] Introduction
         - [ ] Item 49 Prefer Sequence For Big Collections With More Than One Processing Step
-        - [x] 第50条: 减少操作的次数
+        - [x] 第50条：减少操作的次数
         - [x] 第51条：在“性能优先”的场景，使用基础类型数组
         - [x] 第52条：在处理局部变量时，考虑使用可变集合
 
