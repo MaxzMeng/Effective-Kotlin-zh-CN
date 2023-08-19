@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <title>Item 14 Specify The Variable Type When It Is Not Clear · GitBook</title>
+        <title>第14条：在类型不明确的情况下，请显式指定变量的类型 · GitBook</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="GitBook 3.2.3">
@@ -349,7 +349,7 @@
                 <a href="Item 14 Specify the variable type when it is not clear.html">
             
                     
-                    Item 14 Specify The Variable Type When It Is Not Clear
+                    第14条：在类型不明确的情况下，请显式指定变量的类型
             
                 </a>
             
@@ -1121,7 +1121,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href="../.." >Item 14 Specify The Variable Type When It Is Not Clear</a>
+        <a href="../.." >第14条：在类型不明确的情况下，请显式指定变量的类型</a>
     </h1>
 </div>
 
@@ -1136,19 +1136,19 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <h2 id="item-14-specify-the-variable-type-when-it-is-not-clear">Item 14: Specify the variable type when it is not clear</h2>
-<p>Kotlin has a great type inference system that allows us to omit types when those are obvious for developers:</p>
+                                <h2 id="&#x7B2C;14&#x6761;&#xFF1A;&#x5728;&#x7C7B;&#x578B;&#x4E0D;&#x660E;&#x786E;&#x7684;&#x60C5;&#x51B5;&#x4E0B;&#xFF0C;&#x8BF7;&#x663E;&#x5F0F;&#x58F0;&#x660E;&#x53D8;&#x91CF;&#x7684;&#x7C7B;&#x578B;">&#x7B2C;14&#x6761;&#xFF1A;&#x5728;&#x7C7B;&#x578B;&#x4E0D;&#x660E;&#x786E;&#x7684;&#x60C5;&#x51B5;&#x4E0B;&#xFF0C;&#x8BF7;&#x663E;&#x5F0F;&#x58F0;&#x660E;&#x53D8;&#x91CF;&#x7684;&#x7C7B;&#x578B;</h2>
+<p>Kotlin&#x62E5;&#x6709;&#x4E00;&#x4E2A;&#x5F88;&#x597D;&#x7684;&#x7C7B;&#x578B;&#x63A8;&#x65AD;&#x7CFB;&#x7EDF;&#xFF0C;&#x4F7F;&#x6211;&#x4EEC;&#x80FD;&#x591F;&#x5728;&#x7C7B;&#x578B;&#x5BF9;&#x5F00;&#x53D1;&#x8005;&#x6765;&#x8BF4;&#x662F;&#x663E;&#x800C;&#x6613;&#x89C1;&#x7684;&#x60C5;&#x51B5;&#x4E0B;&#x7701;&#x7565;&#x7C7B;&#x578B;&#x58F0;&#x660E;&#xFF1A;</p>
 <pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> num</span> = <span class="hljs-number">10</span>
 <span class="hljs-variable"><span class="hljs-keyword">val</span> name</span> = <span class="hljs-string">&quot;Marcin&quot;</span>
 <span class="hljs-variable"><span class="hljs-keyword">val</span> ids</span> = listOf(<span class="hljs-number">12</span>, <span class="hljs-number">112</span>, <span class="hljs-number">554</span>, <span class="hljs-number">997</span>)
 </code></pre>
-<p>It improves not only development time, but also readability when a type is clear from the context and additional specification is redundant and messy. However, it should not be overused in cases when a type is not clear:</p>
+<p>&#x8FD9;&#x4E0D;&#x4EC5;&#x63D0;&#x9AD8;&#x4E86;&#x5F00;&#x53D1;&#x65F6;&#x95F4;&#xFF0C;&#x800C;&#x4E14;&#x5728;&#x7C7B;&#x578B;&#x4ECE;&#x4E0A;&#x4E0B;&#x6587;&#x4E2D;&#x660E;&#x786E;&#x65F6;&#xFF0C;&#x989D;&#x5916;&#x7684;&#x6307;&#x5B9A;&#x4F1A;&#x663E;&#x5F97;&#x5197;&#x4F59;&#x548C;&#x6DF7;&#x4E71;&#x3002;&#x7136;&#x800C;&#xFF0C;&#x5728;&#x7C7B;&#x578B;&#x4E0D;&#x6E05;&#x695A;&#x7684;&#x60C5;&#x51B5;&#x4E0B;&#xFF0C;&#x4E0D;&#x5E94;&#x6EE5;&#x7528;&#x8FD9;&#x79CD;&#x65B9;&#x5F0F;&#xFF1A;</p>
 <pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> data</span> = getSomeData()
 </code></pre>
-<p>We design our code for readability, and we should not hide important information that might be important for a reader. It is not valid to argue that return types can be omitted because the reader can always jump into the function specification to check it there. Type might be inferred there as well and a user can end up going deeper and deeper. Also, a user might read this code on GitHub or some other environment that does not support jumping into implementation. Even if they can, we all have very limited working memory and wasting it like this is not a good idea. Type is important information and if it is not clear, it should be specified. </p>
+<p>&#x6211;&#x4EEC;&#x4E3A;&#x4E86;&#x53EF;&#x8BFB;&#x6027;&#x800C;&#x8BBE;&#x8BA1;&#x6211;&#x4EEC;&#x7684;&#x4EE3;&#x7801;&#xFF0C;&#x4E0D;&#x5E94;&#x9690;&#x85CF;&#x5BF9;&#x8BFB;&#x8005;&#x53EF;&#x80FD;&#x5F88;&#x91CD;&#x8981;&#x7684;&#x91CD;&#x8981;&#x4FE1;&#x606F;&#x3002;&#x4E0D;&#x80FD;&#x4EE5;&#x8FD4;&#x56DE;&#x7C7B;&#x578B;&#x53EF;&#x4EE5;&#x7701;&#x7565;&#x4E3A;&#x7406;&#x7531;&#xFF0C;&#x56E0;&#x4E3A;&#x8BFB;&#x8005;&#x59CB;&#x7EC8;&#x53EF;&#x4EE5;&#x8DF3;&#x8F6C;&#x5230;&#x51FD;&#x6570;&#x7684;&#x89C4;&#x8303;&#x4E2D;&#x67E5;&#x770B;&#x3002;&#x7C7B;&#x578B;&#x4E5F;&#x53EF;&#x80FD;&#x5728;&#x90A3;&#x91CC;&#x88AB;&#x63A8;&#x65AD;&#xFF0C;&#x7528;&#x6237;&#x53EF;&#x80FD;&#x4F1A;&#x9677;&#x5165;&#x8D8A;&#x6765;&#x8D8A;&#x6DF1;&#x7684;&#x7EC6;&#x8282;&#x3002;&#x6B64;&#x5916;&#xFF0C;&#x7528;&#x6237;&#x53EF;&#x80FD;&#x5728;GitHub&#x6216;&#x5176;&#x4ED6;&#x4E0D;&#x652F;&#x6301;&#x8DF3;&#x8F6C;&#x5230;&#x5B9E;&#x73B0;&#x7684;&#x73AF;&#x5883;&#x4E2D;&#x9605;&#x8BFB;&#x6B64;&#x4EE3;&#x7801;&#x3002;&#x5373;&#x4F7F;&#x4ED6;&#x4EEC;&#x53EF;&#x4EE5;&#xFF0C;&#x6211;&#x4EEC;&#x90FD;&#x6709;&#x975E;&#x5E38;&#x6709;&#x9650;&#x7684;&#x5DE5;&#x4F5C;&#x8BB0;&#x5FC6;&#xFF0C;&#x50CF;&#x8FD9;&#x6837;&#x6D6A;&#x8D39;&#x5B83;&#x5E76;&#x4E0D;&#x662F;&#x4E00;&#x4E2A;&#x597D;&#x4E3B;&#x610F;&#x3002;&#x7C7B;&#x578B;&#x662F;&#x91CD;&#x8981;&#x7684;&#x4FE1;&#x606F;&#xFF0C;&#x5982;&#x679C;&#x4E0D;&#x6E05;&#x695A;&#xFF0C;&#x5E94;&#x8BE5;&#x660E;&#x786E;&#x6307;&#x5B9A;&#x3002;</p>
 <pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> data</span>: UserData = getSomeData()
 </code></pre>
-<p>Improving readability is not the only case for type specification. It is also for safety as shown in the <em>Chapter: Safety</em> on <em>Item 3: Eliminate platform types as soon as possible</em> and <em>Item 4: Do not expose inferred types</em>. <strong>Type might be important information both for a developer and for the compiler. Whenever it is, do not hesitate to specify the type. It costs little and can help a lot.</strong></p>
+<p>&#x63D0;&#x9AD8;&#x53EF;&#x8BFB;&#x6027;&#x5E76;&#x4E0D;&#x662F;&#x7C7B;&#x578B;&#x89C4;&#x5B9A;&#x7684;&#x552F;&#x4E00;&#x573A;&#x666F;&#x3002;&#x5B83;&#x8FD8;&#x6D89;&#x53CA;&#x5230;&#x5B89;&#x5168;&#x6027;&#xFF0C;&#x5C31;&#x50CF;&#x5728; <em>Chapter: Safety</em> &#x7684; <em>Item 3: Eliminate platform types as soon as possible</em> &#x548C; <em>Item 4: Do not expose inferred types</em> &#x4E2D;&#x6240;&#x793A;&#x3002;<strong>&#x7C7B;&#x578B;&#x5BF9;&#x5F00;&#x53D1;&#x8005;&#x548C;&#x7F16;&#x8BD1;&#x5668;&#x90FD;&#x662F;&#x91CD;&#x8981;&#x7684;&#x4FE1;&#x606F;&#x3002;&#x6BCF;&#x5F53;&#x5B83;&#x662F;&#x91CD;&#x8981;&#x7684;&#x4FE1;&#x606F;&#x65F6;&#xFF0C;&#x8BF7;&#x6BEB;&#x4E0D;&#x72B9;&#x8C6B;&#x5730;&#x6307;&#x5B9A;&#x7C7B;&#x578B;&#x3002;&#x5B83;&#x7684;&#x4EE3;&#x4EF7;&#x5F88;&#x5C0F;&#xFF0C;&#x4F46;&#x53EF;&#x4EE5;&#x5E2E;&#x52A9;&#x5F88;&#x591A;&#x3002;</strong></p>
 
                                 
                                 </section>
@@ -1192,7 +1192,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 14 Specify The Variable Type When It Is Not Clear","level":"1.2.2.5","depth":3,"next":{"title":"Item 15 Consider Referencing Receivers Explicitly","level":"1.2.2.6","depth":3,"path":"Part 1 Good code/Chapter 2 Readability/Item 15 Consider referencing receivers explicitly.md","ref":"Part 1 Good code/Chapter 2 Readability/Item 15 Consider referencing receivers explicitly.md","articles":[]},"previous":{"title":"第13条：避免返回或操作 Unit? ","level":"1.2.2.4","depth":3,"path":"Part 1 Good code/Chapter 2 Readability/Item%2013%20Avoid%20returning%20or%20operating%20on%20Unit%3F.md","ref":"Part 1 Good code/Chapter 2 Readability/Item%2013%20Avoid%20returning%20or%20operating%20on%20Unit%3F.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 1 Good code/Chapter 2 Readability/Item 14 Specify the variable type when it is not clear.md","mtime":"2023-08-19T09:02:26.879Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2023-08-19T09:03:00.809Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"第14条：在类型不明确的情况下，请显式指定变量的类型","level":"1.2.2.5","depth":3,"next":{"title":"Item 15 Consider Referencing Receivers Explicitly","level":"1.2.2.6","depth":3,"path":"Part 1 Good code/Chapter 2 Readability/Item 15 Consider referencing receivers explicitly.md","ref":"Part 1 Good code/Chapter 2 Readability/Item 15 Consider referencing receivers explicitly.md","articles":[]},"previous":{"title":"第13条：避免返回或操作 Unit? ","level":"1.2.2.4","depth":3,"path":"Part 1 Good code/Chapter 2 Readability/Item%2013%20Avoid%20returning%20or%20operating%20on%20Unit%3F.md","ref":"Part 1 Good code/Chapter 2 Readability/Item%2013%20Avoid%20returning%20or%20operating%20on%20Unit%3F.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 1 Good code/Chapter 2 Readability/Item 14 Specify the variable type when it is not clear.md","mtime":"2023-08-19T09:05:38.354Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2023-08-19T09:06:26.188Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
