@@ -12,7 +12,7 @@
     * [第7条：当不能返回预期结果时，优先使用`null` o或`Failure` 作为返回值](Part 1 Good code/Chapter 1 Safety/Item 7 Prefer null or Failure result when the lack of result is possible.md)
     * [第8条：正确地处理`null`值](Part 1 Good code/Chapter 1 Safety/Item 8 Handle nulls properly.md)
     * [第9条：使用`use`关闭资源](Part 1 Good code/Chapter 1 Safety/Item 9 Close resources with use.md)
-    * [Item 10 Write Unit Tests](Part 1 Good code/Chapter 1 Safety/Item 10 Write unit tests.md)
+    * [第10条：编写单元测试](Part 1 Good code/Chapter 1 Safety/Item 10 Write unit tests.md)
   - Chapter 2 Readability
     * [Introduction](Part 1 Good code/Chapter 2 Readability/Introduction.md)
     * [Item 11 Design For Readability](Part 1 Good code/Chapter 2 Readability/Item 11 Design for readability.md)

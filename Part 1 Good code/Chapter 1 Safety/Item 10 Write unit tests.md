@@ -1,8 +1,8 @@
-## Item 10: Write unit tests
+## 第10条：编写单元测试
 
-In this chapter, you’ve seen quite a few ways to make your code safer, but the ultimate way to achieve this is to have different kinds of tests. One kind is checking that our application behaves correctly from the user’s perspective. These kinds of tests are too often the only ones recognized by management as this is generally their primary goal to make the application behave correctly from outside, not internally. These kinds of tests do not even need developers at all. They can be handled by a sufficient number of testers or, what is generally better in the long run, by automatic tests written by test engineers.
+在这一章中，你已经了解了许多使代码更安全的方法，但实现这一目标的最终方式是使用不同类型的测试。其中一种类型是检查应用程序从用户角度的行为是否正确。这种类型的测试通常是管理层唯一认可的，因为他们的主要目标是确保应用程序在外部行为正确。这些测试甚至不需要开发人员参与，而是可以由足够数量的测试人员处理，或者更好的选择是由测试工程师编写的自动化测试。
 
-Such tests are useful for programmers, but they are not sufficient. They do not build proper assurance that concrete elements of our system behave correctly. They also do not provide fast feedback that is useful during development. For that, we need a different kind of tests that is much more useful for developers, and that is written by developers: unit tests. Here is an example unit test checking if our function `fib` calculating the Fibonacci number at n-th position gives us correct results for the first 5 numbers:
+这些测试对于程序员来说很有用，但它们还不足够。它们不能提供对系统具体元素行为正确性的充分保证。它们也不能提供在开发过程中有用的快速反馈。为了实现这一点，我们需要一种不同类型的测试，对开发人员来说更加有用，由开发人员编写：单元测试。以下是一个示例单元测试，检查我们的 `fib` 函数在前5个位置上计算斐波那契数是否给出正确的结果：
 
 ``` kotlin
 @Test
@@ -15,37 +15,41 @@ fun `fib works correctly for the first 5 positions`() {
 }
 ```
 
-With unit tests, we typically check:
+使用单元测试时，我们通常会检查以下内容：
 
-- Common use cases (the happy path) - typical ways we expect the element to be used. Just like in the example above, we test if the function works for a few small numbers.
-- Common error cases or potential problems - Cases that we suppose might not work correctly or that were shown to be problematic in the past. 
-- Edge-cases and illegal arguments - for `Int` we might check for really big numbers like `Int.MAX_VALUE`. For a nullable object, it might be `null` or object filled with `null` values. There are no Fibonacci numbers for negative positions, so we might check how this function behaves then. 
+- 常见用例（正常流程）：检查我们预期元素被使用的典型方式。就像上面的示例中一样，我们测试函数在一些小数字上的工作情况。
+- 常见错误情况或潜在问题：测试我们认为可能无法正常工作或在过去显示存在问题的情况。
+- 边缘情况和非法参数：例如，对于 `Int` 类型，我们可以检查非常大的数字，如 `Int.MAX_VALUE`。对于可为空的对象，可能是 `null` 或填充了 `null` 值的对象。斐波那契数列中没有负数位置的数字，因此我们可以检查该函数在这种情况下的行为。
 
-Unit tests can be really useful during development as they give fast feedback on how the implemented element works. Tests are only ever-accumulating so you can easily check for regression. They can also check cases that are hard to test manually. There is even an approach called Test Driven Development (TDD) in which we write a unit test first and then implementation to satisfy it[10](chap65.xhtml#fn-unittests). 
+单元测试在开发过程中非常有用，因为它们可以快速反馈我们实现的元素如何工作。测试会不断累积，因此您可以轻松检查是否存在回归。它们还可以检查手动测试难以覆盖的情况。甚至有一种称为测试驱动开发（Test Driven Development，TDD）的方法，我们先编写一个单元测试，然后再编写实现以满足该测试。
 
-The biggest advantages that result from unit tests are:
+单元测试带来的最大优势包括：
 
-- **Well-tested elements tend to be more reliable.** There is also a psychological safety. When elements are well tested, we operate more confidently on them. 
-- **When an element is properly tested, we are not afraid to refactor it.** As a result, well-tested programs tend to get better and better. On the other hand, in programs that are not tested, developers are scared of touching legacy code because they might accidentally introduce an error without even knowing about it. 
-- **It is often much faster to check if something works correctly using unit tests rather than checking it manually.** A faster feedback-loop makes development faster and more pleasurable[11](chap65.xhtml#fn-footnote_141_note). It also helps reduce the cost of fixing bugs: the quicker you find them, the cheaper it is to fix them.
+1. 可靠性提升：经过充分测试的元素通常更可靠。同时，心理上也会有安全感。当元素经过充分测试时，我们在操作它们时更有信心。
 
-Clearly, there are also disadvantages to unit tests:
+1. 重构的便利性：当元素经过适当的测试时，我们不再害怕对其进行重构。因此，经过充分测试的程序往往会逐渐改善。相比之下，没有测试的程序会让开发人员不敢轻易触碰遗留代码，因为他们可能会无意中引入错误。
 
-- It takes time to write unit tests. Though **in the long-term, good unit tests rather save our time as we spend less time debugging and looking for bugs later.** We also save a lot of time as running unit tests is much faster than manual testing or other kinds of automated tests. 
-- We need to adjust our code to make it testable. Such changes are often hard, but they generally also force developers to use good and well-established architectures. 
-- It is hard to write good unit tests. It requires skills and understanding that are orthogonal to the rest of the development. Poorly written unit tests can do more harm than good. **Everyone needs to learn how to properly unit-test their code.** It is useful to take a course on Software-Testing or Test Driven Development (TDD) first.
+1. 快速反馈循环：使用单元测试来检查元素是否正确工作通常比手动验证更快。更快的反馈循环加快了开发速度，使其更加愉快。它还有助于降低修复错误的成本：发现错误越早，修复成本越低。
 
-The biggest challenge is to obtain the skills to effectively unit test and to write code that supports unit testing. **Experienced Kotlin developers should obtain such skills and learn to unit test at least the important parts of the code.** Those are:
+当然，单元测试也存在一些缺点：
 
-- Complex functionalities
-- Parts that will most likely change over time or will be refactored
-- Business logic
-- Parts of our public API
-- Parts that have a tendency to break
-- Production bugs that we fixed
+1. 编写单元测试需要时间。尽管从长远来看，良好的单元测试可以节省我们的时间，因为我们在后续的调试和查找错误过程中花费的时间更少。运行单元测试也比手动测试或其他类型的自动化测试快很多，从而节省了大量时间。
 
-We do not need to stop there. Tests are an investment in application reliability and long-term maintainability.
+1. 需要调整代码以使其具备可测试性。这些更改通常很困难，但它们通常也迫使开发人员使用良好和成熟的架构。
 
-### Summary
+1. 编写好的单元测试很困难。这需要一定的技能和理解，这些技能与其他开发工作有所不同。编写质量低劣的单元测试可能会带来负面影响。每个人都需要学习如何正确地为自己的代码编写单元测试，最好先参加软件测试或测试驱动开发（TDD）的课程。
 
-This chapter was started with a reflection that the first priority should be for our programs to behave correctly. It can be supported by using good practices presented in this chapter, but above that, the best way to ensure that our application behaves correctly is to check it by testing, especially unit testing. This is why a responsible chapter about safety needs at least a short section about unit testing. Just like responsible business application requires at least some unit tests.
+最大的挑战是获得有效进行单元测试并编写支持单元测试的代码的技能。经验丰富的 Kotlin 开发人员应该掌握这些技能，并至少对代码的重要部分进行单元测试，包括：
+
+- 复杂功能
+- 预计会随时间变化或进行重构的部分
+- 业务逻辑
+- 公共 API 的部分
+- 容易出现问题的部分
+- 我们修复的生产错误
+
+我们也不需要止步于此。测试是对应用程序可靠性和长期可维护性的一种投资。
+
+### 总结
+
+本章以一个反思开始，即我们程序的首要任务应该是正确地运行。通过使用本章介绍的良好实践可以支持这一点，但最重要的是，确保我们的应用程序正确运行的最佳方法是通过测试来检查，尤其是单元测试。这就是为什么一个负责任的关于安全性的章节至少需要包含一个关于单元测试的简短部分的原因。就像负责任的商业应用程序需要至少一些单元测试一样。

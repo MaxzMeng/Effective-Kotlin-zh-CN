@@ -24,7 +24,7 @@ Effective Kotlin 中文翻译
         - [x] 第7条：当不能返回预期结果时，优先使用`null` o或`Failure` 作为返回值
         - [x] 第8条：正确地处理`null`值
         - [x] 第9条：使用`use`关闭资源
-        - [ ] Item 10 Write Unit Tests
+        - [x] 第10条：编写单元测试
     - Chapter 2 Readability
         - [ ] Introduction
         - [ ] Item 11 Design For Readability
