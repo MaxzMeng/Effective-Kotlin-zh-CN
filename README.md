@@ -28,7 +28,7 @@ Effective Kotlin 中文翻译
     - Chapter 2 Readability
         - [x] 引言
         - [x] 第11条：可读性设计
-        - [ ] Item 12 Operator Meaning Should Be Consistent With Its Function Name
+        - [x] 第12条：操作符的含义应与其函数名一致
         - [ ] Item 13 Avoid Returning Or Operating On Unit
         - [ ] Item 14 Specify The Variable Type When It Is Not Clear
         - [ ] Item 15 Consider Referencing Receivers Explicitly
