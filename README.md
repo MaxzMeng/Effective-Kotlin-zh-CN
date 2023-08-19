@@ -26,8 +26,8 @@ Effective Kotlin 中文翻译
         - [x] 第9条：使用`use`关闭资源
         - [x] 第10条：编写单元测试
     - Chapter 2 Readability
-        - [ ] Introduction
-        - [ ] Item 11 Design For Readability
+        - [x] 引言
+        - [x] 第11条：可读性设计
         - [ ] Item 12 Operator Meaning Should Be Consistent With Its Function Name
         - [ ] Item 13 Avoid Returning Or Operating On Unit
         - [ ] Item 14 Specify The Variable Type When It Is Not Clear

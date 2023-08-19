@@ -1,10 +1,10 @@
-## Item 11: Design for readability
+## 第11条：可读性设计
 
-It is a known observation in programming that developers read code much more than they write it. A common estimate is that for every minute spent writing code, ten minutes are spent reading it (this ratio was popularized by Robert C. Martin in the book *Clean Code*). If this seems unbelievable, just think about how much time you spend on reading code when you are trying to find an error. I believe that everyone has been in this situation at least once in their career where they’ve been searching for an error for weeks, just to fix it by changing a single line. When we learn how to use a new API, it’s often from reading code. We usually read the code to understand what is the logic or how implementation works. **Programming is mostly about reading, not writing.** Knowing that it should be clear that we should code with readability in mind.
+在编程中，一个已知的观察结果是，开发人员阅读代码的时间远远超过编写代码的时间。一般估计是，写一分钟的代码需要阅读十分钟（这个比例在罗伯特·C·马丁的书《代码整洁之道》中得到普及）。如果你觉得这难以置信，想想你在查找错误时花费了多少时间来阅读代码。我相信每个人在自己的职业生涯中至少有一次遇到过这种情况，他们花了几个星期的时间寻找错误，最终只需改变一行代码就能修复它。当我们学习如何使用新的API时，通常是通过阅读代码来实现的。我们通常通过阅读代码来理解逻辑或实现的方式。**编程主要是关于阅读，而不是写作。**因此，我们应该以可读性为重点进行编码。
 
-### Reducing cognitive load
+### 减少认知负荷
 
-Readability means something different to everyone. However, there are some rules that were formed based on experience or came from cognitive science. Just compare the following two implementations:
+可读性对每个人来说意味着不同的事情。然而，有一些规则是基于经验形成的，或者来自认知科学。只需比较以下两种实现：
 
 ``` kotlin
 // Implementation A
@@ -20,11 +20,11 @@ person?.takeIf { it.isAdult }
    ?: view.showError()
 ```
 
-Which one is better, A or B? Using the naive reasoning, that the one with fewer lines is better, is not a good answer. We could just as well remove the line breaks from the first implementation, and it wouldn’t make it more readable. 
+哪个更好，A还是B？使用简单的推理，认为行数较少的更好，这不是一个好答案。我们可以从第一个实现中删除换行符，它不会变得更易读。
 
-How readable both constructs are, depends on how fast we can understand each of them. This, in turn, depends a lot on how much our brain is trained to understand each idiom (structure, function, pattern). For a beginner in Kotlin, surely implementation A is way more readable. It uses general idioms (if/else, `&&`, method calls). Implementation B has idioms that are typical to Kotlin (safe call `?.`, `takeIf`, `let`, Elvis operator `?:`, a bounded function reference `view::showPerson`). Surely, all those idioms are commonly used throughout Kotlin, so they are well known by most experienced Kotlin developers. Still, it is hard to compare them. Kotlin isn’t the first language for most developers, and we have much more experience in general programming than in Kotlin programming. We don’t write code only for experienced developers. The chances are that the junior you hired (after fruitless months of searching for a senior) does not know what `let`, `takeIf`, and bounded references are. It is also very likely that they never saw the Elvis operator used this way. That person might spend a whole day puzzling over this single block of code. Additionally, even for experienced Kotlin developers, Kotlin is not the only programming language they use. Many developers reading your code will not be experienced with Kotlin. The brain will always need to spend a bit of time to recognize Kotlin-specific idioms. Even after years with Kotlin, it still takes much less time for me to understand the first implementation. Every less known idiom introduces a bit of complexity and when we analyze them all together in a single statement that we need to comprehend nearly all at once, this complexity grows quickly.
+这两种结构的可读性取决于我们能多快地理解它们。而这又在很大程度上取决于我们的大脑对每个习惯用法（结构、函数、模式）的训练程度。对于Kotlin的初学者来说，显然实现A更易读。它使用了常见的习惯用法（if/else，`&&`，方法调用）。实现B使用了Kotlin特有的习惯用法（安全调用`?.`，`takeIf`，`let`，Elvis运算符`?:`，有界函数引用`view::showPerson`）。当然，所有这些习惯用法在Kotlin中广泛使用，所以大多数有经验的Kotlin开发人员都熟悉它们。然而，很难进行比较。Kotlin并不是大多数开发人员的第一门语言，我们在一般编程方面拥有更多的经验而不是Kotlin编程方面的经验。我们编写的代码不仅是为有经验的开发人员编写的。你雇佣的初级开发人员（在经过数月的寻找高级开发人员无果之后）很可能不知道`let`、`takeIf`和有界引用是什么。他们很可能从未见过以这种方式使用Elvis运算符。这个人可能会花一整天来琢磨这个代码块。此外，即使对于有经验的Kotlin开发人员来说，他们也不只使用Kotlin这一种编程语言。让大脑识别Kotlin特定的习惯用法总是需要一些时间。即使在使用Kotlin多年之后，我仍然能够更快地理解第一个实现。每个不太常见的习惯用法都会引入一些复杂性，当我们在需要几乎同时理解所有这些习惯用法的单个语言块时，这种复杂性会累积起来。
 
-Notice that implementation A is easier to modify. Let’s say that we need to add additional operation on the `if` block. In the implementation A adding that is easy. In the implementation B we cannot use function reference anymore. Adding something to the `else` block in the implementation B is even harder - we need to use some function to be able to hold more than a single expression on the right side of the Elvis operator:
+请注意，实现方式A更容易修改。假设我们需要在if块中添加额外的操作。在实现方式A中，这样的添加很容易。在实现方式B中，我们不能再使用函数引用。在实现方式B的else块中添加内容更加困难 - 我们需要使用某个函数来能够在Elvis运算符的右侧容纳多个表达式。
 
 ``` kotlin
 if (person != null && person.isAdult) {
@@ -45,19 +45,19 @@ person?.takeIf { it.isAdult }
    }
 ```
 
-Debugging implementation A is also much simpler. No wonder why - debugging tools were made for such basic structures. 
+调试实现方式A也要简单得多。难怪如此 - 调试工具是为这种基本结构而设计的。
 
-The general rule is that less common and “creative” structures are generally less flexible and not so well supported. Let’s say for instance that we need to add a third branch to show different error when person is `null` and different one when he or she is not an adult. On the implementation A using `if`/`else`, we can easily change `if`/`else` to `when` using IntelliJ refactorization, and then easily add additional branch. The same change on the code would be painful on the implementation B. It would probably need to be totally rewritten.
+一般规则是，不太常见和"创造性"的结构通常不太灵活，支持也不那么好。举个例子，假设我们需要添加第三个分支，在person为null时显示不同的错误，当person不是成年人时显示另一种错误。在实现方式A中，我们可以轻松地将if/else更改为when，使用IntelliJ的重构功能，然后轻松地添加额外的分支。而在实现方式B中，同样的更改将非常困难，可能需要完全重写。
 
-Have you noticed that implementation A and B do not even work the same way? Can you spot the difference? Go back and think about it now. 
+你有没有注意到实现方式A和B甚至没有以相同的方式工作？你能看出区别吗？现在回过头来思考一下。
 
-The difference lies in the fact that `let` returns a result from the lambda expression. This means that if `showPerson` would return `null`, then the second implementation would call `showError` as well! This is definitely not obvious, and it teaches us that when we use less familiar structures, it is easier to fall in unexpected behavior (and not to spot them).
+区别在于let从lambda表达式中返回一个结果。这意味着如果showPerson返回null，那么第二个实现方式也会调用showError！这显然不明显，它告诉我们，当我们使用不太熟悉的结构时，更容易遇到意外行为（并且很难发现）。
 
-The general rule here is that we want to reduce cognitive load. Our brains recognize patterns and based on these patterns they build our understanding of how programs work. When we think about readability we want to shorten this distance. We prefer less code, but also more common structures. We recognize familiar patterns when we see them often enough. We always prefer structures that we are familiar with in other disciplines.
+这里的一般规则是我们要减少认知负荷。我们的大脑识别模式，并基于这些模式构建我们对程序如何工作的理解。当我们考虑可读性时，我们希望缩短这个距离。我们更喜欢更少的代码，但也更常见的结构。当我们经常看到熟悉的模式时，我们会识别出它们。我们总是更喜欢在其他学科中熟悉的结构。
 
-### Do not get extreme
+### 不要过于极端
 
-Just because in the previous example I presented how `let` can be misused, it does not mean that it should be always avoided. It is a popular idiom reasonably used in a variety of contexts to actually make code better. One popular example is when we have a nullable mutable property and we need to do an operation only if it is not null. Smart casting cannot be used because mutable property can be modified by another thread. One great way to deal with that is to use safe call `let`:
+仅仅因为在之前的例子中我演示了`let`的误用，并不意味着它应该被完全避免。`let`是一种常见的习惯用法，在各种情境下合理使用可以改善代码。一个常见的例子是当我们有一个可为空的可变属性，并且只有在它不为null时才执行某个操作。由于可变属性可能会被其他线程修改，因此无法使用智能转换。解决这个问题的一种很好的方法是使用安全调用`let`：
 
 ``` kotlin
 class Person(val name: String)
@@ -70,12 +70,12 @@ fun printName() {
 }
 ```
 
-Such idiom is popular and widely recognizable. There are many more reasonable cases for `let`. For instance:
+这样的习惯用法是广为人知且使用广泛的。`let`还有很多其他合理的用例。例如：
 
-- To move operation after its argument calculation
-- To use it to wrap an object with a decorator
+- 将操作移到其参数计算之后
+- 使用`let`将对象包装为装饰器
 
-Here are examples showing those two (both additionally use function references):
+以下是展示这两种用例的示例（还使用了函数引用）：
 
 ``` kotlin
 students
@@ -92,22 +92,22 @@ var obj = FileInputStream("/file.gz")
     .readObject() as SomeObject
 ```
 
-In all those cases we pay our price - this code is harder to debug and harder to be understood by less experienced Kotlin developers. But we pay for something and it seems like a fair deal. The problem is when we introduce a lot of complexity for no good reason. 
+在所有这些情况下，我们付出了一定的代价 - 这段代码更难调试，对于经验较少的Kotlin开发人员来说理解起来也更困难。但我们为此付出了代价，而且似乎是一个公平的交易。问题在于当我们为没有充分理由引入大量复杂性时。
 
-There will always be discussions when something makes sense and when it does not. Balancing that is an art. It is good though to recognize how different structures introduce complexity or how they clarify things. Especially since when they are used together, the complexity of two structures is generally much more than the sum of their individual complexities. 
+对于某些事物是否合理将始终存在争议。在这方面取得平衡是一门艺术。然而，认识到不同的结构引入了复杂性或者使事情更加清晰是很重要的。尤其是当它们一起使用时，两种结构的复杂性通常远远超过它们各自复杂性的总和。
 
-### Conventions
+### 约定俗成
 
-We’ve acknowledged that different people have different views of what readability means. We constantly fight over function names, discuss what should be explicit and what implicit, what idioms should we use, and much more. Programming is an art of expressiveness. Still, there are some conventions that need to be understood and remembered. 
+我们承认不同的人对可读性有不同的看法。我们经常在函数命名上争论不休，讨论什么应该是显式的，什么是隐式的，应该使用什么习语等等。编程是一门表达能力的艺术。然而，也有一些需要理解和记住的约定俗成。
 
-When one of my workshop groups in San Francisco asked me about the worst thing one can do in Kotlin, I gave them this:
+当我在旧金山的一个研讨会上的一个小组问我在Kotlin中最糟糕的事情是什么时，我给了他们这个例子：
 
 ``` kotlin
 val abc = "A" { "B" } and "C"
 print(abc) // ABC
 ```
 
-All we need to make this terrible syntax possible is the following code:
+我们只需要以下代码就能实现这种可怕的语法：
 
 ``` kotlin
 operator fun String.invoke(f: ()->String): String = 
@@ -116,11 +116,12 @@ operator fun String.invoke(f: ()->String): String =
 infix fun String.and(s: String) = this + s
 ```
 
-This code violates many rules that we will describe later:
+这段代码违反了我们之后将要描述的许多规则：
 
-- It violates operator meaning - `invoke` should not be used this way. A `String` cannot be invoked.
-- The usage of the ‘lambda as the last argument’ convention here is confusing. It is fine to use it after functions, but we should be very careful when we use it for the `invoke` operator. 
-- `and` is clearly a bad name for this infix method. `append` or `plus` would be much better. 
-- We already have language features for `String` concatenation and we should use them instead of reinventing the wheel. 
+- 它违反了操作符的含义 - `invoke`不应该以这种方式使用。一个字符串不能被调用。
+- 在这里使用“lambda作为最后一个参数”的约定会令人困惑。在函数之后使用它是可以的，但是当我们在invoke操作符上使用它时要非常小心。
+- `and`显然是这个中缀方法的一个糟糕的名称。`append`或`plus`会好得多。
+- 我们已经有了用于字符串连接的语言特性，应该使用它们而不是重复造轮子。
 
-Behind each of these suggestions, there is a more general rule that guards good Kotlin style. We will cover the most important ones in this chapter starting with the first item which will focus on overriding operators.
+
+在每个建议背后，都有一条更普遍的规则来保护良好的Kotlin风格。在本章中，我们将介绍最重要的规则，从重写操作符开始讨论。

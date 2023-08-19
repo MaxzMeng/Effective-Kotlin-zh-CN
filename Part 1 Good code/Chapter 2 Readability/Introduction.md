@@ -1,13 +1,13 @@
-# Chapter 2: Readability
+# 第2章：可读性
 
-> *Any fool can write code that a computer can understand. Good programmers write code that humans can understand.*
-> –Martin Fowler, *Refactoring: Improving the Design of Existing Code, p. 15*
+> "任何傻瓜都能编写计算机能理解的代码。优秀的程序员编写的是人类能理解的代码。"
+> –马丁·福勒，《重构：改善现有代码的设计》，第15页
 
-There is a very common misconception that Kotlin is designed to be concise. It isn’t. There are languages that are much more concise. For instance, the most concise language I know is APL. This is John Conway’s “Game of Life” implemented in APL:
+有一个非常常见的误解，认为Kotlin的设计目标是简洁。实际上，并非如此。有些语言比Kotlin更简洁。例如，我所了解的最简洁的语言是APL。以下是用APL实现的约翰·康威的“生命游戏”（Game of Life）：
 
 ![](../../assets/chapter2/chapter2-1.png)
 
-Your first thought is probably “Wow, that’s short”. Then you might realize that you don’t have some of those characters on your keyboard. There are more such languages, for example, here is the same program in J:
+你可能会惊叹于这段代码的简洁。然而，你可能会意识到你的键盘上没有其中一些字符。还有更多这样的语言，例如，下面是同样的程序用J语言实现的版本：
 
 
 
@@ -15,10 +15,10 @@ Your first thought is probably “Wow, that’s short”. Then you might realize
 1 life=:[:+/(3 4=/[:+/(,/,"0/~i:1)|.])*.1,:]
 ```
 
-These two are really concise languages. This characteristic makes them champions in code golf contests. It also makes them absurdly hard to read. Let’s be honest: even for experienced APL developers (and there are probably only a few of them in the world), it is a challenge to understand what this program does and how it works. 
+这两种语言确实非常简洁。这使它们在代码高尔夫比赛中成为冠军。但这也使它们难以阅读。说实话，即使对于经验丰富的APL开发人员（全世界可能只有几个），理解这个程序的功能和工作原理也是一项挑战。
 
-Kotlin never had ambitions to be very concise. It is designed to be **readable**. It is concise compared to other popular languages, but this comes from the fact that Kotlin eliminates a lot of noise: boilerplate code and repetitive structures. It was done to help developers concentrate on what is important, and thus make Kotlin more readable. 
+Kotlin从来没有追求过极致的简洁性。它的设计目标是**可读性**。与其他流行语言相比，Kotlin确实更加简洁，但这是因为Kotlin消除了许多冗余代码和重复结构。这样做是为了帮助开发人员专注于重要的内容，从而使Kotlin更易读。
 
-Kotlin allows programmers to design clean and meaningful code and APIs. Its features let us hide or highlight whatever we want. This chapter is about using these tools wisely. This particular chapter serves as an introduction and provides a set of general suggestions. Although it also introduces the concept of readability, which we will refer to in the rest of this book. Especially in *Part 2: Abstraction design*, where we will dive into topics related to class and function design.
+Kotlin允许程序员设计干净且有意义的代码和API。其特性使我们能够隐藏或突出显示我们想要的内容。本章将介绍如何明智地使用这些工具。本章作为引言，提供了一些通用建议。虽然它也介绍了可读性的概念，我们将在本书的其余部分中继续涉及这个概念，尤其是在“第2部分：抽象设计”中，我们将深入探讨与类和函数设计相关的主题。
 
-Let’s start with a bit more abstract item about readability, which will introduce the general problem.
+让我们从更抽象的关于可读性的主题开始，引入一般性的问题。

@@ -14,8 +14,8 @@
     * [第9条：使用`use`关闭资源](Part 1 Good code/Chapter 1 Safety/Item 9 Close resources with use.md)
     * [第10条：编写单元测试](Part 1 Good code/Chapter 1 Safety/Item 10 Write unit tests.md)
   - Chapter 2 Readability
-    * [Introduction](Part 1 Good code/Chapter 2 Readability/Introduction.md)
-    * [Item 11 Design For Readability](Part 1 Good code/Chapter 2 Readability/Item 11 Design for readability.md)
+    * [引言](Part 1 Good code/Chapter 2 Readability/Introduction.md)
+    * [第11条：可读性设计](Part 1 Good code/Chapter 2 Readability/Item 11 Design for readability.md)
     * [Item 12 Operator Meaning Should Be Consistent With Its Function Name](Part 1 Good code/Chapter 2 Readability/Item 12 Operator meaning should be consistent with its function name.md)
     * [Item 13 Avoid Returning Or Operating On Unit](Part 1 Good code/Chapter 2 Readability/Item%2013%20Avoid%20returning%20or%20operating%20on%20Unit%3F.md)
     * [Item 14 Specify The Variable Type When It Is Not Clear](Part 1 Good code/Chapter 2 Readability/Item 14 Specify the variable type when it is not clear.md)
