@@ -32,7 +32,7 @@ Effective Kotlin 中文翻译
         - [x] 第13条：避免返回或操作 `Unit?`
         - [x] 第14条：在类型不明确的情况下，请显式指定变量的类型
         - [x] 第15条：考虑明确指定接收者
-        - [ ] Item 16 Properties Should Represent State Not Behavior
+        - [x] 第16条：属性应代表状态，而不是行为
         - [ ] Item 17 Consider Naming Arguments
         - [ ] Item 18 Respect Coding Conventions
 - Part 2 Code Design
