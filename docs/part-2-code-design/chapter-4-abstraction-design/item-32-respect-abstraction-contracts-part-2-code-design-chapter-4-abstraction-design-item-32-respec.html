@@ -1,0 +1,1219 @@
+
+<!DOCTYPE HTML>
+<html lang="" >
+    <head>
+        <meta charset="UTF-8">
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <title>[Item 32 Respect Abstraction Contracts](Part 2 Code design/Chapter 4 Abstraction design/Item 32 Respect abstraction contracts.md) · GitBook</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 3.2.3">
+        
+        
+        
+    
+    <link rel="stylesheet" href="../../gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-highlight/website.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-search/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../../gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="../../gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    <link rel="next" href="../chapter-5-object-creation/" />
+    
+    
+    <link rel="prev" href="item-31-define-contract-with-documentation-part-2-code-design-chapter-4-abstraction-design-item-31-d.html" />
+    
+
+    </head>
+    <body>
+        
+<div class="book">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="../../">
+            
+                <a href="../../">
+            
+                    
+                    README
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2" data-path="../../part-1-good-code/">
+            
+                <a href="../../part-1-good-code/">
+            
+                    
+                    Part 1 Good Code
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1" data-path="../../part-1-good-code/chapter-1-safety/">
+            
+                <a href="../../part-1-good-code/chapter-1-safety/">
+            
+                    
+                    Chapter 1 Safety
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.1" data-path="../../part-1-good-code/chapter-1-safety/yin-yan-part-1-good-codechapter-1-safetyintroduction.md.html">
+            
+                <a href="../../part-1-good-code/chapter-1-safety/yin-yan-part-1-good-codechapter-1-safetyintroduction.md.html">
+            
+                    
+                    [引言](Part 1 Good code/Chapter 1 Safety/Introduction.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2" data-path="../../part-1-good-code/chapter-1-safety/di-1-tiao-xian-zhi-ke-bian-xing-part-1-good-codechapter-1-safetyitem-1-limit-mutability.md.html">
+            
+                <a href="../../part-1-good-code/chapter-1-safety/di-1-tiao-xian-zhi-ke-bian-xing-part-1-good-codechapter-1-safetyitem-1-limit-mutability.md.html">
+            
+                    
+                    [第1条：限制可变性](Part 1 Good code/Chapter 1 Safety/Item 1 Limit mutability.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.3" data-path="../../part-1-good-code/chapter-1-safety/di-2-tiao-zui-xiao-hua-bian-liang-zuo-yong-yu-part-1-good-codechapter-1-safetyitem-2-minimize-the-sc.html">
+            
+                <a href="../../part-1-good-code/chapter-1-safety/di-2-tiao-zui-xiao-hua-bian-liang-zuo-yong-yu-part-1-good-codechapter-1-safetyitem-2-minimize-the-sc.html">
+            
+                    
+                    [第2条：最小化变量作用域](Part 1 Good code/Chapter 1 Safety/Item 2 Minimize the scope of variables.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.4" data-path="../../part-1-good-code/chapter-1-safety/di-3-tiao-jin-kuai-xiao-chu-ping-tai-lei-xing-part-1-good-codechapter-1-safetyitem-3-eliminate-platf.html">
+            
+                <a href="../../part-1-good-code/chapter-1-safety/di-3-tiao-jin-kuai-xiao-chu-ping-tai-lei-xing-part-1-good-codechapter-1-safetyitem-3-eliminate-platf.html">
+            
+                    
+                    [第3条：尽快消除平台类型](Part 1 Good code/Chapter 1 Safety/Item 3 Eliminate platform types as soon as possible.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.5" data-path="../../part-1-good-code/chapter-1-safety/di-4-tiao-bu-yao-ba-tui-duan-lei-xing-bao-lou-gei-wai-bu-part-1-good-codechapter-1-safetyitem-4-do-n.html">
+            
+                <a href="../../part-1-good-code/chapter-1-safety/di-4-tiao-bu-yao-ba-tui-duan-lei-xing-bao-lou-gei-wai-bu-part-1-good-codechapter-1-safetyitem-4-do-n.html">
+            
+                    
+                    [第4条：不要把推断类型暴露给外部](Part 1 Good code/Chapter 1 Safety/Item 4 Do not expose inferred types.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.6" data-path="../../part-1-good-code/chapter-1-safety/di-5-tiao-zai-can-shu-yu-zhuang-tai-shang-zhi-ding-ni-de-qi-wang-part-1-good-codechapter-1-safetyite.html">
+            
+                <a href="../../part-1-good-code/chapter-1-safety/di-5-tiao-zai-can-shu-yu-zhuang-tai-shang-zhi-ding-ni-de-qi-wang-part-1-good-codechapter-1-safetyite.html">
+            
+                    
+                    [第5条：在参数与状态上指定你的期望](Part 1 Good code/Chapter 1 Safety/Item 5 Specify your expectations on arguments and state.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.7" data-path="../../part-1-good-code/chapter-1-safety/di-6-tiao-jin-ke-neng-shi-yong-biao-zhun-ku-zhong-ti-gong-de-yi-chang-part-1-good-codechapter-1-safe.html">
+            
+                <a href="../../part-1-good-code/chapter-1-safety/di-6-tiao-jin-ke-neng-shi-yong-biao-zhun-ku-zhong-ti-gong-de-yi-chang-part-1-good-codechapter-1-safe.html">
+            
+                    
+                    [第6条：尽可能使用标准库中提供的异常](Part 1 Good code/Chapter 1 Safety/Item 6 Prefer standard errors to custom ones.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.8" data-path="../../part-1-good-code/chapter-1-safety/di-7-tiao-dang-bu-neng-fan-hui-yu-qi-jie-guo-shi-you-xian-shi-yong-nullohuo-failure-zuo-wei-fan-hui.html">
+            
+                <a href="../../part-1-good-code/chapter-1-safety/di-7-tiao-dang-bu-neng-fan-hui-yu-qi-jie-guo-shi-you-xian-shi-yong-nullohuo-failure-zuo-wei-fan-hui.html">
+            
+                    
+                    [第7条：当不能返回预期结果时，优先使用null o或Failure 作为返回值](Part 1 Good code/Chapter 1 Safety/Item 7 Prefer null or Failure result when the lack of result is possible.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.9" data-path="../../part-1-good-code/chapter-1-safety/di-8-tiao-zheng-que-di-chu-li-null-zhi-part-1-good-codechapter-1-safetyitem-8-handle-nulls-properly..html">
+            
+                <a href="../../part-1-good-code/chapter-1-safety/di-8-tiao-zheng-que-di-chu-li-null-zhi-part-1-good-codechapter-1-safetyitem-8-handle-nulls-properly..html">
+            
+                    
+                    [第8条：正确地处理null值](Part 1 Good code/Chapter 1 Safety/Item 8 Handle nulls properly.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.10" data-path="../../part-1-good-code/chapter-1-safety/di-9-tiao-shi-yong-use-guan-bi-zi-yuan-part-1-good-codechapter-1-safetyitem-9-close-resources-with-u.html">
+            
+                <a href="../../part-1-good-code/chapter-1-safety/di-9-tiao-shi-yong-use-guan-bi-zi-yuan-part-1-good-codechapter-1-safetyitem-9-close-resources-with-u.html">
+            
+                    
+                    [第9条：使用use关闭资源](Part 1 Good code/Chapter 1 Safety/Item 9 Close resources with use.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.11" data-path="../../part-1-good-code/chapter-1-safety/di-10-tiao-bian-xie-dan-yuan-ce-shi-part-1-good-codechapter-1-safetyitem-10-write-unit-tests.md.html">
+            
+                <a href="../../part-1-good-code/chapter-1-safety/di-10-tiao-bian-xie-dan-yuan-ce-shi-part-1-good-codechapter-1-safetyitem-10-write-unit-tests.md.html">
+            
+                    
+                    [第10条：编写单元测试](Part 1 Good code/Chapter 1 Safety/Item 10 Write unit tests.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2" data-path="../../part-1-good-code/chapter-2-readability/">
+            
+                <a href="../../part-1-good-code/chapter-2-readability/">
+            
+                    
+                    Chapter 2 Readability
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.2.1" data-path="../../part-1-good-code/chapter-2-readability/yin-yan-part-1-good-codechapter-2-readabilityintroduction.md.html">
+            
+                <a href="../../part-1-good-code/chapter-2-readability/yin-yan-part-1-good-codechapter-2-readabilityintroduction.md.html">
+            
+                    
+                    [引言](Part 1 Good code/Chapter 2 Readability/Introduction.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.2" data-path="../../part-1-good-code/chapter-2-readability/di-11-tiao-ke-du-xing-she-ji-part-1-good-codechapter-2-readabilityitem-11-design-for-readability.md.html">
+            
+                <a href="../../part-1-good-code/chapter-2-readability/di-11-tiao-ke-du-xing-she-ji-part-1-good-codechapter-2-readabilityitem-11-design-for-readability.md.html">
+            
+                    
+                    [第11条：可读性设计](Part 1 Good code/Chapter 2 Readability/Item 11 Design for readability.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.3" data-path="../../part-1-good-code/chapter-2-readability/di-12-tiao-cao-zuo-fu-de-han-yi-ying-yu-qi-han-shu-ming-yi-zhi-part-1-good-codechapter-2-readability.html">
+            
+                <a href="../../part-1-good-code/chapter-2-readability/di-12-tiao-cao-zuo-fu-de-han-yi-ying-yu-qi-han-shu-ming-yi-zhi-part-1-good-codechapter-2-readability.html">
+            
+                    
+                    [第12条：操作符的含义应与其函数名一致](Part 1 Good code/Chapter 2 Readability/Item 12 Operator meaning should be consistent with its function name.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.4" data-path="../../part-1-good-code/chapter-2-readability/di-13-tiao-bi-mian-fan-hui-huo-cao-zuo-unit-part-1-good-codechapter-2-readabilityitem201320avoid20re.html">
+            
+                <a href="../../part-1-good-code/chapter-2-readability/di-13-tiao-bi-mian-fan-hui-huo-cao-zuo-unit-part-1-good-codechapter-2-readabilityitem201320avoid20re.html">
+            
+                    
+                    [第13条：避免返回或操作 Unit? ](Part 1 Good code/Chapter 2 Readability/Item%2013%20Avoid%20returning%20or%20operating%20on%20Unit%3F.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.5" data-path="../../part-1-good-code/chapter-2-readability/di-14-tiao-zai-lei-xing-bu-ming-que-de-qing-kuang-xia-qing-xian-shi-zhi-ding-bian-liang-de-lei-xing.html">
+            
+                <a href="../../part-1-good-code/chapter-2-readability/di-14-tiao-zai-lei-xing-bu-ming-que-de-qing-kuang-xia-qing-xian-shi-zhi-ding-bian-liang-de-lei-xing.html">
+            
+                    
+                    [第14条：在类型不明确的情况下，请显式指定变量的类型](Part 1 Good code/Chapter 2 Readability/Item 14 Specify the variable type when it is not clear.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.6" data-path="../../part-1-good-code/chapter-2-readability/di-15-tiao-kao-lv-ming-que-zhi-ding-jie-shou-zhe-part-1-good-codechapter-2-readabilityitem-15-consid.html">
+            
+                <a href="../../part-1-good-code/chapter-2-readability/di-15-tiao-kao-lv-ming-que-zhi-ding-jie-shou-zhe-part-1-good-codechapter-2-readabilityitem-15-consid.html">
+            
+                    
+                    [第15条：考虑明确指定接收者](Part 1 Good code/Chapter 2 Readability/Item 15 Consider referencing receivers explicitly.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.7" data-path="../../part-1-good-code/chapter-2-readability/di-16-tiao-shu-xing-ying-dai-biao-zhuang-tai-er-bu-shi-hang-wei-part-1-good-codechapter-2-readabilit.html">
+            
+                <a href="../../part-1-good-code/chapter-2-readability/di-16-tiao-shu-xing-ying-dai-biao-zhuang-tai-er-bu-shi-hang-wei-part-1-good-codechapter-2-readabilit.html">
+            
+                    
+                    [第16条：属性应代表状态，而不是行为](Part 1 Good code/Chapter 2 Readability/Item 16 Properties should represent state not behavior.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.8" data-path="../../part-1-good-code/chapter-2-readability/di-17-tiao-kao-lv-ming-ming-can-shu-part-1-good-codechapter-2-readabilityitem-17-consider-naming-arg.html">
+            
+                <a href="../../part-1-good-code/chapter-2-readability/di-17-tiao-kao-lv-ming-ming-can-shu-part-1-good-codechapter-2-readabilityitem-17-consider-naming-arg.html">
+            
+                    
+                    [第17条：考虑命名参数](Part 1 Good code/Chapter 2 Readability/Item 17 Consider naming arguments.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.9" data-path="../../part-1-good-code/chapter-2-readability/di-18-tiao-zun-zhong-bian-ma-gui-fan-part-1-good-codechapter-2-readabilityitem-18-respect-coding-con.html">
+            
+                <a href="../../part-1-good-code/chapter-2-readability/di-18-tiao-zun-zhong-bian-ma-gui-fan-part-1-good-codechapter-2-readabilityitem-18-respect-coding-con.html">
+            
+                    
+                    [第18条：尊重编码规范](Part 1 Good code/Chapter 2 Readability/Item 18 Respect coding conventions.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3" data-path="../">
+            
+                <a href="../">
+            
+                    
+                    Part 2 Code Design
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.1" data-path="../chapter-3-reusability/">
+            
+                <a href="../chapter-3-reusability/">
+            
+                    
+                    Chapter 3 Reusability
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.1.1" data-path="../chapter-3-reusability/introduction-part-2-code-design-chapter-3-reusability-introduction.md.html">
+            
+                <a href="../chapter-3-reusability/introduction-part-2-code-design-chapter-3-reusability-introduction.md.html">
+            
+                    
+                    [Introduction](Part 2 Code design/Chapter 3 Reusability/Introduction.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.2" data-path="../chapter-3-reusability/item-19-do-not-repeat-knowledge-part-2-code-design-chapter-3-reusability-item-19-do-not-repeat-knowl.html">
+            
+                <a href="../chapter-3-reusability/item-19-do-not-repeat-knowledge-part-2-code-design-chapter-3-reusability-item-19-do-not-repeat-knowl.html">
+            
+                    
+                    [Item 19 Do Not Repeat Knowledge](Part 2 Code design/Chapter 3 Reusability/Item 19 Do not repeat knowledge.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.3" data-path="../chapter-3-reusability/item-20-do-not-repeat-common-algorithms-part-2-code-design-chapter-3-reusability-item-20-do-not-repe.html">
+            
+                <a href="../chapter-3-reusability/item-20-do-not-repeat-common-algorithms-part-2-code-design-chapter-3-reusability-item-20-do-not-repe.html">
+            
+                    
+                    [Item 20 Do Not Repeat Common Algorithms](Part 2 Code design/Chapter 3 Reusability/Item 20 Do not repeat common algorithms.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.4" data-path="../chapter-3-reusability/item-21-use-property-delegation-to-extract-common-property-patterns-part-2-code-design-chapter-3-reu.html">
+            
+                <a href="../chapter-3-reusability/item-21-use-property-delegation-to-extract-common-property-patterns-part-2-code-design-chapter-3-reu.html">
+            
+                    
+                    [Item 21 Use Property Delegation To Extract Common Property Patterns](Part 2 Code design/Chapter 3 Reusability/Item 21 Use property delegation to extract common property patterns.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.5" data-path="../chapter-3-reusability/item-22-use-generics-when-implementing-common-algorithms-part-2-code-design-chapter-3-reusability-it.html">
+            
+                <a href="../chapter-3-reusability/item-22-use-generics-when-implementing-common-algorithms-part-2-code-design-chapter-3-reusability-it.html">
+            
+                    
+                    [Item 22 Use Generics When Implementing Common Algorithms](Part 2 Code design/Chapter 3 Reusability/Item 22 Use generics when implementing common algorithms.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.6" data-path="../chapter-3-reusability/item-23-avoid-shadowing-type-parameters-part-2-code-design-chapter-3-reusability-item-23-avoid-shado.html">
+            
+                <a href="../chapter-3-reusability/item-23-avoid-shadowing-type-parameters-part-2-code-design-chapter-3-reusability-item-23-avoid-shado.html">
+            
+                    
+                    [Item 23 Avoid Shadowing Type Parameters](Part 2 Code design/Chapter 3 Reusability/Item 23 Avoid shadowing type parameters.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.7" data-path="../chapter-3-reusability/item-24-consider-variance-for-generic-types-part-2-code-design-chapter-3-reusability-item-24-conside.html">
+            
+                <a href="../chapter-3-reusability/item-24-consider-variance-for-generic-types-part-2-code-design-chapter-3-reusability-item-24-conside.html">
+            
+                    
+                    [Item 24 Consider Variance For Generic Types](Part 2 Code design/Chapter 3 Reusability/Item 24 Consider variance for generic types.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.8" data-path="../chapter-3-reusability/item-25-reuse-between-different-platforms-by-extracting-common-modules-part-2-code-design-chapter-3.html">
+            
+                <a href="../chapter-3-reusability/item-25-reuse-between-different-platforms-by-extracting-common-modules-part-2-code-design-chapter-3.html">
+            
+                    
+                    [Item 25 Reuse Between Different Platforms By Extracting Common Modules](Part 2 Code design/Chapter 3 Reusability/Item 25 Reuse between different platforms by extracting common modules.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2" data-path="./">
+            
+                <a href="./">
+            
+                    
+                    Chapter 4 Abstraction Design
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.2.1" data-path="introduction-part-2-code-design-chapter-4-abstraction-design-introduction.md.html">
+            
+                <a href="introduction-part-2-code-design-chapter-4-abstraction-design-introduction.md.html">
+            
+                    
+                    [Introduction](Part 2 Code design/Chapter 4 Abstraction design/Introduction.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.2" data-path="item-26-each-function-should-be-written-in-terms-of-a-single-level-of-abstraction-part-2-code-design.html">
+            
+                <a href="item-26-each-function-should-be-written-in-terms-of-a-single-level-of-abstraction-part-2-code-design.html">
+            
+                    
+                    [Item 26 Each Function Should Be Written In Terms Of A Single Level Of Abstraction](Part 2 Code design/Chapter 4 Abstraction design/Item 26 Each function should be written in terms of a single level of abstraction.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.3" data-path="item-27-use-abstraction-to-protect-code-against-changes-part-2-code-design-chapter-4-abstraction-des.html">
+            
+                <a href="item-27-use-abstraction-to-protect-code-against-changes-part-2-code-design-chapter-4-abstraction-des.html">
+            
+                    
+                    [Item 27 Use Abstraction To Protect Code Against Changes](Part 2 Code design/Chapter 4 Abstraction design/Item 27 Use abstraction to protect code against changes.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.4" data-path="item-28-specify-api-stability-part-2-code-design-chapter-4-abstraction-design-item-28-specify-api-st.html">
+            
+                <a href="item-28-specify-api-stability-part-2-code-design-chapter-4-abstraction-design-item-28-specify-api-st.html">
+            
+                    
+                    [Item 28 Specify API Stability](Part 2 Code design/Chapter 4 Abstraction design/Item 28 Specify API stability.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.5" data-path="item-29-consider-wrapping-external-api-part-2-code-design-chapter-4-abstraction-design-item-29-consi.html">
+            
+                <a href="item-29-consider-wrapping-external-api-part-2-code-design-chapter-4-abstraction-design-item-29-consi.html">
+            
+                    
+                    [Item 29 Consider Wrapping External API](Part 2 Code design/Chapter 4 Abstraction design/Item 29 Consider wrapping external API.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.6" data-path="item-30-minimize-elements-visibility-part-2-code-design-chapter-4-abstraction-design-item-30-minimiz.html">
+            
+                <a href="item-30-minimize-elements-visibility-part-2-code-design-chapter-4-abstraction-design-item-30-minimiz.html">
+            
+                    
+                    [Item 30 Minimize Elements Visibility](Part 2 Code design/Chapter 4 Abstraction design/Item 30 Minimize elements visibility.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.7" data-path="item-31-define-contract-with-documentation-part-2-code-design-chapter-4-abstraction-design-item-31-d.html">
+            
+                <a href="item-31-define-contract-with-documentation-part-2-code-design-chapter-4-abstraction-design-item-31-d.html">
+            
+                    
+                    [Item 31 Define Contract With Documentation](Part 2 Code design/Chapter 4 Abstraction design/Item 31 Define contract with documentation.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter active" data-level="1.3.2.8" data-path="item-32-respect-abstraction-contracts-part-2-code-design-chapter-4-abstraction-design-item-32-respec.html">
+            
+                <a href="item-32-respect-abstraction-contracts-part-2-code-design-chapter-4-abstraction-design-item-32-respec.html">
+            
+                    
+                    [Item 32 Respect Abstraction Contracts](Part 2 Code design/Chapter 4 Abstraction design/Item 32 Respect abstraction contracts.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.3" data-path="../chapter-5-object-creation/">
+            
+                <a href="../chapter-5-object-creation/">
+            
+                    
+                    Chapter 5 Object Creation
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.3.1" data-path="../chapter-5-object-creation/introduction-part-2-code-design-chapter-5-object-creation-introduction.md.html">
+            
+                <a href="../chapter-5-object-creation/introduction-part-2-code-design-chapter-5-object-creation-introduction.md.html">
+            
+                    
+                    [Introduction](Part 2 Code design/Chapter 5 Object creation/Introduction.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.3.2" data-path="../chapter-5-object-creation/item-33-consider-factory-functions-instead-of-constructors-part-2-code-design-chapter-5-object-creat.html">
+            
+                <a href="../chapter-5-object-creation/item-33-consider-factory-functions-instead-of-constructors-part-2-code-design-chapter-5-object-creat.html">
+            
+                    
+                    [Item 33 Consider Factory Functions Instead Of Constructors](Part 2 Code design/Chapter 5 Object creation/Item 33 Consider factory functions instead of constructors.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.3.3" data-path="../chapter-5-object-creation/item-34-consider-a-primary-constructor-with-named-optional-arguments-part-2-code-design-chapter-5-ob.html">
+            
+                <a href="../chapter-5-object-creation/item-34-consider-a-primary-constructor-with-named-optional-arguments-part-2-code-design-chapter-5-ob.html">
+            
+                    
+                    [Item 34 Consider A Primary Constructor With Named Optional Arguments](Part 2 Code design/Chapter 5 Object creation/Item 34 Consider a primary constructor with named optional arguments.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.3.4" data-path="../chapter-5-object-creation/item-35-consider-defining-a-dsl-for-complex-object-creation-part-2-code-design-chapter-5-object-crea.html">
+            
+                <a href="../chapter-5-object-creation/item-35-consider-defining-a-dsl-for-complex-object-creation-part-2-code-design-chapter-5-object-crea.html">
+            
+                    
+                    [Item 35 Consider Defining A DSL For Complex Object Creation](Part 2 Code design/Chapter 5 Object creation/Item 35 Consider defining a DSL for complex object creation.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4" data-path="../chapter-6-class-design/">
+            
+                <a href="../chapter-6-class-design/">
+            
+                    
+                    Chapter 6 Class Design
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.4.1" data-path="../chapter-6-class-design/introduction-part-2-code-design-chapter-6-class-design-introduction.md.html">
+            
+                <a href="../chapter-6-class-design/introduction-part-2-code-design-chapter-6-class-design-introduction.md.html">
+            
+                    
+                    [Introduction](Part 2 Code design/Chapter 6 Class design/Introduction.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4.2" data-path="../chapter-6-class-design/item-36-prefer-composition-over-inheritance-part-2-code-design-chapter-6-class-design-item-36-prefer.html">
+            
+                <a href="../chapter-6-class-design/item-36-prefer-composition-over-inheritance-part-2-code-design-chapter-6-class-design-item-36-prefer.html">
+            
+                    
+                    [Item 36 Prefer Composition Over Inheritance](Part 2 Code design/Chapter 6 Class design/Item 36 Prefer composition over inheritance.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4.3" data-path="../chapter-6-class-design/item-37-use-the-data-modifier-to-represent-a-bundle-of-data-part-2-code-design-chapter-6-class-desig.html">
+            
+                <a href="../chapter-6-class-design/item-37-use-the-data-modifier-to-represent-a-bundle-of-data-part-2-code-design-chapter-6-class-desig.html">
+            
+                    
+                    [Item 37 Use The Data Modifier To Represent A Bundle Of Data](Part 2 Code design/Chapter 6 Class design/Item 37 Use the data modifier to represent a bundle of data.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4.4" data-path="../chapter-6-class-design/item-38-use-function-types-instead-of-interfaces-to-pass-operations-and-actions-part-2-code-design-c.html">
+            
+                <a href="../chapter-6-class-design/item-38-use-function-types-instead-of-interfaces-to-pass-operations-and-actions-part-2-code-design-c.html">
+            
+                    
+                    [Item 38 Use Function Types Instead Of Interfaces To Pass Operations And Actions](Part 2 Code design/Chapter 6 Class design/Item 38 Use function types instead of interfaces to pass operations and actions.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4.5" data-path="../chapter-6-class-design/item-39-prefer-class-hierarchies-to-tagged-classes-part-2-code-design-chapter-6-class-design-item-39.html">
+            
+                <a href="../chapter-6-class-design/item-39-prefer-class-hierarchies-to-tagged-classes-part-2-code-design-chapter-6-class-design-item-39.html">
+            
+                    
+                    [Item 39 Prefer Class Hierarchies To Tagged Classes](Part 2 Code design/Chapter 6 Class design/Item 39 Prefer class hierarchies to tagged classes.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4.6" data-path="../chapter-6-class-design/item-40-respect-the-contract-of-equals-part-2-code-design-chapter-6-class-design-item-40-respect-the.html">
+            
+                <a href="../chapter-6-class-design/item-40-respect-the-contract-of-equals-part-2-code-design-chapter-6-class-design-item-40-respect-the.html">
+            
+                    
+                    [Item 40 Respect The Contract Of Equals](Part 2 Code design/Chapter 6 Class design/Item 40 Respect the contract of equals.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4.7" data-path="../chapter-6-class-design/item-41-respect-the-contract-of-hash-code-part-2-code-design-chapter-6-class-design-item-41-respect.html">
+            
+                <a href="../chapter-6-class-design/item-41-respect-the-contract-of-hash-code-part-2-code-design-chapter-6-class-design-item-41-respect.html">
+            
+                    
+                    [Item 41 Respect The Contract Of Hash Code](Part 2 Code design/Chapter 6 Class design/Item 41 Respect the contract of hashCode.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4.8" data-path="../chapter-6-class-design/item-42-respect-the-contract-of-compare-to-part-2-code-design-chapter-6-class-design-item-42-respect.html">
+            
+                <a href="../chapter-6-class-design/item-42-respect-the-contract-of-compare-to-part-2-code-design-chapter-6-class-design-item-42-respect.html">
+            
+                    
+                    [Item 42 Respect The Contract Of Compare To](Part 2 Code design/Chapter 6 Class design/Item 42 Respect the contract of compareTo.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4.9" data-path="../chapter-6-class-design/item-43-consider-extracting-non-essential-parts-of-your-api-into-extensions-part-2-code-design-chapt.html">
+            
+                <a href="../chapter-6-class-design/item-43-consider-extracting-non-essential-parts-of-your-api-into-extensions-part-2-code-design-chapt.html">
+            
+                    
+                    [Item 43 Consider Extracting Non Essential Parts Of Your API Into Extensions](Part 2 Code design/Chapter 6 Class design/Item 43 Consider extracting non-essential parts of your API into extensions.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4.10" data-path="../chapter-6-class-design/item-44-avoid-member-extensions-part-2-code-design-chapter-6-class-design-item-44-avoid-member-exten.html">
+            
+                <a href="../chapter-6-class-design/item-44-avoid-member-extensions-part-2-code-design-chapter-6-class-design-item-44-avoid-member-exten.html">
+            
+                    
+                    [Item 44 Avoid Member Extensions](Part 2 Code design/Chapter 6 Class design/Item 44 Avoid member extensions.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4" data-path="../../part-3-efficiency/">
+            
+                <a href="../../part-3-efficiency/">
+            
+                    
+                    Part 3 Efficiency
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.1" data-path="../../part-3-efficiency/chapter-7-make-it-cheap/">
+            
+                <a href="../../part-3-efficiency/chapter-7-make-it-cheap/">
+            
+                    
+                    Chapter 7 Make It Cheap
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.1.1" data-path="../../part-3-efficiency/chapter-7-make-it-cheap/introduction-part-3-efficiency-chapter-7-make-it-cheap-introduction.md.html">
+            
+                <a href="../../part-3-efficiency/chapter-7-make-it-cheap/introduction-part-3-efficiency-chapter-7-make-it-cheap-introduction.md.html">
+            
+                    
+                    [Introduction](Part 3 Efficiency/Chapter 7 Make it cheap/Introduction.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.2" data-path="../../part-3-efficiency/chapter-7-make-it-cheap/item-45-avoid-unnecessary-object-creation-part-3-efficiency-chapter-7-make-it-cheap-item-45-avoid-un.html">
+            
+                <a href="../../part-3-efficiency/chapter-7-make-it-cheap/item-45-avoid-unnecessary-object-creation-part-3-efficiency-chapter-7-make-it-cheap-item-45-avoid-un.html">
+            
+                    
+                    [Item 45 Avoid Unnecessary Object Creation](Part 3 Efficiency/Chapter 7 Make it cheap/Item 45 Avoid unnecessary object creation.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.3" data-path="../../part-3-efficiency/chapter-7-make-it-cheap/item-46-use-inline-modifier-for-functions-with-parameters-of-functional-types-part-3-efficiency-chap.html">
+            
+                <a href="../../part-3-efficiency/chapter-7-make-it-cheap/item-46-use-inline-modifier-for-functions-with-parameters-of-functional-types-part-3-efficiency-chap.html">
+            
+                    
+                    [Item 46 Use Inline Modifier For Functions With Parameters Of Functional Types](Part 3 Efficiency/Chapter 7 Make it cheap/Item 46 Use inline modifier for functions with parameters of functional types.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.4" data-path="../../part-3-efficiency/chapter-7-make-it-cheap/item-47-consider-using-inline-classes-part-3-efficiency-chapter-7-make-it-cheap-item-47-consider-usi.html">
+            
+                <a href="../../part-3-efficiency/chapter-7-make-it-cheap/item-47-consider-using-inline-classes-part-3-efficiency-chapter-7-make-it-cheap-item-47-consider-usi.html">
+            
+                    
+                    [Item 47 Consider Using Inline Classes](Part 3 Efficiency/Chapter 7 Make it cheap/Item 47 Consider using inline classes.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.5" data-path="../../part-3-efficiency/chapter-7-make-it-cheap/item-48-eliminate-obsolete-object-references-part-3-efficiency-chapter-7-make-it-cheap-item-48-elimi.html">
+            
+                <a href="../../part-3-efficiency/chapter-7-make-it-cheap/item-48-eliminate-obsolete-object-references-part-3-efficiency-chapter-7-make-it-cheap-item-48-elimi.html">
+            
+                    
+                    [Item 48 Eliminate Obsolete Object References](Part 3 Efficiency/Chapter 7 Make it cheap/Item 48 Eliminate obsolete object references.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2" data-path="../../part-3-efficiency/chapter-8-efficient-collection-processing/">
+            
+                <a href="../../part-3-efficiency/chapter-8-efficient-collection-processing/">
+            
+                    
+                    Chapter 8 Efficient Collection Processing
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.2.1" data-path="../../part-3-efficiency/chapter-8-efficient-collection-processing/introduction-part-3-efficiency-chapter-8-efficient-collection-processing-introduction.md.html">
+            
+                <a href="../../part-3-efficiency/chapter-8-efficient-collection-processing/introduction-part-3-efficiency-chapter-8-efficient-collection-processing-introduction.md.html">
+            
+                    
+                    [Introduction](Part 3 Efficiency/Chapter 8 Efficient collection processing/Introduction.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2.2" data-path="../../part-3-efficiency/chapter-8-efficient-collection-processing/item-49-prefer-sequence-for-big-collections-with-more-than-one-processing-step-part-3-efficiency-cha.html">
+            
+                <a href="../../part-3-efficiency/chapter-8-efficient-collection-processing/item-49-prefer-sequence-for-big-collections-with-more-than-one-processing-step-part-3-efficiency-cha.html">
+            
+                    
+                    [Item 49 Prefer Sequence For Big Collections With More Than One Processing Step](Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 49 Prefer Sequence for big collections with more than one processing step.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2.3" data-path="../../part-3-efficiency/chapter-8-efficient-collection-processing/di-50-tiao-jian-shao-cao-zuo-de-ci-shu-part-3-efficiencychapter-8-efficient-collection-processingite.html">
+            
+                <a href="../../part-3-efficiency/chapter-8-efficient-collection-processing/di-50-tiao-jian-shao-cao-zuo-de-ci-shu-part-3-efficiencychapter-8-efficient-collection-processingite.html">
+            
+                    
+                    [第50条：减少操作的次数](Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 50 Limit the number of operations.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2.4" data-path="../../part-3-efficiency/chapter-8-efficient-collection-processing/di-51-tiao-zai-xing-neng-you-xian-de-chang-jing-kao-lv-shi-yong-ji-chu-lei-xing-shu-zu-part-3-effici.html">
+            
+                <a href="../../part-3-efficiency/chapter-8-efficient-collection-processing/di-51-tiao-zai-xing-neng-you-xian-de-chang-jing-kao-lv-shi-yong-ji-chu-lei-xing-shu-zu-part-3-effici.html">
+            
+                    
+                    [第51条：在“性能优先”的场景，考虑使用基础类型数组](Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 51 Consider Arrays with primitives for performance-critical processing.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2.5" data-path="../../part-3-efficiency/chapter-8-efficient-collection-processing/di-52-tiao-zai-chu-li-ju-bu-bian-liang-shi-kao-lv-shi-yong-ke-bian-ji-he-part-3-efficiencychapter-8.html">
+            
+                <a href="../../part-3-efficiency/chapter-8-efficient-collection-processing/di-52-tiao-zai-chu-li-ju-bu-bian-liang-shi-kao-lv-shi-yong-ke-bian-ji-he-part-3-efficiencychapter-8.html">
+            
+                    
+                    [第52条：在处理局部变量时，考虑使用可变集合](Part 3 Efficiency/Chapter 8 Efficient collection processing/Item 52 Consider using mutable collections.md)
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://www.gitbook.com" target="blank" class="gitbook-link">
+            Published with GitBook
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="../.." >[Item 32 Respect Abstraction Contracts](Part 2 Code design/Chapter 4 Abstraction design/Item 32 Respect abstraction contracts.md)</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <h1 id="item-32-respect-abstraction-contractspart-2-code-designchapter-4-abstraction-designitem-32-respect-abstraction-contractsmd">[Item 32 Respect Abstraction Contracts](Part 2 Code design/Chapter 4 Abstraction design/Item 32 Respect abstraction contracts.md)</h1>
+
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                <a href="item-31-define-contract-with-documentation-part-2-code-design-chapter-4-abstraction-design-item-31-d.html" class="navigation navigation-prev " aria-label="Previous page: [Item 31 Define Contract With Documentation](Part 2 Code design/Chapter 4 Abstraction design/Item 31 Define contract with documentation.md)">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                
+                
+                <a href="../chapter-5-object-creation/" class="navigation navigation-next " aria-label="Next page: Chapter 5 Object Creation">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"[Item 32 Respect Abstraction Contracts](Part 2 Code design/Chapter 4 Abstraction design/Item 32 Respect abstraction contracts.md)","level":"1.3.2.8","depth":3,"next":{"title":"Chapter 5 Object Creation","level":"1.3.3","depth":2,"path":"part-2-code-design/chapter-5-object-creation/README.md","ref":"part-2-code-design/chapter-5-object-creation/README.md","articles":[{"title":"[Introduction](Part 2 Code design/Chapter 5 Object creation/Introduction.md)","level":"1.3.3.1","depth":3,"path":"part-2-code-design/chapter-5-object-creation/introduction-part-2-code-design-chapter-5-object-creation-introduction.md.md","ref":"part-2-code-design/chapter-5-object-creation/introduction-part-2-code-design-chapter-5-object-creation-introduction.md.md","articles":[]},{"title":"[Item 33 Consider Factory Functions Instead Of Constructors](Part 2 Code design/Chapter 5 Object creation/Item 33 Consider factory functions instead of constructors.md)","level":"1.3.3.2","depth":3,"path":"part-2-code-design/chapter-5-object-creation/item-33-consider-factory-functions-instead-of-constructors-part-2-code-design-chapter-5-object-creat.md","ref":"part-2-code-design/chapter-5-object-creation/item-33-consider-factory-functions-instead-of-constructors-part-2-code-design-chapter-5-object-creat.md","articles":[]},{"title":"[Item 34 Consider A Primary Constructor With Named Optional Arguments](Part 2 Code design/Chapter 5 Object creation/Item 34 Consider a primary constructor with named optional arguments.md)","level":"1.3.3.3","depth":3,"path":"part-2-code-design/chapter-5-object-creation/item-34-consider-a-primary-constructor-with-named-optional-arguments-part-2-code-design-chapter-5-ob.md","ref":"part-2-code-design/chapter-5-object-creation/item-34-consider-a-primary-constructor-with-named-optional-arguments-part-2-code-design-chapter-5-ob.md","articles":[]},{"title":"[Item 35 Consider Defining A DSL For Complex Object Creation](Part 2 Code design/Chapter 5 Object creation/Item 35 Consider defining a DSL for complex object creation.md)","level":"1.3.3.4","depth":3,"path":"part-2-code-design/chapter-5-object-creation/item-35-consider-defining-a-dsl-for-complex-object-creation-part-2-code-design-chapter-5-object-crea.md","ref":"part-2-code-design/chapter-5-object-creation/item-35-consider-defining-a-dsl-for-complex-object-creation-part-2-code-design-chapter-5-object-crea.md","articles":[]}]},"previous":{"title":"[Item 31 Define Contract With Documentation](Part 2 Code design/Chapter 4 Abstraction design/Item 31 Define contract with documentation.md)","level":"1.3.2.7","depth":3,"path":"part-2-code-design/chapter-4-abstraction-design/item-31-define-contract-with-documentation-part-2-code-design-chapter-4-abstraction-design-item-31-d.md","ref":"part-2-code-design/chapter-4-abstraction-design/item-31-define-contract-with-documentation-part-2-code-design-chapter-4-abstraction-design-item-31-d.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"part-2-code-design/chapter-4-abstraction-design/item-32-respect-abstraction-contracts-part-2-code-design-chapter-4-abstraction-design-item-32-respec.md","mtime":"2023-08-30T15:32:37.381Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2023-08-30T15:33:21.455Z"},"basePath":"../..","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <script src="../../gitbook/gitbook.js"></script>
+    <script src="../../gitbook/theme.js"></script>
+    
+        
+        <script src="../../gitbook/gitbook-plugin-search/search-engine.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-search/search.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-sharing/buttons.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+
