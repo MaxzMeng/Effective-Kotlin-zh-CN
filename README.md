@@ -33,7 +33,7 @@ Effective Kotlin 中文翻译
         - [x] 第14条：在类型不明确的情况下，请显式指定变量的类型
         - [x] 第15条：考虑明确指定接收者
         - [x] 第16条：属性应代表状态，而不是行为
-        - [ ] Item 17 Consider Naming Arguments
+        - [x] 第17条：考虑命名参数
         - [ ] Item 18 Respect Coding Conventions
 - Part 2 Code Design
     - Chapter 3 Reusability

@@ -21,7 +21,7 @@
     * [第14条：在类型不明确的情况下，请显式指定变量的类型](Part 1 Good code/Chapter 2 Readability/Item 14 Specify the variable type when it is not clear.md)
     * [第15条：考虑明确指定接收者](Part 1 Good code/Chapter 2 Readability/Item 15 Consider referencing receivers explicitly.md)
     * [第16条：属性应代表状态，而不是行为](Part 1 Good code/Chapter 2 Readability/Item 16 Properties should represent state not behavior.md)
-    * [Item 17 Consider Naming Arguments](Part 1 Good code/Chapter 2 Readability/Item 17 Consider naming arguments.md)
+    * [第17条：考虑命名参数](Part 1 Good code/Chapter 2 Readability/Item 17 Consider naming arguments.md)
     * [Item 18 Respect Coding Conventions](Part 1 Good code/Chapter 2 Readability/Item 18 Respect coding conventions.md)
 - Part 2 Code Design
   - Chapter 3 Reusability
