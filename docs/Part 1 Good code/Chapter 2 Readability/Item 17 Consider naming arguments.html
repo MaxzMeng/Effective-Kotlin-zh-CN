@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <title>Item 17 Consider Naming Arguments · GitBook</title>
+        <title>第17条：考虑命名参数 · GitBook</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="GitBook 3.2.3">
@@ -388,7 +388,7 @@
                 <a href="Item 17 Consider naming arguments.html">
             
                     
-                    Item 17 Consider Naming Arguments
+                    第17条：考虑命名参数
             
                 </a>
             
@@ -1121,7 +1121,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href="../.." >Item 17 Consider Naming Arguments</a>
+        <a href="../.." >第17条：考虑命名参数</a>
     </h1>
 </div>
 
@@ -1136,70 +1136,70 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <h2 id="item-17-consider-naming-arguments">Item 17: Consider naming arguments</h2>
-<p>When you read a code, it is not always clear what an argument means. Take a look at the following example:</p>
+                                <h2 id="&#x7B2C;17&#x6761;&#xFF1A;&#x8003;&#x8651;&#x547D;&#x540D;&#x53C2;&#x6570;">&#x7B2C;17&#x6761;&#xFF1A;&#x8003;&#x8651;&#x547D;&#x540D;&#x53C2;&#x6570;</h2>
+<p>&#x5F53;&#x4F60;&#x9605;&#x8BFB;&#x4EE3;&#x7801;&#x65F6;&#xFF0C;&#x53C2;&#x6570;&#x7684;&#x542B;&#x4E49;&#x5E76;&#x4E0D;&#x603B;&#x662F;&#x6E05;&#x6670;&#x7684;&#x3002;&#x770B;&#x770B;&#x4E0B;&#x9762;&#x7684;&#x4F8B;&#x5B50;&#xFF1A;</p>
 <pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> text</span> = (<span class="hljs-number">1.</span><span class="hljs-number">.10</span>).joinToString(<span class="hljs-string">&quot;|&quot;</span>)
 </code></pre>
-<p>What is <code>&quot;|&quot;</code>? If you know <code>joinToString</code> well, you know that it is the <code>separator</code>. Although it could just as well be the <code>prefix</code>. It is not clear at all<a href="chap65.xhtml#fn-footnote_21_note">3</a>. We can make it easier to read by clarifying those arguments whose values do not clearly indicate what they mean. The best way to do that is by using named arguments:</p>
+<p><code>&quot;|&quot;</code>&#x662F;&#x4EC0;&#x4E48;&#xFF1F;&#x5982;&#x679C;&#x4F60;&#x5BF9;<code>joinToString</code>&#x5F88;&#x719F;&#x6089;&#xFF0C;&#x4F60;&#x5C31;&#x77E5;&#x9053;&#x5B83;&#x662F;<code>separator</code>&#x3002;&#x867D;&#x7136;&#x5B83;&#x4E5F;&#x53EF;&#x80FD;&#x662F;<code>prefix</code>&#x3002;&#x8FD9;&#x4E00;&#x70B9;&#x5B8C;&#x5168;&#x4E0D;&#x6E05;&#x695A;&#x3002;&#x6211;&#x4EEC;&#x53EF;&#x4EE5;&#x901A;&#x8FC7;&#x660E;&#x786E;&#x90A3;&#x4E9B;&#x503C;&#x5E76;&#x4E0D;&#x6E05;&#x695A;&#x5176;&#x542B;&#x4E49;&#x7684;&#x53C2;&#x6570;&#x6765;&#x4F7F;&#x5176;&#x66F4;&#x6613;&#x8BFB;&#x3002;&#x6700;&#x597D;&#x7684;&#x65B9;&#x6CD5;&#x5C31;&#x662F;&#x4F7F;&#x7528;&#x547D;&#x540D;&#x53C2;&#x6570;&#xFF1A;</p>
 <pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> text</span> = (<span class="hljs-number">1.</span><span class="hljs-number">.10</span>).joinToString(separator = <span class="hljs-string">&quot;|&quot;</span>)
 </code></pre>
-<p>We could achieve a similar result by naming variable:</p>
+<p>&#x6211;&#x4EEC;&#x4E5F;&#x53EF;&#x4EE5;&#x901A;&#x8FC7;&#x547D;&#x540D;&#x53D8;&#x91CF;&#x8FBE;&#x5230;&#x7C7B;&#x4F3C;&#x7684;&#x6548;&#x679C;&#xFF1A;</p>
 <pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> separator</span> = <span class="hljs-string">&quot;|&quot;</span>
 <span class="hljs-variable"><span class="hljs-keyword">val</span> text</span> = (<span class="hljs-number">1.</span><span class="hljs-number">.10</span>).joinToString(separator)
 </code></pre>
-<p>Although naming the argument is more reliable. A variable name specifies developer intention, but not necessarily correctness. What if a developer made a mistake and placed the variable in the wrong position? What if the order of parameters changed? Named arguments protect us from such situations while named values do not. This is why it is still reasonable to use named arguments when we have values named anyway:</p>
+<p>&#x5C3D;&#x7BA1;&#x547D;&#x540D;&#x53C2;&#x6570;&#x66F4;&#x53EF;&#x9760;&#x3002;&#x53D8;&#x91CF;&#x540D;&#x6307;&#x5B9A;&#x4E86;&#x5F00;&#x53D1;&#x8005;&#x7684;&#x610F;&#x56FE;&#xFF0C;&#x4F46;&#x5E76;&#x4E0D;&#x4E00;&#x5B9A;&#x662F;&#x6B63;&#x786E;&#x7684;&#x3002;&#x5982;&#x679C;&#x5F00;&#x53D1;&#x8005;&#x72AF;&#x4E86;&#x9519;&#x8BEF;&#xFF0C;&#x628A;&#x53D8;&#x91CF;&#x653E;&#x5728;&#x4E86;&#x9519;&#x8BEF;&#x7684;&#x4F4D;&#x7F6E;&#x5462;&#xFF1F;&#x5982;&#x679C;&#x53C2;&#x6570;&#x7684;&#x987A;&#x5E8F;&#x6539;&#x53D8;&#x4E86;&#x5462;&#xFF1F;&#x547D;&#x540D;&#x53C2;&#x6570;&#x53EF;&#x4EE5;&#x4FDD;&#x62A4;&#x6211;&#x4EEC;&#x514D;&#x53D7;&#x8FD9;&#x79CD;&#x60C5;&#x51B5;&#x7684;&#x5F71;&#x54CD;&#xFF0C;&#x800C;&#x547D;&#x540D;&#x503C;&#x5219;&#x4E0D;&#x80FD;&#x3002;&#x8FD9;&#x5C31;&#x662F;&#x4E3A;&#x4EC0;&#x4E48;&#x5F53;&#x6211;&#x4EEC;&#x6709;&#x547D;&#x540D;&#x503C;&#x65F6;&#xFF0C;&#x4ECD;&#x7136;&#x6709;&#x7406;&#x7531;&#x4F7F;&#x7528;&#x547D;&#x540D;&#x53C2;&#x6570;&#xFF1A;</p>
 <pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> separator</span> = <span class="hljs-string">&quot;|&quot;</span>
 <span class="hljs-variable"><span class="hljs-keyword">val</span> text</span> = (<span class="hljs-number">1.</span><span class="hljs-number">.10</span>).joinToString(separator = separator)
 </code></pre>
-<h3 id="when-should-we-use-named-arguments">When should we use named arguments?</h3>
-<p>Clearly, named arguments are longer, but they have two important advantages:</p>
+<h3 id="&#x6211;&#x4EEC;&#x5E94;&#x8BE5;&#x4F55;&#x65F6;&#x4F7F;&#x7528;&#x547D;&#x540D;&#x53C2;&#x6570;&#xFF1F;">&#x6211;&#x4EEC;&#x5E94;&#x8BE5;&#x4F55;&#x65F6;&#x4F7F;&#x7528;&#x547D;&#x540D;&#x53C2;&#x6570;&#xFF1F;</h3>
+<p>&#x663E;&#x7136;&#xFF0C;&#x547D;&#x540D;&#x53C2;&#x6570;&#x66F4;&#x957F;&#xFF0C;&#x4F46;&#x5B83;&#x4EEC;&#x6709;&#x4E24;&#x4E2A;&#x91CD;&#x8981;&#x7684;&#x4F18;&#x70B9;&#xFF1A;</p>
 <ul>
-<li>Name that indicates what value is expected. </li>
-<li>They are safer because they are independent of order.</li>
+<li>&#x540D;&#x79F0;&#x6307;&#x793A;&#x9884;&#x671F;&#x7684;&#x503C;&#x3002;</li>
+<li>&#x5B83;&#x4EEC;&#x66F4;&#x5B89;&#x5168;&#xFF0C;&#x56E0;&#x4E3A;&#x5B83;&#x4EEC;&#x72EC;&#x7ACB;&#x4E8E;&#x987A;&#x5E8F;&#x3002;</li>
 </ul>
-<p>The argument name is important information not only for a developer using this function but also for the one reading how it was used. Take a look at this call:</p>
+<p>&#x53C2;&#x6570;&#x540D;&#x79F0;&#x4E0D;&#x4EC5;&#x5BF9;&#x4F7F;&#x7528;&#x6B64;&#x51FD;&#x6570;&#x7684;&#x5F00;&#x53D1;&#x8005;&#x91CD;&#x8981;&#xFF0C;&#x5BF9;&#x9605;&#x8BFB;&#x5B83;&#x5982;&#x4F55;&#x88AB;&#x4F7F;&#x7528;&#x7684;&#x4EBA;&#x4E5F;&#x91CD;&#x8981;&#x3002;&#x770B;&#x770B;&#x8FD9;&#x4E2A;&#x8C03;&#x7528;&#xFF1A;</p>
 <pre><code class="lang-kotlin">sleep(<span class="hljs-number">100</span>)
 </code></pre>
-<p>How much will it sleep? 100 ms? Maybe 100 seconds? We can clarify it using a named argument:</p>
+<p>&#x5B83;&#x4F1A;&#x7761;&#x591A;&#x4E45;&#xFF1F;100&#x6BEB;&#x79D2;&#xFF1F;&#x53EF;&#x80FD;&#x662F;100&#x79D2;&#xFF1F;&#x6211;&#x4EEC;&#x53EF;&#x4EE5;&#x4F7F;&#x7528;&#x547D;&#x540D;&#x53C2;&#x6570;&#x6765;&#x6F84;&#x6E05;&#x5B83;&#xFF1A;</p>
 <pre><code class="lang-kotlin">sleep(timeMillis = <span class="hljs-number">100</span>)
 </code></pre>
-<p>This is not the only option for clarification in this case. In statically typed languages like Kotlin, the first mechanism that protects us when we pass arguments is the parameter type. We could use it here to express information about time unit:</p>
+<p>&#x5728;&#x8FD9;&#x79CD;&#x60C5;&#x51B5;&#x4E0B;&#xFF0C;&#x8FD9;&#x5E76;&#x4E0D;&#x662F;&#x552F;&#x4E00;&#x7684;&#x6F84;&#x6E05;&#x9009;&#x9879;&#x3002;&#x5728;&#x50CF;Kotlin&#x8FD9;&#x6837;&#x7684;&#x9759;&#x6001;&#x7C7B;&#x578B;&#x8BED;&#x8A00;&#x4E2D;&#xFF0C;&#x5F53;&#x6211;&#x4EEC;&#x4F20;&#x9012;&#x53C2;&#x6570;&#x65F6;&#xFF0C;&#x4FDD;&#x62A4;&#x6211;&#x4EEC;&#x7684;&#x7B2C;&#x4E00;&#x4E2A;&#x673A;&#x5236;&#x662F;&#x53C2;&#x6570;&#x7C7B;&#x578B;&#x3002;&#x6211;&#x4EEC;&#x53EF;&#x4EE5;&#x5728;&#x8FD9;&#x91CC;&#x4F7F;&#x7528;&#x5B83;&#x6765;&#x8868;&#x8FBE;&#x5173;&#x4E8E;&#x65F6;&#x95F4;&#x5355;&#x4F4D;&#x7684;&#x4FE1;&#x606F;&#xFF1A;</p>
 <pre><code class="lang-kotlin">sleep(Millis(<span class="hljs-number">100</span>))
 </code></pre>
-<p>Or we could use an extension property to create a DSL-like syntax:</p>
+<p>&#x6216;&#x8005;&#xFF0C;&#x6211;&#x4EEC;&#x53EF;&#x4EE5;&#x4F7F;&#x7528;&#x6269;&#x5C55;&#x5C5E;&#x6027;&#x6765;&#x521B;&#x5EFA;&#x7C7B;&#x4F3C;DSL&#x7684;&#x8BED;&#x6CD5;&#xFF1A;</p>
 <pre><code class="lang-kotlin">sleep(<span class="hljs-number">100.</span>ms)
 </code></pre>
-<p>Types are a good way to pass such information. If you are concerned about efficiency, use inline classes as described in <em>Item 46: Use inline modifier for functions with parameters of functional types</em>. They help us with parameter safety, but they do not solve all problems. Some arguments might still be unclear. Some arguments might still be placed on wrong positions. This is why I still suggest considering named arguments, especially for parameters:</p>
+<p>&#x7C7B;&#x578B;&#x662F;&#x4F20;&#x9012;&#x6B64;&#x7C7B;&#x4FE1;&#x606F;&#x7684;&#x597D;&#x65B9;&#x6CD5;&#x3002;&#x5982;&#x679C;&#x4F60;&#x5173;&#x5FC3;&#x6548;&#x7387;&#xFF0C;&#x53EF;&#x4EE5;&#x4F7F;&#x7528;<em>&#x7B2C;46&#x6761;&#xFF1A;&#x5BF9;&#x5177;&#x6709;&#x529F;&#x80FD;&#x7C7B;&#x578B;&#x53C2;&#x6570;&#x7684;&#x51FD;&#x6570;&#x4F7F;&#x7528;&#x5185;&#x8054;&#x4FEE;&#x9970;&#x7B26;</em>&#x4E2D;&#x63CF;&#x8FF0;&#x7684;&#x5185;&#x8054;&#x7C7B;&#x3002;&#x5B83;&#x4EEC;&#x5E2E;&#x52A9;&#x6211;&#x4EEC;&#x4FDD;&#x8BC1;&#x53C2;&#x6570;&#x7684;&#x5B89;&#x5168;&#x6027;&#xFF0C;&#x4F46;&#x5E76;&#x4E0D;&#x80FD;&#x89E3;&#x51B3;&#x6240;&#x6709;&#x95EE;&#x9898;&#x3002;&#x4E00;&#x4E9B;&#x53C2;&#x6570;&#x53EF;&#x80FD;&#x4ECD;&#x7136;&#x4E0D;&#x6E05;&#x695A;&#x3002;&#x4E00;&#x4E9B;&#x53C2;&#x6570;&#x53EF;&#x80FD;&#x4ECD;&#x7136;&#x88AB;&#x653E;&#x5728;&#x9519;&#x8BEF;&#x7684;&#x4F4D;&#x7F6E;&#x3002;&#x8FD9;&#x5C31;&#x662F;&#x4E3A;&#x4EC0;&#x4E48;&#x6211;&#x4ECD;&#x7136;&#x5EFA;&#x8BAE;&#x8003;&#x8651;&#x4F7F;&#x7528;&#x547D;&#x540D;&#x53C2;&#x6570;&#xFF0C;&#x7279;&#x522B;&#x662F;&#x5BF9;&#x4E8E;&#x53C2;&#x6570;&#xFF1A;</p>
 <ul>
-<li>with default arguments,</li>
-<li>with the same type as other parameters,</li>
-<li>of functional type, if they&#x2019;re not the last parameter.</li>
+<li>&#x5E26;&#x6709;&#x9ED8;&#x8BA4;&#x53C2;&#x6570;&#x7684;&#xFF0C;</li>
+<li>&#x4E0E;&#x5176;&#x4ED6;&#x53C2;&#x6570;&#x7C7B;&#x578B;&#x76F8;&#x540C;&#x7684;&#xFF0C;</li>
+<li>&#x529F;&#x80FD;&#x7C7B;&#x578B;&#x7684;&#xFF0C;&#x5982;&#x679C;&#x5B83;&#x4EEC;&#x4E0D;&#x662F;&#x6700;&#x540E;&#x4E00;&#x4E2A;&#x53C2;&#x6570;&#x3002;</li>
 </ul>
-<h3 id="parameters-with-default-arguments">Parameters with default arguments</h3>
-<p>When a property has a default argument, we should nearly always use it by name. Such optional parameters are changed more often than those that are required. We don&#x2019;t want to miss such a change. Function name generally indicates what are its non-optional arguments, but not what are its optional ones. This is why it is safer and generally cleaner to name optional arguments.<a href="chap65.xhtml#fn-footnote_22_note">4</a></p>
-<h3 id="many-parameters-with-the-same-type">Many parameters with the same type</h3>
-<p>As we said, when parameters have different types, we are generally safe from placing an argument at an incorrect position. There is no such freedom when some parameters have the same type. </p>
+<h3 id="&#x5E26;&#x6709;&#x9ED8;&#x8BA4;&#x53C2;&#x6570;&#x7684;&#x53C2;&#x6570;">&#x5E26;&#x6709;&#x9ED8;&#x8BA4;&#x53C2;&#x6570;&#x7684;&#x53C2;&#x6570;</h3>
+<p>&#x5F53;&#x4E00;&#x4E2A;&#x5C5E;&#x6027;&#x6709;&#x4E00;&#x4E2A;&#x9ED8;&#x8BA4;&#x53C2;&#x6570;&#x65F6;&#xFF0C;&#x6211;&#x4EEC;&#x51E0;&#x4E4E;&#x603B;&#x662F;&#x5E94;&#x8BE5;&#x901A;&#x8FC7;&#x540D;&#x79F0;&#x4F7F;&#x7528;&#x5B83;&#x3002;&#x8FD9;&#x79CD;&#x53EF;&#x9009;&#x53C2;&#x6570;&#x6BD4;&#x90A3;&#x4E9B;&#x5FC5;&#x9700;&#x7684;&#x53C2;&#x6570;&#x66F4;&#x5E38;&#x66F4;&#x6539;&#x3002;&#x6211;&#x4EEC;&#x4E0D;&#x60F3;&#x9519;&#x8FC7;&#x8FD9;&#x6837;&#x7684;&#x53D8;&#x5316;&#x3002;&#x51FD;&#x6570;&#x540D;&#x79F0;&#x901A;&#x5E38;&#x6307;&#x793A;&#x5176;&#x975E;&#x53EF;&#x9009;&#x53C2;&#x6570;&#x662F;&#x4EC0;&#x4E48;&#xFF0C;&#x4F46;&#x4E0D;&#x662F;&#x5176;&#x53EF;&#x9009;&#x53C2;&#x6570;&#x662F;&#x4EC0;&#x4E48;&#x3002;&#x8FD9;&#x5C31;&#x662F;&#x4E3A;&#x4EC0;&#x4E48;&#x547D;&#x540D;&#x53EF;&#x9009;&#x53C2;&#x6570;&#x901A;&#x5E38;&#x66F4;&#x5B89;&#x5168;&#x3001;&#x66F4;&#x6E05;&#x6D01;&#x7684;&#x539F;&#x56E0;&#x3002;</p>
+<h3 id="&#x8BB8;&#x591A;&#x7C7B;&#x578B;&#x76F8;&#x540C;&#x7684;&#x53C2;&#x6570;">&#x8BB8;&#x591A;&#x7C7B;&#x578B;&#x76F8;&#x540C;&#x7684;&#x53C2;&#x6570;</h3>
+<p>&#x6B63;&#x5982;&#x6211;&#x4EEC;&#x6240;&#x8BF4;&#xFF0C;&#x5F53;&#x53C2;&#x6570;&#x6709;&#x4E0D;&#x540C;&#x7684;&#x7C7B;&#x578B;&#x65F6;&#xFF0C;&#x6211;&#x4EEC;&#x901A;&#x5E38;&#x53EF;&#x4EE5;&#x907F;&#x514D;&#x5C06;&#x53C2;&#x6570;&#x653E;&#x5728;&#x9519;&#x8BEF;&#x7684;&#x4F4D;&#x7F6E;&#x3002;&#x4F46;&#x662F;&#xFF0C;&#x5F53;&#x4E00;&#x4E9B;&#x53C2;&#x6570;&#x6709;&#x76F8;&#x540C;&#x7684;&#x7C7B;&#x578B;&#x65F6;&#xFF0C;&#x5C31;&#x6CA1;&#x6709;&#x8FD9;&#x6837;&#x7684;&#x81EA;&#x7531;&#x4E86;&#x3002;</p>
 <pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">sendEmail</span><span class="hljs-params">(to: <span class="hljs-type">String, message: String</span>)</span> { <span class="hljs-comment">/*...*/</span> }</span>
 </code></pre>
-<p>With a function like this, it is good to clarify arguments using names:</p>
+<p>&#x5BF9;&#x4E8E;&#x8FD9;&#x6837;&#x7684;&#x51FD;&#x6570;&#xFF0C;&#x6700;&#x597D;&#x4F7F;&#x7528;&#x540D;&#x79F0;&#x6765;&#x6F84;&#x6E05;&#x53C2;&#x6570;&#xFF1A;</p>
 <pre><code class="lang-kotlin">sendEmail(
    to = <span class="hljs-string">&quot;contact@kt.academy&quot;</span>,
    message = <span class="hljs-string">&quot;Hello, ...&quot;</span>
 )
 </code></pre>
-<h3 id="parameters-of-function-type">Parameters of function type</h3>
-<p>Finally, we should treat parameters with function types specially. There is one special position for such parameters in Kotlin: the last position. Sometimes a function name describes an argument of a function type. For instance, when we see <code>repeat</code>, we expect that a lambda after that is the block of code that should be repeated. When you see <code>thread</code>, it is intuitive that the block after that is the body of this new thread. Such names only describe the function used at the last position. </p>
+<h3 id="&#x529F;&#x80FD;&#x7C7B;&#x578B;&#x7684;&#x53C2;&#x6570;">&#x529F;&#x80FD;&#x7C7B;&#x578B;&#x7684;&#x53C2;&#x6570;</h3>
+<p>&#x6700;&#x540E;&#xFF0C;&#x6211;&#x4EEC;&#x5E94;&#x8BE5;&#x7279;&#x522B;&#x5BF9;&#x5F85;&#x5177;&#x6709;&#x51FD;&#x6570;&#x7C7B;&#x578B;&#x7684;&#x53C2;&#x6570;&#x3002;&#x5728;Kotlin&#x4E2D;&#xFF0C;&#x8FD9;&#x6837;&#x7684;&#x53C2;&#x6570;&#x6709;&#x4E00;&#x4E2A;&#x7279;&#x6B8A;&#x7684;&#x4F4D;&#x7F6E;&#xFF1A;&#x6700;&#x540E;&#x4E00;&#x4E2A;&#x4F4D;&#x7F6E;&#x3002;&#x6709;&#x65F6;&#xFF0C;&#x51FD;&#x6570;&#x540D;&#x63CF;&#x8FF0;&#x4E86;&#x4E00;&#x4E2A;&#x51FD;&#x6570;&#x7C7B;&#x578B;&#x7684;&#x53C2;&#x6570;&#x3002;&#x4F8B;&#x5982;&#xFF0C;&#x5F53;&#x6211;&#x4EEC;&#x770B;&#x5230;<code>repeat</code>&#x65F6;&#xFF0C;&#x6211;&#x4EEC;&#x671F;&#x671B;&#x5728;&#x5176;&#x540E;&#x7684;lambda&#x662F;&#x5E94;&#x8BE5;&#x88AB;&#x91CD;&#x590D;&#x7684;&#x4EE3;&#x7801;&#x5757;&#x3002;&#x5F53;&#x4F60;&#x770B;&#x5230;<code>thread</code>&#x65F6;&#xFF0C;&#x76F4;&#x89C2;&#x5730;&#x8BA4;&#x4E3A;&#x5728;&#x5176;&#x540E;&#x7684;&#x5757;&#x662F;&#x8FD9;&#x4E2A;&#x65B0;&#x7EBF;&#x7A0B;&#x7684;&#x4E3B;&#x4F53;&#x3002;&#x8FD9;&#x6837;&#x7684;&#x540D;&#x79F0;&#x53EA;&#x63CF;&#x8FF0;&#x4E86;&#x5728;&#x6700;&#x540E;&#x4F4D;&#x7F6E;&#x4F7F;&#x7528;&#x7684;&#x51FD;&#x6570;&#x3002;</p>
 <pre><code class="lang-kotlin">thread {
    <span class="hljs-comment">// ...</span>
 }
 </code></pre>
-<p>All other arguments with function types should be named because it is easy to misinterpret them. For instance, take a look at this simple view DSL:</p>
+<p>&#x6240;&#x6709;&#x5176;&#x4ED6;&#x5177;&#x6709;&#x51FD;&#x6570;&#x7C7B;&#x578B;&#x7684;&#x53C2;&#x6570;&#x90FD;&#x5E94;&#x8BE5;&#x88AB;&#x547D;&#x540D;&#xFF0C;&#x56E0;&#x4E3A;&#x5F88;&#x5BB9;&#x6613;&#x8BEF;&#x89E3;&#x5B83;&#x4EEC;&#x3002;&#x4F8B;&#x5982;&#xFF0C;&#x770B;&#x770B;&#x8FD9;&#x4E2A;&#x7B80;&#x5355;&#x7684;&#x89C6;&#x56FE;DSL&#xFF1A;</p>
 <pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> view</span> = linearLayout {
    text(<span class="hljs-string">&quot;Click below&quot;</span>)
    button({ <span class="hljs-comment">/* 1 */</span> }, { <span class="hljs-comment">/* 2 */</span> })
 }
 </code></pre>
-<p>Which function is a part of this builder and which one is an on-click listener? We should clarify it by naming the listener and moving builder outside of arguments:</p>
+<p>&#x54EA;&#x4E2A;&#x51FD;&#x6570;&#x662F;&#x8FD9;&#x4E2A;&#x6784;&#x5EFA;&#x5668;&#x7684;&#x4E00;&#x90E8;&#x5206;&#xFF0C;&#x54EA;&#x4E2A;&#x662F;&#x70B9;&#x51FB;&#x76D1;&#x542C;&#x5668;&#xFF1F;&#x6211;&#x4EEC;&#x5E94;&#x8BE5;&#x901A;&#x8FC7;&#x547D;&#x540D;&#x76D1;&#x542C;&#x5668;&#x5E76;&#x5C06;&#x6784;&#x5EFA;&#x5668;&#x79FB;&#x51FA;&#x53C2;&#x6570;&#x6765;&#x6F84;&#x6E05;&#x8FD9;&#x4E00;&#x70B9;&#xFF1A;</p>
 <pre><code class="lang-kotlin"><span class="hljs-variable"><span class="hljs-keyword">val</span> view</span> = linearLayout {
    text(<span class="hljs-string">&quot;Click below&quot;</span>)
    button(onClick = { <span class="hljs-comment">/* 1 */</span> }) {
@@ -1207,7 +1207,7 @@
    }
 }
 </code></pre>
-<p>Multiple optional arguments of a function type can be especially confusing:</p>
+<p>&#x51FD;&#x6570;&#x7C7B;&#x578B;&#x7684;&#x591A;&#x4E2A;&#x53EF;&#x9009;&#x53C2;&#x6570;&#x53EF;&#x80FD;&#x4F1A;&#x7279;&#x522B;&#x4EE4;&#x4EBA;&#x56F0;&#x60D1;&#xFF1A;</p>
 <pre><code class="lang-kotlin"><span class="hljs-function"><span class="hljs-keyword">fun</span> <span class="hljs-title">call</span><span class="hljs-params">(before: <span class="hljs-type">(</span>)</span>-&gt;<span class="hljs-keyword">Unit</span> = {}, after: <span class="hljs-params">()</span>-&gt;<span class="hljs-keyword">Unit</span> = {}){</span>
    before()
    print(<span class="hljs-string">&quot;Middle&quot;</span>)
@@ -1217,17 +1217,17 @@
 call({ print(<span class="hljs-string">&quot;CALL&quot;</span>) }) <span class="hljs-comment">// CALLMiddle</span>
 call { print(<span class="hljs-string">&quot;CALL&quot;</span>) }  <span class="hljs-comment">// MiddleCALL</span>
 </code></pre>
-<p>To prevent such situations, when there is no single argument of a function type with special meaning, name them all:</p>
+<p>&#x4E3A;&#x4E86;&#x9632;&#x6B62;&#x8FD9;&#x79CD;&#x60C5;&#x51B5;&#xFF0C;&#x5F53;&#x6CA1;&#x6709;&#x4E00;&#x4E2A;&#x5177;&#x6709;&#x7279;&#x6B8A;&#x542B;&#x4E49;&#x7684;&#x51FD;&#x6570;&#x7C7B;&#x578B;&#x7684;&#x53C2;&#x6570;&#x65F6;&#xFF0C;&#x7ED9;&#x5B83;&#x4EEC;&#x5168;&#x90E8;&#x547D;&#x540D;&#xFF1A;</p>
 <pre><code class="lang-kotlin">call(before = { print(<span class="hljs-string">&quot;CALL&quot;</span>) }) <span class="hljs-comment">// CALLMiddle</span>
 call(after = { print(<span class="hljs-string">&quot;CALL&quot;</span>) })  <span class="hljs-comment">// MiddleCALL</span>
 </code></pre>
-<p>This is especially true for reactive libraries. For instance, in RxJava when we subscribe to an <code>Observable</code>, we can set functions that should be called:</p>
+<p>&#x5BF9;&#x4E8E;&#x53CD;&#x5E94;&#x5F0F;&#x5E93;&#x6765;&#x8BF4;&#xFF0C;&#x8FD9;&#x4E00;&#x70B9;&#x5C24;&#x5176;&#x91CD;&#x8981;&#x3002;&#x4F8B;&#x5982;&#xFF0C;&#x5728;RxJava&#x4E2D;&#xFF0C;&#x5F53;&#x6211;&#x4EEC;&#x8BA2;&#x9605;&#x4E00;&#x4E2A;<code>Observable</code>&#x65F6;&#xFF0C;&#x6211;&#x4EEC;&#x53EF;&#x4EE5;&#x8BBE;&#x7F6E;&#x5E94;&#x8BE5;&#x88AB;&#x8C03;&#x7528;&#x7684;&#x51FD;&#x6570;&#xFF1A;</p>
 <ul>
-<li>on every received item</li>
-<li>in case of error,</li>
-<li>after the observable is finished. </li>
+<li>&#x5728;&#x6BCF;&#x4E2A;&#x63A5;&#x6536;&#x5230;&#x7684;&#x9879;&#x76EE;&#x4E0A;</li>
+<li>&#x5728;&#x51FA;&#x73B0;&#x9519;&#x8BEF;&#x7684;&#x60C5;&#x51B5;&#x4E0B;</li>
+<li>&#x5728;observable&#x5B8C;&#x6210;&#x540E;</li>
 </ul>
-<p>In Java I&#x2019;ve often seen people setting them up using lambda expressions, and specifying in comments which method each lambda expression is:</p>
+<p>&#x5728;Java&#x4E2D;&#xFF0C;&#x6211;&#x7ECF;&#x5E38;&#x770B;&#x5230;&#x4EBA;&#x4EEC;&#x4F7F;&#x7528;lambda&#x8868;&#x8FBE;&#x5F0F;&#x6765;&#x8BBE;&#x7F6E;&#x5B83;&#x4EEC;&#xFF0C;&#x5E76;&#x5728;&#x6CE8;&#x91CA;&#x4E2D;&#x6307;&#x5B9A;&#x6BCF;&#x4E2A;lambda&#x8868;&#x8FBE;&#x5F0F;&#x662F;&#x54EA;&#x4E2A;&#x65B9;&#x6CD5;&#x3002;</p>
 <pre><code class="lang-kotlin"><span class="hljs-comment">// Java</span>
 observable.getUsers()
        .subscribe((List<span class="hljs-type">&lt;User&gt;</span> users) -&gt; { <span class="hljs-comment">// onNext</span>
@@ -1238,7 +1238,7 @@ observable.getUsers()
            <span class="hljs-comment">// ...</span>
        });
 </code></pre>
-<p>In Kotlin we can make a step forward and use named arguments instead:</p>
+<p>&#x5728; Kotlin &#x4E2D;&#xFF0C;&#x6211;&#x4EEC;&#x53EF;&#x4EE5;&#x8FDB;&#x4E00;&#x6B65;&#x4F7F;&#x7528;&#x547D;&#x540D;&#x53C2;&#x6570;&#xFF1A;</p>
 <pre><code class="lang-kotlin">observable.getUsers()
    .subscribeBy(
        onNext = { users: List<span class="hljs-type">&lt;User&gt;</span> -&gt;
@@ -1251,9 +1251,9 @@ observable.getUsers()
            <span class="hljs-comment">// ...</span>
        })
 </code></pre>
-<p>Notice that I changed function name from <code>subscribe</code> to <code>subscribeBy</code>. It is because <code>RxJava</code> is written in Java and <strong>we cannot use named arguments when we call Java functions</strong>. It is because Java does not preserve information about function names. To be able to use named arguments we often need to make our Kotlin wrappers for those functions (extension functions that are alternatives to those functions). </p>
-<h3 id="summary">Summary</h3>
-<p>Named arguments are not only useful when we need to skip some default values. They are important information for developers reading our code, and they can improve the safety of our code. We should consider them especially when we have more parameters with the same type (or with functional types) and for optional arguments. When we have multiple parameters with functional types, they should almost always be named. An exception is the last function argument when it has a special meaning, like in DSL.</p>
+<p>&#x6CE8;&#x610F;&#xFF0C;&#x6211;&#x5C06;&#x51FD;&#x6570;&#x540D;&#x4ECE; <code>subscribe</code> &#x66F4;&#x6539;&#x4E3A; <code>subscribeBy</code>&#x3002;&#x8FD9;&#x662F;&#x56E0;&#x4E3A; <code>RxJava</code> &#x662F;&#x7528; Java &#x7F16;&#x5199;&#x7684;&#xFF0C;<strong>&#x6211;&#x4EEC;&#x5728;&#x8C03;&#x7528; Java &#x51FD;&#x6570;&#x65F6;&#x4E0D;&#x80FD;&#x4F7F;&#x7528;&#x547D;&#x540D;&#x53C2;&#x6570;</strong>&#x3002;&#x8FD9;&#x662F;&#x56E0;&#x4E3A; Java &#x4E0D;&#x4FDD;&#x7559;&#x6709;&#x5173;&#x51FD;&#x6570;&#x540D;&#x79F0;&#x7684;&#x4FE1;&#x606F;&#x3002;&#x4E3A;&#x4E86;&#x80FD;&#x591F;&#x4F7F;&#x7528;&#x547D;&#x540D;&#x53C2;&#x6570;&#xFF0C;&#x6211;&#x4EEC;&#x901A;&#x5E38;&#x9700;&#x8981;&#x4E3A;&#x8FD9;&#x4E9B;&#x51FD;&#x6570;&#x5236;&#x4F5C;&#x6211;&#x4EEC;&#x7684; Kotlin &#x5305;&#x88C5;&#x5668;&#xFF08;&#x4F5C;&#x4E3A;&#x8FD9;&#x4E9B;&#x51FD;&#x6570;&#x7684;&#x66FF;&#x4EE3;&#x65B9;&#x6848;&#x7684;&#x6269;&#x5C55;&#x51FD;&#x6570;&#xFF09;&#x3002;</p>
+<h3 id="&#x603B;&#x7ED3;">&#x603B;&#x7ED3;</h3>
+<p>&#x547D;&#x540D;&#x53C2;&#x6570;&#x4E0D;&#x4EC5;&#x5728;&#x6211;&#x4EEC;&#x9700;&#x8981;&#x8DF3;&#x8FC7;&#x4E00;&#x4E9B;&#x9ED8;&#x8BA4;&#x503C;&#x65F6;&#x6709;&#x7528;&#x3002;&#x5B83;&#x4EEC;&#x5BF9;&#x4E8E;&#x9605;&#x8BFB;&#x6211;&#x4EEC;&#x4EE3;&#x7801;&#x7684;&#x5F00;&#x53D1;&#x4EBA;&#x5458;&#x6765;&#x8BF4;&#x662F;&#x91CD;&#x8981;&#x7684;&#x4FE1;&#x606F;&#xFF0C;&#x5B83;&#x4EEC;&#x53EF;&#x4EE5;&#x63D0;&#x9AD8;&#x6211;&#x4EEC;&#x4EE3;&#x7801;&#x7684;&#x5B89;&#x5168;&#x6027;&#x3002;&#x5F53;&#x6211;&#x4EEC;&#x6709;&#x66F4;&#x591A;&#x76F8;&#x540C;&#x7C7B;&#x578B;&#x7684;&#x53C2;&#x6570;&#xFF08;&#x6216;&#x5177;&#x6709;&#x529F;&#x80FD;&#x7C7B;&#x578B;&#x7684;&#x53C2;&#x6570;&#xFF09;&#x548C;&#x53EF;&#x9009;&#x53C2;&#x6570;&#x65F6;&#xFF0C;&#x6211;&#x4EEC;&#x5E94;&#x8BE5;&#x8003;&#x8651;&#x5B83;&#x4EEC;&#x3002;&#x5F53;&#x6211;&#x4EEC;&#x6709;&#x591A;&#x4E2A;&#x5177;&#x6709;&#x529F;&#x80FD;&#x7C7B;&#x578B;&#x7684;&#x53C2;&#x6570;&#x65F6;&#xFF0C;&#x5B83;&#x4EEC;&#x51E0;&#x4E4E;&#x603B;&#x662F;&#x5E94;&#x8BE5;&#x88AB;&#x547D;&#x540D;&#x3002;&#x4F8B;&#x5916;&#x60C5;&#x51B5;&#x662F;&#x6700;&#x540E;&#x4E00;&#x4E2A;&#x51FD;&#x6570;&#x53C2;&#x6570;&#xFF0C;&#x5F53;&#x5B83;&#x5177;&#x6709;&#x7279;&#x6B8A;&#x542B;&#x4E49;&#xFF0C;&#x5982;&#x5728; DSL &#x4E2D;&#x3002;</p>
 
                                 
                                 </section>
@@ -1297,7 +1297,7 @@ observable.getUsers()
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Item 17 Consider Naming Arguments","level":"1.2.2.8","depth":3,"next":{"title":"Item 18 Respect Coding Conventions","level":"1.2.2.9","depth":3,"path":"Part 1 Good code/Chapter 2 Readability/Item 18 Respect coding conventions.md","ref":"Part 1 Good code/Chapter 2 Readability/Item 18 Respect coding conventions.md","articles":[]},"previous":{"title":"第16条：属性应代表状态，而不是行为","level":"1.2.2.7","depth":3,"path":"Part 1 Good code/Chapter 2 Readability/Item 16 Properties should represent state not behavior.md","ref":"Part 1 Good code/Chapter 2 Readability/Item 16 Properties should represent state not behavior.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 1 Good code/Chapter 2 Readability/Item 17 Consider naming arguments.md","mtime":"2023-08-24T15:13:50.512Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2023-08-24T15:14:40.456Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"第17条：考虑命名参数","level":"1.2.2.8","depth":3,"next":{"title":"Item 18 Respect Coding Conventions","level":"1.2.2.9","depth":3,"path":"Part 1 Good code/Chapter 2 Readability/Item 18 Respect coding conventions.md","ref":"Part 1 Good code/Chapter 2 Readability/Item 18 Respect coding conventions.md","articles":[]},"previous":{"title":"第16条：属性应代表状态，而不是行为","level":"1.2.2.7","depth":3,"path":"Part 1 Good code/Chapter 2 Readability/Item 16 Properties should represent state not behavior.md","ref":"Part 1 Good code/Chapter 2 Readability/Item 16 Properties should represent state not behavior.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"Part 1 Good code/Chapter 2 Readability/Item 17 Consider naming arguments.md","mtime":"2023-08-30T15:28:29.764Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2023-08-30T15:29:03.602Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
