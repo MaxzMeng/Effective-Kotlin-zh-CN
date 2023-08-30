@@ -34,7 +34,7 @@ Effective Kotlin 中文翻译
         - [x] 第15条：考虑明确指定接收者
         - [x] 第16条：属性应代表状态，而不是行为
         - [x] 第17条：考虑命名参数
-        - [ ] Item 18 Respect Coding Conventions
+        - [x] 第18条：尊重编码规范
 - Part 2 Code Design
     - Chapter 3 Reusability
         - [ ] Introduction

@@ -22,7 +22,7 @@
     * [第15条：考虑明确指定接收者](Part 1 Good code/Chapter 2 Readability/Item 15 Consider referencing receivers explicitly.md)
     * [第16条：属性应代表状态，而不是行为](Part 1 Good code/Chapter 2 Readability/Item 16 Properties should represent state not behavior.md)
     * [第17条：考虑命名参数](Part 1 Good code/Chapter 2 Readability/Item 17 Consider naming arguments.md)
-    * [Item 18 Respect Coding Conventions](Part 1 Good code/Chapter 2 Readability/Item 18 Respect coding conventions.md)
+    * [第18条：尊重编码规范](Part 1 Good code/Chapter 2 Readability/Item 18 Respect coding conventions.md)
 - Part 2 Code Design
   - Chapter 3 Reusability
     * [Introduction](Part 2 Code design/Chapter 3 Reusability/Introduction.md)

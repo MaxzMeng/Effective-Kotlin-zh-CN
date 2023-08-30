@@ -1,36 +1,35 @@
-## Item 18: Respect coding conventions
+## 第18条：尊重编码规范
 
-Kotlin has well-established coding conventions described in the documentation in a section aptly called “Coding Conventions”. **Those conventions are not optimal for all projects, but it is optimal for us as a community to have conventions that are respected in all projects.** Thanks to them:
+Kotlin有着在文档中详细描述的成熟编码规范，这部分被恰当地称为“编码规范”。**这些规范并不适用于所有项目，但对我们这个社区来说，最好的方式是在所有项目中都遵守这些规范。**多亏了这些规范：
 
-- It is easier to switch between projects
-- Code is more readable even for external developers
-- It is easier to guess how code works
-- It is easier to later merge code with a common repository or to move some parts of code from one project to another
+- 在项目之间切换更容易
+- 代码对外部开发者来说更易读
+- 更容易猜测代码如何运行
+- 更容易将代码与公共仓库合并，或者将代码的某些部分从一个项目移动到另一个项目
 
-Programmers should get familiar with those conventions as they are described in the documentation. They should also be respected when they change - which might happen to some degree over time. Since it is hard to do both, there are two tools that help:
+程序员应该熟悉文档中描述的这些规范。他们也应该在规范变化时尊重这些规范 - 这可能会在一定程度上随着时间的推移发生。由于这两者都很难做到，所以有两个工具可以帮助：
 
-- The IntelliJ formatter can be set up to automatically format according to the official Coding Conventions style. For that go to Settings | Editor | Code Style | Kotlin, click on “Set from…” link in the upper right corner, and select “Predefined style / Kotlin style guide” from the menu.
-- ktlint - popular linter that analyzes your code and notifies you about all coding conventions violations.
+- IntelliJ格式化器可以设置为自动按照官方编码规范样式进行格式化。为此，转到设置 | 编辑器 | 代码样式 | Kotlin，点击右上角的“Set from…”链接，并从菜单中选择“预定义样式 / Kotlin样式指南”。
+- ktlint - 流行的linter，可以分析你的代码并通知你所有的编码规范违规情况。
 
-Looking at Kotlin projects, I see that most of them are intuitively consistent with most of the conventions. This is probably because Kotlin mostly follows the Java coding conventions, and most Kotlin developers today are post-Java developers. One rule that I see often violated is how classes and functions should be formatted. According to the conventions, classes with a short primary-constructor can be defined in a single line:
+看看Kotlin项目，我发现大多数项目都与大多数规范直观地一致。这可能是因为Kotlin主要遵循Java编码规范，而大多数现在的Kotlin开发者都是Java开发者。我经常看到被违反的一条规则是类和函数应该如何格式化。根据规范，带有短主构造函数的类可以在一行中定义：
 
 ```
 class FullName(val name: String, val surname: String)
 ```
 
-However, classes with many parameters should be formatted in a way so that every parameter is on another line, and there is no parameter in the first line:
-
+然而，带有许多参数的类应该格式化，使得每个参数都在另一行，且第一行没有参数：
 ``` kotlin
 class Person(
     val id: Int = 0,
     val name: String = "",
     val surname: String = ""
 ) : Human(id, name) { 
-    // body
+    // 主体
 }
 ```
 
-Similarly, this is how we format a long function:
+同样，这是我们如何格式化一个长函数的方式：
 
 ``` kotlin
 public fun <T> Iterable<T>.joinToString(
@@ -45,22 +44,22 @@ public fun <T> Iterable<T>.joinToString(
 }
 ```
 
-Notice that those two are very different from the convention that leaves the first parameter in the same line and then indents all others to it. 
+注意，这两种方式与将第一个参数留在同一行，然后将所有其他参数缩进到它的约定非常不同。
 
 ``` kotlin
-// Don’t do that
+// 不要这样做
 class Person(val id: Int = 0,
              val name: String = "",
              val surname: String = "") : Human(id, name){ 
-    // body
+    // 主体
 }
 ```
 
-It can be problematic in 2 ways:
+这可能会有两个问题：
 
-- Arguments on every class start with a different indentation based on the class name. Also, when we change the class name, we need to adjust the indentations of all primary constructor parameters.
-- Classes defined this way tend to be still too wide. Width of the class defined this way is the class name with `class` keyword and the longest primary constructor parameter, or last parameter plus superclasses and interfaces. 
+- 每个类的参数都以类名不同的缩进开始。此外，当我们更改类名时，我们需要调整所有主构造函数参数的缩进。
+- 这样定义的类仍然过于宽泛。这种方式定义的类的宽度是类名、`class`关键字和最长的主构造函数参数，或者最后一个参数加上超类和接口。
 
-Some teams might decide to use slightly different conventions. This is fine, but then those conventions should be respected all around the given project. **Every project should look like it was written by a single person, not a group of people fighting with each other.**
+一些团队可能决定使用稍微不同的约定。这没问题，但那么这些约定应该在整个项目中得到尊重。**每个项目看起来都应该像是由一个人编写的，而不是一群人在互相斗争。**
 
-Coding conventions are often not respected enough by developers, but they are important, and a chapter dedicated to readability in a best practices book couldn’t be closed without at least a short section dedicated to them. Read them, use static checkers to help you be consistent with them, apply them in your projects. By respecting coding conventions, we make Kotlin projects better for us all.
+编码约定通常不被开发者足够尊重，但它们很重要，而且在最佳实践书籍中关于可读性的章节中，不能没有至少一个简短的部分专门讨论它们。阅读它们，使用静态检查器帮助你与它们保持一致，将它们应用在你的项目中。通过尊重编码约定，我们使Kotlin项目对我们所有人都更好。
